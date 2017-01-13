@@ -1,0 +1,14 @@
+{
+  "name": "oscar-assistant-api",
+  "version": "0.1.0",
+  "description": "API server for OSCAR assistant",
+  "homepage": "https://github.com/eheikes/oscar/api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eheikes/oscar/api.git"
+  },
+  "main": "index.js",
+  "scripts": {},
+  "author": "Eric Heikes <eheikes@gmail.com>",
+  "license": "Apache-2.0"
+}
