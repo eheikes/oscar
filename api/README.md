@@ -2,11 +2,16 @@
 
 This project contains the API server for the OSCAR assistant.
 
-## Installation
+## Requirements
 
-```
-$ npm install oscar-assistant-api
-```
+* [Node.js](https://nodejs.org/) or similar runtime
+* PostgreSQL, MySQL, SQLite, or MSSQL database
+
+## Installation & Usage
+
+1. Install the software using npm (`npm install oscar-assistant-api`) or download it from [GitHub](https://github.com/eheikes/oscar/api).
+2. Configure the software for you database. Create a configuration file in the `config` folder for your environment, such as `production.yaml` or `local.yaml` (see [the configuration file documentation](https://github.com/lorenwest/node-config/wiki/Configuration-Files)). [The Sequelize documentation](http://sequelize.readthedocs.io/en/latest/api/sequelize/#new-sequelizedatabase-usernamenull-passwordnull-options) contains the available options.
+3. Run `npm start` to start the server.
 
 ## API Reference
 
@@ -50,11 +55,13 @@ Returns the most recent logs for a collector. By default it returns the logs in 
 [{
   "id": 8959,
   "timestamp": "2017-01-13T02:31:35+00:00",
-  "log": "multiline output\nnext line"
+  "log": "multiline output\nnext line",
+  "numErrors": 0
 }, {
   "id": 8958,
   "timestamp": "2017-01-12T02:31:35+00:00",
-  "log": "multiline output\nnext line"
+  "log": "multiline output\nnext line",
+  "numErrors": 2
 }]
 ```
 
@@ -173,4 +180,14 @@ Marks an item as deleted. Returns the changed item with the `deleted` time.
   "rank": 6.52593,
   "expectedRank": 6
 }
+```
+
+## Development
+
+If you want to make changes to the software, the following npm scripts are available:
+
+```
+npm run lint   # checks the code for errors
+npm run build  # compiles the source code and saves it into the "build" folder
+npm test       # runs the test suite
 ```
