@@ -9,8 +9,8 @@ This project contains the API server for the OSCAR assistant.
 
 ## Installation & Usage
 
-1. Install the software using npm (`npm install oscar-assistant-api`) or download it from [GitHub](https://github.com/eheikes/oscar/api).
-2. Configure the software for you database. Create a configuration file in the `config` folder for your environment, such as `production.yaml` or `local.yaml` (see [the configuration file documentation](https://github.com/lorenwest/node-config/wiki/Configuration-Files)). [The Sequelize documentation](http://sequelize.readthedocs.io/en/latest/api/sequelize/#new-sequelizedatabase-usernamenull-passwordnull-options) contains the available options.
+1. Install the software using npm (`npm install oscar-assistant-api`).
+2. Configure the software for your database. Create a configuration file in the `config` folder for your environment, such as `production.yaml` or `local.yaml` (see [the configuration file documentation](https://github.com/lorenwest/node-config/wiki/Configuration-Files)). [The Sequelize documentation](http://sequelize.readthedocs.io/en/latest/api/sequelize/#new-sequelizedatabase-usernamenull-passwordnull-options) contains the available options.
 3. Run `npm start` to start the server.
 
 ## API Reference
