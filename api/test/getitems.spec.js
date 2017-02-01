@@ -50,6 +50,7 @@ describe('getItems() handler', () => {
         expectedRank: null,
         createdAt: '2017-01-01T00:00:00.000Z',
         updatedAt: '2017-01-01T00:00:00.000Z',
+        deletedAt: null,
         type_id: testTypes[0].id // eslint-disable-line camelcase
       }, {
         id: 2,
@@ -64,6 +65,7 @@ describe('getItems() handler', () => {
         expectedRank: null,
         createdAt: '2017-01-02T00:00:00.000Z',
         updatedAt: '2017-01-02T00:00:00.000Z',
+        deletedAt: null,
         type_id: testTypes[1].id // eslint-disable-line camelcase
       }, {
         id: 3,
@@ -78,6 +80,7 @@ describe('getItems() handler', () => {
         expectedRank: null,
         createdAt: '2017-01-03T00:00:00.000Z',
         updatedAt: '2017-01-03T00:00:00.000Z',
+        deletedAt: null,
         type_id: testTypes[0].id // eslint-disable-line camelcase
       }];
     }).then(done);
@@ -136,6 +139,19 @@ describe('getItems() handler', () => {
 
     it('should continue to the next middleware', () => {
       expect(next).toHaveBeenCalled();
+    });
+
+    it('should exclude deleted items', done => {
+      db.items.destroy({
+        where: { id: testItems[2].id }
+      }).then(() => {
+        return getItems(req, res, next); // request again
+      }).then(() => {
+        let expected = [
+          testItems[0]
+        ];
+        expect(res).toSendData(expected);
+      }).then(done);
     });
 
   });

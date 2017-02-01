@@ -77,7 +77,9 @@ class Database {
         field: 'expected_rank'
       }
     }, {
-      freezeTableName: true
+      freezeTableName: true,
+      timestamps: true,
+      paranoid: true // adds deletedAt
     });
 
     this.types = this.sequelize.define('types', {

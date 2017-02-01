@@ -28,7 +28,8 @@ describe('getItem() handler', () => {
     rank: 6.7,
     expectedRank: 7.1,
     createdAt: '2017-01-01T00:00:00.000Z',
-    updatedAt: '2017-01-01T00:00:00.000Z'
+    updatedAt: '2017-01-01T00:00:00.000Z',
+    deletedAt: null
   };
 
   let db, getItem, req, res, next;
