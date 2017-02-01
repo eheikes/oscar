@@ -37,7 +37,10 @@ module.exports = function(db) {
     return db.collectorLogs.findAll({
       where: {
         collector_id: req.params.collectorId // eslint-disable-line camelcase
-      }
+      },
+      order: [
+        ['timestamp', 'DESC']
+      ]
     }).then(results => {
       res.send(results.map(getData));
       next();

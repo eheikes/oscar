@@ -104,8 +104,16 @@ describe('getCollectorLogs() handler', () => {
 
     it('should respond with the items matching the collector ID', () => {
       let expected = [
-        testLogs[0],
-        testLogs[2]
+        testLogs[2],
+        testLogs[0]
+      ];
+      expect(res).toSendData(expected);
+    });
+
+    it('should respond with the items in chronological descending order', () => {
+      let expected = [
+        testLogs[2],
+        testLogs[0]
       ];
       expect(res).toSendData(expected);
     });
