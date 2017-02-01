@@ -1,5 +1,7 @@
 'use strict';
 
+const { NotFoundError } = require('restify');
+
 module.exports = function (db) {
   return {
     getCollector: getCollector,
@@ -16,7 +18,11 @@ module.exports = function (db) {
 
   function getCollector(req, res, next) {
     return db.collectors.findById(req.params.collectorId).then(result => {
-      res.send(getData(result));
+      if (result) {
+        res.send(getData(result));
+      } else {
+        res.send(new NotFoundError('Cannot find collector'));
+      }
       next();
     });
   }

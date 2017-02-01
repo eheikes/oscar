@@ -9,15 +9,44 @@ const tempfile = require('tempfile');
 let toSendData = (util, customEqualityTesters) => {
   return {
     compare: (actual, expected) => {
-      // Jasmine's util.equals() doesn't work, so JSON.stringify() the values.
-      let response = JSON.stringify(actual.send.calls.mostRecent().args[0]);
-      expected = JSON.stringify(expected);
-      let result = { pass: response === expected };
+      let result;
+      if (expected) {
+        // Jasmine's util.equals() doesn't work, so JSON.stringify() the values.
+        let response = JSON.stringify(actual.send.calls.mostRecent().args[0]);
+        expected = JSON.stringify(expected);
+        result = { pass: response === expected };
+        result.message = 'Expected send() spy ';
+        if (result.pass) {
+          result.message += `to not send data ${expected}.`;
+        } else {
+          result.message += `to send data ${expected}, but it sent ${response}.`;
+        }
+      } else {
+        result = { pass: actual.send.calls.any() };
+        result.message = 'Expected send() spy ';
+        if (result.pass) {
+          result.message += 'to not send data.';
+        } else {
+          result.message += 'to send data, but it did.';
+        }
+      }
+      return result;
+    }
+  };
+};
+
+// Jasmine matcher to check if the passed response object
+//   invoked send() with the expected error.
+let toSendError = (util, customEqualityTesters) => {
+  return {
+    compare: (actual, expected) => {
+      let error = actual.send.calls.mostRecent().args[0];
+      let result = { pass: error.statusCode === expected };
       result.message = 'Expected send() spy ';
       if (result.pass) {
-        result.message += `to not send data ${expected}.`;
+        result.message += `to not send error of ${expected}.`;
       } else {
-        result.message += `to send data ${expected}, but it sent ${response}.`;
+        result.message += `to send error of ${expected}, but it sent ${error.statusCode}.`;
       }
       return result;
     }
@@ -48,12 +77,10 @@ exports.createRequest = params => {
 };
 
 exports.createResponseStub = () => {
-  return jasmine.createSpyObj('res', ['send']);
+  return jasmine.createSpyObj('res', ['send', 'status']);
 };
 
-exports.customMatchers = {
-  toSendData: toSendData
-};
+exports.customMatchers = { toSendData, toSendError };
 
 exports.deleteDatabase = filename => {
   fs.unlinkSync(filename);

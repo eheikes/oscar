@@ -53,4 +53,21 @@ describe('getCollector() handler', () => {
 
   });
 
+  describe('when the item does not exist', () => {
+
+    beforeEach(done => {
+      req = createRequest({ collectorId: 'nonexistent' });
+      getCollector(req, res, next).then(done);
+    });
+
+    it('should respond with a 404 error', () => {
+      expect(res).toSendError(404); // eslint-disable-line no-magic-numbers
+    });
+
+    it('should continue to the next middleware', () => {
+      expect(next).toHaveBeenCalled();
+    });
+
+  });
+
 });
