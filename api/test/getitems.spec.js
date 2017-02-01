@@ -46,7 +46,7 @@ describe('getItems() handler', () => {
         length: null,
         rating: null,
         due: null,
-        rank: null,
+        rank: 6,
         expectedRank: null,
         createdAt: '2017-01-01T00:00:00.000Z',
         updatedAt: '2017-01-01T00:00:00.000Z',
@@ -61,7 +61,7 @@ describe('getItems() handler', () => {
         length: null,
         rating: null,
         due: null,
-        rank: null,
+        rank: 7,
         expectedRank: null,
         createdAt: '2017-01-02T00:00:00.000Z',
         updatedAt: '2017-01-02T00:00:00.000Z',
@@ -70,6 +70,21 @@ describe('getItems() handler', () => {
       }, {
         id: 3,
         url: 'http://example.com/3',
+        title: 'Example Site',
+        author: null,
+        summary: null,
+        length: null,
+        rating: null,
+        due: null,
+        rank: 8,
+        expectedRank: null,
+        createdAt: '2017-01-03T00:00:00.000Z',
+        updatedAt: '2017-01-03T00:00:00.000Z',
+        deletedAt: null,
+        type_id: testTypes[0].id // eslint-disable-line camelcase
+      }, {
+        id: 4,
+        url: 'http://example.com/4',
         title: 'Example Site',
         author: null,
         summary: null,
@@ -131,8 +146,18 @@ describe('getItems() handler', () => {
 
     it('should respond with the items matching the type ID', () => {
       let expected = [
+        testItems[2],
         testItems[0],
-        testItems[2]
+        testItems[3]
+      ];
+      expect(res).toSendData(expected);
+    });
+
+    it('should sort the items by rank descending', () => {
+      let expected = [
+        testItems[2],
+        testItems[0],
+        testItems[3]
       ];
       expect(res).toSendData(expected);
     });
@@ -148,7 +173,8 @@ describe('getItems() handler', () => {
         return getItems(req, res, next); // request again
       }).then(() => {
         let expected = [
-          testItems[0]
+          testItems[0],
+          testItems[3]
         ];
         expect(res).toSendData(expected);
       }).then(done);

@@ -63,7 +63,10 @@ module.exports = function(db) {
     return db.items.findAll({
       where: {
         type_id: req.params.typeId // eslint-disable-line camelcase
-      }
+      },
+      order: [
+        ['rank', 'DESC']
+      ]
     }).then(results => {
       res.send(results.map(getData));
       next();
