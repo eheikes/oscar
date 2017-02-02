@@ -59,10 +59,15 @@ module.exports = function (db) {
   }
 
   function getItems(req, res, next) {
+    let offset = Number(req.params.start) || 0;
+    let limit = Number(req.params.limit) || 20;
+    limit = Math.min(limit, 1000);
     return db.items.findAll({
       where: {
         type_id: req.params.typeId // eslint-disable-line camelcase
       },
+      offset: offset,
+      limit: limit,
       order: [['rank', 'DESC']]
     }).then(results => {
       res.send(results.map(getData));

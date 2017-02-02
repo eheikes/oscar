@@ -180,6 +180,28 @@ describe('getItems() handler', () => {
       }).then(done);
     });
 
+    it('should accept a "start" param', done => {
+      req = createRequest({ typeId: matchingTypeId, start: 1 });
+      getItems(req, res, next).then(() => {
+        let expected = [
+          testItems[0],
+          testItems[3]
+        ];
+        expect(res).toSendData(expected);
+      }).then(done);
+    });
+
+    it('should accept a "limit" param', done => {
+      req = createRequest({ typeId: matchingTypeId, limit: 2 });
+      getItems(req, res, next).then(() => {
+        let expected = [
+          testItems[2],
+          testItems[0]
+        ];
+        expect(res).toSendData(expected);
+      }).then(done);
+    });
+
   });
 
 });
