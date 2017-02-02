@@ -53,7 +53,11 @@ module.exports = function (db) {
         type_id: req.params.typeId // eslint-disable-line camelcase
       }
     }).then(result => {
-      res.send(getData(result));
+      if (result) {
+        res.send(getData(result));
+      } else {
+        res.send(new NotFoundError('Cannot find item'));
+      }
       next();
     });
   }
