@@ -17,6 +17,7 @@ server.get('/collectors/:collectorId/logs', handlers.getCollectorLogs);
 server.get('/types', handlers.getTypes);
 server.get('/types/:typeId', handlers.getItems);
 server.get('/types/:typeId/:itemId', handlers.getItem);
+server.del('/types/:typeId/:itemId', handlers.deleteItem);
 
 db.ready.then(() => {
   server.listen(apiConfig.port, apiConfig.hostname, function() {

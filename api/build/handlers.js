@@ -4,16 +4,36 @@ const { NotFoundError } = require('restify');
 
 module.exports = function (db) {
   return {
-    getCollector: getCollector,
-    getCollectors: getCollectors,
-    getCollectorLogs: getCollectorLogs,
-    getItem: getItem,
-    getItems: getItems,
-    getTypes: getTypes
+    deleteItem,
+    getCollector,
+    getCollectors,
+    getCollectorLogs,
+    getItem,
+    getItems,
+    getTypes
   };
 
   function getData(result) {
     return result.toJSON();
+  }
+
+  function deleteItem(req, res, next) {
+    let opts = {
+      where: {
+        id: req.params.itemId,
+        type_id: req.params.typeId // eslint-disable-line camelcase
+      }
+    };
+    return db.items.destroy(opts).then(result => {
+      if (result) {
+        opts.paranoid = false; // include the deleted item
+        return db.items.findOne(opts).then(newItem => {
+          res.send(getData(newItem));
+        });
+      } else {
+        res.send(new NotFoundError('Cannot find item'));
+      }
+    }).then(next);
   }
 
   function getCollector(req, res, next) {
