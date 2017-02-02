@@ -1,5 +1,5 @@
 'use strict';
-const { NotFoundError } = require('restify');
+const { BadRequestError, NotFoundError } = require('restify');
 
 module.exports = function(db) {
   return {
@@ -9,7 +9,8 @@ module.exports = function(db) {
     getCollectorLogs,
     getItem,
     getItems,
-    getTypes
+    getTypes,
+    patchItem
   };
 
   function getData(result) {
@@ -84,9 +85,12 @@ module.exports = function(db) {
   }
 
   function getItems(req, res, next) {
-    let offset = Number(req.params.start) || 0;
-    let limit = Number(req.params.limit) || 20;
-    limit = Math.min(limit, 1000);
+    const defaultOffset = 0;
+    const defaultLimit = 20;
+    const maxNumItems = 1000;
+    let offset = Number(req.params.start) || defaultOffset;
+    let limit = Number(req.params.limit) || defaultLimit;
+    limit = Math.min(limit, maxNumItems);
     return db.items.findAll({
       where: {
         type_id: req.params.typeId // eslint-disable-line camelcase
@@ -108,4 +112,33 @@ module.exports = function(db) {
       next();
     });
   }
+
+  function patchItem(req, res, next) {
+    req.body = req.body || {};
+    let opts = {
+      where: {
+        id: req.params.itemId,
+        type_id: req.params.typeId // eslint-disable-line camelcase
+      }
+    };
+    let keys = Object.keys(req.body);
+    let allowedFields = ['expectedRank'];
+    let notAllowed = key => { return !allowedFields.includes(key); };
+    if (keys.length === 0 || keys.some(notAllowed)) {
+      res.send(new BadRequestError(`The only patchable fields are ${allowedFields.join(', ')}`));
+      next();
+      return Promise.resolve();
+    }
+    return db.items.update(req.body, opts).then(result => {
+      if (result[0]) {
+        opts.paranoid = false; // allow deleted items
+        return db.items.findOne(opts).then(item => {
+          res.send(getData(item));
+        });
+      } else {
+        res.send(new NotFoundError('Cannot find item'));
+      }
+    }).then(next);
+  }
+
 };

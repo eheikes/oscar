@@ -71,9 +71,9 @@ exports.createNextStub = () => {
   return jasmine.createSpy('next');
 };
 
-exports.createRequest = params => {
+exports.createRequest = (params, body = null) => {
   params = params || {};
-  return { params: params };
+  return { body, params };
 };
 
 exports.createResponseStub = () => {
