@@ -44,7 +44,12 @@ describe('getCollector() handler', () => {
     });
 
     it('should respond with the item', () => {
+      testCollector.numErrors = 0;
       expect(res).toSendData(testCollector);
+    });
+
+    it('should match the collector schema', () => {
+      expect(res.send.calls.mostRecent().args[0]).toBeCollector();
     });
 
     it('should continue to the next middleware', () => {

@@ -38,9 +38,23 @@ module.exports = function (db) {
   }
 
   function getCollector(req, res, next) {
-    return db.collectors.findById(req.params.collectorId).then(result => {
-      if (result) {
-        res.send(getData(result));
+    // Ideally we could just use a subquery:
+    // SELECT *,
+    //   (SELECT num_errors as numErrors FROM collector_logs
+    //   WHERE collector_logs.collector_id = 'facebook-feed'
+    //   ORDER BY timestamp DESC LIMIT 1) AS numErrors
+    // FROM collectors WHERE collectors.id = 'facebook-feed'
+    // But sqlite doesn't support scalar subqueries, so use separate queries.
+    return Promise.all([db.collectors.findById(req.params.collectorId), db.collectorLogs.findOne({
+      where: {
+        collector_id: req.params.collectorId // eslint-disable-line camelcase
+      },
+      order: [['timestamp', 'DESC']]
+    })]).then(([collectorResult, logResult]) => {
+      if (collectorResult) {
+        let data = collectorResult.toJSON();
+        data.numErrors = logResult && logResult.numErrors || 0;
+        res.send(data);
       } else {
         res.send(new NotFoundError('Cannot find collector'));
       }

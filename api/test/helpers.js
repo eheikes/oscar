@@ -4,6 +4,47 @@ const Database = require('../build/database');
 const fs = require('fs');
 const tempfile = require('tempfile');
 
+// Checks if the given object has the expected properties,
+//   and no others.
+let checkProperties = (actual, expected) => {
+  let errors = [];
+  let notInExpected = prop => { return !Object.keys(expected).includes(prop); };
+  for (let prop in expected) {
+    if (expected.hasOwnProperty(prop)) {
+      if (typeof actual[prop] === 'undefined') {
+        errors.push(`The "${prop}" field is missing.`);
+      } else if (typeof actual[prop] !== expected[prop]) {
+        errors.push(
+          `The "${prop}" field should have type of ${expected[prop]}, but it is ${typeof actual[prop]}.`
+        );
+      }
+    }
+  }
+  errors = errors.concat(Object.keys(actual).filter(notInExpected).map(prop => {
+    return `The "${prop}" field should not be included.`;
+  }));
+  return errors;
+};
+
+// Jasmine matcher to check if the passed object
+//   matches the collector schema.
+let toBeCollector = (util, customEqualityTesters) => {
+  return {
+    compare: (actual) => {
+      let errors = checkProperties(actual, {
+        id: 'string',
+        name: 'string',
+        numErrors: 'number'
+      });
+      let result = {
+        pass: errors.length === 0,
+        message: errors.join(' ')
+      };
+      return result;
+    }
+  };
+};
+
 // Jasmine matcher to check if the passed response object
 //   invoked send() with the expected JSON data.
 let toSendData = (util, customEqualityTesters) => {
@@ -80,7 +121,11 @@ exports.createResponseStub = () => {
   return jasmine.createSpyObj('res', ['send', 'status']);
 };
 
-exports.customMatchers = { toSendData, toSendError };
+exports.customMatchers = {
+  toBeCollector,
+  toSendData,
+  toSendError
+};
 
 exports.deleteDatabase = filename => {
   fs.unlinkSync(filename);
