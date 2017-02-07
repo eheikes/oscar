@@ -63,7 +63,15 @@ describe('getCollectors() handler', () => {
     });
 
     it('should respond with all the items', () => {
+      testCollectors[0].numErrors = 0;
+      testCollectors[1].numErrors = 0;
       expect(res).toSendData(testCollectors);
+    });
+
+    it('should match the collector schema', () => {
+      let collectors = res.send.calls.mostRecent().args[0];
+      expect(collectors[0]).toBeCollector();
+      expect(collectors[1]).toBeCollector();
     });
 
     it('should continue to the next middleware', () => {

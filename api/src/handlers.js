@@ -67,8 +67,22 @@ module.exports = function(db) {
   }
 
   function getCollectors(req, res, next) {
-    return db.collectors.findAll().then(results => {
-      res.send(results.map(getData));
+    return db.collectors.findAll({
+      include: [{
+        model: db.collectorLogs,
+        as: 'Logs',
+      }],
+      order: [
+        ['id', 'ASC'],
+        [{ model: db.collectorLogs, as: 'Logs' }, 'timestamp', 'DESC']
+      ]
+    }).then(results => {
+      let reformatted = results.map(getData).map(item => {
+        item.numErrors = (item.Logs[0] && item.Logs[0].numErrors) || 0;
+        delete item.Logs;
+        return item;
+      });
+      res.send(reformatted);
       next();
     });
   }
