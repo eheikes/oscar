@@ -74,6 +74,24 @@ let toBeCollectorLog = (util, customEqualityTesters) => {
   };
 };
 
+// Jasmine matcher to check if the passed object
+//   matches the type schema.
+let toBeType = (util, customEqualityTesters) => {
+  return {
+    compare: (actual) => {
+      let errors = checkProperties(actual, {
+        id: 'string',
+        readable: 'string'
+      });
+      let result = {
+        pass: errors.length === 0,
+        message: errors.join(' ')
+      };
+      return result;
+    }
+  };
+};
+
 // Jasmine matcher to check if the passed response object
 //   invoked send() with the expected JSON data.
 let toSendData = (util, customEqualityTesters) => {
@@ -153,6 +171,7 @@ exports.createResponseStub = () => {
 exports.customMatchers = {
   toBeCollector,
   toBeCollectorLog,
+  toBeType,
   toSendData,
   toSendError
 };

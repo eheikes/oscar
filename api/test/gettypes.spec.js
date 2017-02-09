@@ -66,6 +66,12 @@ describe('getTypes() handler', () => {
       expect(res).toSendData(testTypes);
     });
 
+    it('should match the type schema', () => {
+      let types = res.send.calls.mostRecent().args[0];
+      expect(types[0]).toBeType();
+      expect(types[1]).toBeType();
+    });
+
     it('should continue to the next middleware', () => {
       expect(next).toHaveBeenCalled();
     });
