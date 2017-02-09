@@ -99,6 +99,11 @@ describe('getCollectorLogs() handler', () => {
         ]);
       }).then(instances => {
         return getCollectorLogs(req, res, next);
+      }).then(() => {
+        testLogs = testLogs.map(log => {
+          delete log.collector_id;
+          return log;
+        });
       }).then(done);
     });
 
@@ -108,6 +113,12 @@ describe('getCollectorLogs() handler', () => {
         testLogs[0]
       ];
       expect(res).toSendData(expected);
+    });
+
+    it('should match the collector schema', () => {
+      let logs = res.send.calls.mostRecent().args[0];
+      expect(logs[0]).toBeCollectorLog();
+      expect(logs[1]).toBeCollectorLog();
     });
 
     it('should respond with the items in chronological descending order', () => {

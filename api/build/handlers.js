@@ -87,7 +87,12 @@ module.exports = function (db) {
       },
       order: [['timestamp', 'DESC']]
     }).then(results => {
-      res.send(results.map(getData));
+      let data = results.map(getData).map(log => {
+        log.timestamp = log.timestamp.toISOString();
+        delete log.collector_id;
+        return log;
+      });
+      res.send(data);
       next();
     });
   }
