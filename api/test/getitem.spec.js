@@ -27,7 +27,7 @@ describe('getItem() handler', () => {
     delete item.type_id;
     delete item.updatedAt;
     return item;
-  }
+  };
 
   let db, getItem, testItem, req, res, next;
 
