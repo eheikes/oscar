@@ -41,7 +41,7 @@ module.exports = function (db) {
       if (result) {
         opts.paranoid = false; // include the deleted item
         return db.items.findOne(opts).then(newItem => {
-          res.send(getData(newItem));
+          res.send(formatItem(getData(newItem)));
         });
       } else {
         res.send(new NotFoundError('Cannot find item'));
@@ -175,7 +175,7 @@ module.exports = function (db) {
       if (result[0]) {
         opts.paranoid = false; // allow deleted items
         return db.items.findOne(opts).then(item => {
-          res.send(getData(item));
+          res.send(formatItem(getData(item)));
         });
       } else {
         res.send(new NotFoundError('Cannot find item'));

@@ -77,6 +77,11 @@ describe('patchItem() handler', () => {
         expect(response.expectedRank).toBe(reqBody.expectedRank);
       });
 
+      it('should match the item schema', () => {
+        let response = res.send.calls.mostRecent().args[0];
+        expect(response).toBeItem();
+      });
+
       it('should continue to the next middleware', () => {
         expect(next).toHaveBeenCalled();
       });
