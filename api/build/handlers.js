@@ -14,6 +14,18 @@ module.exports = function (db) {
     patchItem
   };
 
+  function formatItem(item) {
+    item.added = item.createdAt.toISOString();
+    item.categories = item.categories.length === 0 ? [] : item.categories.split(',');
+    item.deleted = item.deletedAt && item.deletedAt.toISOString();
+    item.due = item.due && item.due.toISOString();
+    delete item.createdAt;
+    delete item.deletedAt;
+    delete item.type_id;
+    delete item.updatedAt;
+    return item;
+  }
+
   function getData(result) {
     return result.toJSON();
   }
@@ -105,7 +117,7 @@ module.exports = function (db) {
       }
     }).then(result => {
       if (result) {
-        res.send(getData(result));
+        res.send(formatItem(getData(result)));
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
@@ -128,16 +140,7 @@ module.exports = function (db) {
       limit: limit,
       order: [['rank', 'DESC']]
     }).then(results => {
-      let data = results.map(getData).map(item => {
-        item.added = item.createdAt.toISOString();
-        item.categories = item.categories.length === 0 ? [] : item.categories.split(',');
-        item.deleted = item.deletedAt && item.deletedAt.toISOString();
-        delete item.createdAt;
-        delete item.deletedAt;
-        delete item.type_id;
-        delete item.updatedAt;
-        return item;
-      });
+      let data = results.map(getData).map(formatItem);
       res.send(data);
       next();
     });

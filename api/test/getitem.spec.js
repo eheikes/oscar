@@ -16,26 +16,38 @@ describe('getItem() handler', () => {
     readable: 'Type 1'
   };
 
-  const testItem = {
-    id: 1,
-    url: 'http://example.com',
-    title: 'Example Item',
-    author: 'John Doe',
-    summary: 'Summary',
-    length: 42,
-    rating: 5.6,
-    due: '2017-10-11T00:00:00.000Z',
-    rank: 6.7,
-    expectedRank: 7.1,
-    categories: '',
-    createdAt: '2017-01-01T00:00:00.000Z',
-    updatedAt: '2017-01-01T00:00:00.000Z',
-    deletedAt: null
-  };
+  const formatItem = item => {
+    item.added = item.createdAt;
+    item.categories = item.categories.length === 0 ?
+      [] :
+      item.categories.split(',');
+    item.deleted = item.deletedAt;
+    delete item.createdAt;
+    delete item.deletedAt;
+    delete item.type_id;
+    delete item.updatedAt;
+    return item;
+  }
 
-  let db, getItem, req, res, next;
+  let db, getItem, testItem, req, res, next;
 
   beforeEach(done => {
+    testItem = {
+      id: 1,
+      url: 'http://example.com',
+      title: 'Example Item',
+      author: 'John Doe',
+      summary: 'Summary',
+      length: 42,
+      rating: 5.6,
+      due: '2017-10-11T00:00:00.000Z',
+      rank: 6.7,
+      expectedRank: 7.1,
+      categories: '',
+      createdAt: '2017-01-01T00:00:00.000Z',
+      updatedAt: '2017-01-01T00:00:00.000Z',
+      deletedAt: null
+    };
     db = createDatabase();
     ({ getItem } = module(db));
     // TODO this is horrible
@@ -67,7 +79,12 @@ describe('getItem() handler', () => {
     });
 
     it('should respond with the item', () => {
-      expect(res).toSendData(testItem);
+      expect(res).toSendData(formatItem(testItem));
+    });
+
+    it('should match the item schema', () => {
+      let item = res.send.calls.mostRecent().args[0];
+      expect(item).toBeItem();
     });
 
     it('should continue to the next middleware', () => {
