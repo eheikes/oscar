@@ -31,6 +31,7 @@
     "babel-plugin-transform-flow-strip-types": "^6.21.0",
     "jasmine": "^2.5.3",
     "tempfile": "^1.1.1",
+    "typology": "^1.2.0",
     "ux-lint": "^1.4.0"
   }
 }

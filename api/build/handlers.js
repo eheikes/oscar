@@ -128,7 +128,17 @@ module.exports = function (db) {
       limit: limit,
       order: [['rank', 'DESC']]
     }).then(results => {
-      res.send(results.map(getData));
+      let data = results.map(getData).map(item => {
+        item.added = item.createdAt.toISOString();
+        item.categories = item.categories.length === 0 ? [] : item.categories.split(',');
+        item.deleted = item.deletedAt && item.deletedAt.toISOString();
+        delete item.createdAt;
+        delete item.deletedAt;
+        delete item.type_id;
+        delete item.updatedAt;
+        return item;
+      });
+      res.send(data);
       next();
     });
   }

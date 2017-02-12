@@ -21,6 +21,17 @@ describe('getItems() handler', () => {
 
   const matchingTypeId = 'type1';
 
+  const convertFormat = item => {
+    item.added = item.createdAt;
+    item.categories = item.categories ? item.categories.split(',') : [];
+    item.deleted = item.deletedAt;
+    delete item.createdAt;
+    delete item.deletedAt;
+    delete item.type_id;
+    delete item.updatedAt;
+    return item;
+  };
+
   let db, getItems, types, testItems, req, res, next;
 
   beforeEach(done => {
@@ -48,6 +59,7 @@ describe('getItems() handler', () => {
         due: null,
         rank: 6,
         expectedRank: null,
+        categories: '',
         createdAt: '2017-01-01T00:00:00.000Z',
         updatedAt: '2017-01-01T00:00:00.000Z',
         deletedAt: null,
@@ -63,6 +75,7 @@ describe('getItems() handler', () => {
         due: null,
         rank: 7,
         expectedRank: null,
+        categories: 'foo,bar',
         createdAt: '2017-01-02T00:00:00.000Z',
         updatedAt: '2017-01-02T00:00:00.000Z',
         deletedAt: null,
@@ -78,6 +91,7 @@ describe('getItems() handler', () => {
         due: null,
         rank: 8,
         expectedRank: null,
+        categories: 'foo,bar',
         createdAt: '2017-01-03T00:00:00.000Z',
         updatedAt: '2017-01-03T00:00:00.000Z',
         deletedAt: null,
@@ -91,8 +105,9 @@ describe('getItems() handler', () => {
         length: null,
         rating: null,
         due: null,
-        rank: null,
+        rank: 1,
         expectedRank: null,
+        categories: 'foo,bar',
         createdAt: '2017-01-03T00:00:00.000Z',
         updatedAt: '2017-01-03T00:00:00.000Z',
         deletedAt: null,
@@ -138,6 +153,7 @@ describe('getItems() handler', () => {
           instances[0].setType('type1'),
           instances[1].setType('type2'),
           instances[2].setType('type1'),
+          instances[3].setType('type1'),
         ]);
       }).then(instances => {
         return getItems(req, res, next);
@@ -149,8 +165,15 @@ describe('getItems() handler', () => {
         testItems[2],
         testItems[0],
         testItems[3]
-      ];
+      ].map(convertFormat);
       expect(res).toSendData(expected);
+    });
+
+    it('should match the item schema', () => {
+      let items = res.send.calls.mostRecent().args[0];
+      expect(items[0]).toBeItem();
+      expect(items[1]).toBeItem();
+      expect(items[2]).toBeItem();
     });
 
     it('should sort the items by rank descending', () => {
@@ -158,7 +181,7 @@ describe('getItems() handler', () => {
         testItems[2],
         testItems[0],
         testItems[3]
-      ];
+      ].map(convertFormat);
       expect(res).toSendData(expected);
     });
 
@@ -175,7 +198,7 @@ describe('getItems() handler', () => {
         let expected = [
           testItems[0],
           testItems[3]
-        ];
+        ].map(convertFormat);
         expect(res).toSendData(expected);
       }).then(done);
     });
@@ -186,7 +209,7 @@ describe('getItems() handler', () => {
         let expected = [
           testItems[0],
           testItems[3]
-        ];
+        ].map(convertFormat);
         expect(res).toSendData(expected);
       }).then(done);
     });
@@ -197,7 +220,7 @@ describe('getItems() handler', () => {
         let expected = [
           testItems[2],
           testItems[0]
-        ];
+        ].map(convertFormat);
         expect(res).toSendData(expected);
       }).then(done);
     });

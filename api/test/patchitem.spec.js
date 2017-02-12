@@ -27,6 +27,7 @@ describe('patchItem() handler', () => {
     due: '2017-10-11T00:00:00.000Z',
     rank: 6.7,
     expectedRank: 7.1,
+    categories: '',
     createdAt: '2017-01-01T00:00:00.000Z',
     updatedAt: '2017-01-01T00:00:00.000Z',
     deletedAt: null

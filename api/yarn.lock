@@ -2277,6 +2277,10 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
+typology@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/typology/-/typology-1.2.0.tgz#52592454fc33b7b6c79bde9b1f4869bd05c02d6e"
+
 uid-number@~0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/uid-number/-/uid-number-0.0.6.tgz#0ea10e8035e8eb5b8e4449f06da1c730663baa81"

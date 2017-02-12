@@ -3,36 +3,33 @@
 const Database = require('../build/database');
 const fs = require('fs');
 const tempfile = require('tempfile');
+const types = require('typology');
 
-const iso8601 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|([-+]\d{2}:\d{2}))$/;
+const numberOrNullType = val => {
+  return val === null || typeof val === 'number';
+};
+
+const stringOrNullType = val => {
+  return val === null || typeof val === 'string';
+};
+
+const timestampType = val => {
+  return typeof val === 'string' &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|([-+]\d{2}:\d{2}))$/.test(val);
+};
+
+const timestampOrNullType = val => {
+  return val === null || timestampType(val);
+};
 
 // Checks if the given object has the expected properties,
 //   and no others.
 let checkProperties = (actual, expected) => {
-  let errors = [];
-  let notInExpected = prop => { return !Object.keys(expected).includes(prop); };
-  for (let prop in expected) {
-    if (expected.hasOwnProperty(prop)) {
-      if (typeof actual[prop] === 'undefined') {
-        errors.push(`The "${prop}" field is missing.`);
-      } else if (expected[prop] === 'timestamp') {
-        if (typeof actual[prop] !== 'string') {
-          errors.push(`The "${prop}" field is not a string.`);
-        }
-        if (!iso8601.test(actual[prop])) {
-          errors.push(`The "${prop}" field is not an ISO 8601 datetime.`);
-        }
-      } else if (typeof actual[prop] !== expected[prop]) {
-        errors.push(
-          `The "${prop}" field should have type of ${expected[prop]}, but it is ${typeof actual[prop]}.`
-        );
-      }
-    }
-  }
-  errors = errors.concat(Object.keys(actual).filter(notInExpected).map(prop => {
-    return `The "${prop}" field should not be included.`;
-  }));
-  return errors;
+  let result = types.scan(expected, actual);
+  let props = result.path ? `${result.path.join(', ')}: ` : '';
+  return result.error ?
+    [`${props}${result.error}`] :
+    [];
 };
 
 // Jasmine matcher to check if the passed object
@@ -61,9 +58,38 @@ let toBeCollectorLog = (util, customEqualityTesters) => {
     compare: (actual) => {
       let errors = checkProperties(actual, {
         id: 'number',
-        timestamp: 'timestamp',
+        timestamp: timestampType,
         log: 'string',
         numErrors: 'number'
+      });
+      let result = {
+        pass: errors.length === 0,
+        message: errors.join(' ')
+      };
+      return result;
+    }
+  };
+};
+
+// Jasmine matcher to check if the passed object
+//   matches the type schema.
+let toBeItem = (util, customEqualityTesters) => {
+  return {
+    compare: (actual) => {
+      let errors = checkProperties(actual, {
+        id: 'number',
+        added: timestampType,
+        deleted: timestampOrNullType,
+        url: 'string',
+        title: 'string',
+        author: stringOrNullType,
+        summary: stringOrNullType,
+        categories: ['string'],
+        length: numberOrNullType,
+        rating: numberOrNullType,
+        due: timestampOrNullType,
+        rank: 'number',
+        expectedRank: numberOrNullType
       });
       let result = {
         pass: errors.length === 0,
@@ -171,6 +197,7 @@ exports.createResponseStub = () => {
 exports.customMatchers = {
   toBeCollector,
   toBeCollectorLog,
+  toBeItem,
   toBeType,
   toSendData,
   toSendError

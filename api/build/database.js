@@ -70,6 +70,10 @@ class Database {
       expectedRank: {
         type: Sequelize.FLOAT,
         field: 'expected_rank'
+      },
+      categories: {
+        type: Sequelize.TEXT,
+        allowNull: false
       }
     }, {
       freezeTableName: true,
