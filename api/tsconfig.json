@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "target": "es2016",
+    "allowJs": true,
+    "noImplicitAny": false,
+    "noImplicitThis":false,
+    "strictNullChecks": false
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

@@ -1,10 +1,7 @@
-// @flow
-'use strict';
-
-const config = require('config');
-const Database = require('./database');
-const getHandlers = require('./handlers');
-const restify = require('restify');
+import config = require('config');
+import Database = require('./database');
+import getHandlers = require('./handlers');
+import restify = require('restify');
 
 let db = new Database(config.get('database'));
 let handlers = getHandlers(db);

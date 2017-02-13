@@ -1,7 +1,7 @@
-'use strict';
-const { BadRequestError, NotFoundError } = require('restify');
+import { BadRequestError, NotFoundError } from 'restify';
+import { FindOptions } from 'sequelize';
 
-module.exports = function(db) {
+export = function(db) {
   return {
     deleteItem,
     getCollector,
@@ -32,7 +32,7 @@ module.exports = function(db) {
   }
 
   function deleteItem(req, res, next) {
-    let opts = {
+    let opts: FindOptions = {
       where: {
         id: req.params.itemId,
         type_id: req.params.typeId // eslint-disable-line camelcase
@@ -168,7 +168,7 @@ module.exports = function(db) {
 
   function patchItem(req, res, next) {
     req.body = req.body || {};
-    let opts = {
+    let opts: FindOptions = {
       where: {
         id: req.params.itemId,
         type_id: req.params.typeId // eslint-disable-line camelcase
