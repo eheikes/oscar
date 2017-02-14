@@ -1,6 +1,6 @@
 "use strict";
 const SequelizeStatic = require("sequelize");
-module.exports = class Database {
+class Database {
     constructor(config) {
         this.sequelize = new SequelizeStatic(config.name, config.user, config.password, Object.assign({ dialect: config.type }, config));
         this.collectors = this.sequelize.define('collectors', {
@@ -122,4 +122,5 @@ module.exports = class Database {
             this.types.sync()
         ]);
     }
-};
+}
+exports.Database = Database;

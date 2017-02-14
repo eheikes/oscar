@@ -27,7 +27,9 @@
     "tedious": "^1.14.0"
   },
   "devDependencies": {
+    "@types/config": "^0.0.32",
     "@types/node": "^7.0.5",
+    "@types/restify": "^2.0.38",
     "@types/sequelize": "^4.0.40",
     "jasmine": "^2.5.3",
     "tempfile": "^1.1.1",

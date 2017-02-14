@@ -1,60 +1,73 @@
 import * as SequelizeStatic from 'sequelize';
-import { Instance, Sequelize } from 'sequelize';
+import { Instance, Options as SequelizeOptions, Sequelize } from 'sequelize';
 
-interface CollectorAttributes {
+export interface CollectorAttributes {
   id: string;
   name: string;
+  Logs?: CollectorLogAttributes[]
 }
 
-interface CollectorInstance extends Instance<CollectorAttributes> {
+export interface CollectorInstance extends Instance<CollectorAttributes> {
   dataValues: CollectorAttributes;
 }
 
 interface CollectorModel extends SequelizeStatic.Model<CollectorInstance, CollectorAttributes> {}
 
-interface CollectorLogAttributes {
-  timestamp: string;
+export interface CollectorLogAttributes {
+  id: number;
+  timestamp: Date;
   log: string;
   numErrors: number;
 }
 
-interface CollectorLogInstance extends Instance<CollectorLogAttributes> {
+export interface CollectorLogInstance extends Instance<CollectorLogAttributes> {
   dataValues: CollectorLogAttributes;
 }
 
 interface CollectorLogModel extends SequelizeStatic.Model<CollectorLogInstance, CollectorLogAttributes> {}
 
-interface ItemAttributes {
+export interface ItemAttributes {
+  id: number;
   url: string;
   title: string;
   author: string|null;
   summary: string|null;
   length: number|null;
   rating: number|null;
-  due: string|null;
+  due: Date|null;
   rank: number;
   expectedRank: number|null;
   categories: string;
+  createdAt: Date;
+  deletedAt: Date|null;
 }
 
-interface ItemInstance extends Instance<ItemAttributes> {
+export interface ItemInstance extends Instance<ItemAttributes> {
   dataValues: ItemAttributes;
 }
 
 interface ItemModel extends SequelizeStatic.Model<ItemInstance, ItemAttributes> {}
 
-interface TypeAttributes {
+export interface TypeAttributes {
   id: string;
   readable: string|null;
 }
 
-interface TypeInstance extends Instance<TypeAttributes> {
+export interface TypeInstance extends Instance<TypeAttributes> {
   dataValues: TypeAttributes;
 }
 
 interface TypeModel extends SequelizeStatic.Model<TypeInstance, TypeAttributes> {}
 
-export = class Database {
+export interface DatabaseConfig extends SequelizeOptions {
+  name: string;
+  host: string;
+  user: string;
+  password: string;
+  type: string;
+}
+
+export class Database {
   sequelize: Sequelize;
   ready: Promise<any>;
 
@@ -63,7 +76,7 @@ export = class Database {
   items: ItemModel;
   types: TypeModel;
 
-  constructor(config) {
+  constructor(config: DatabaseConfig) {
     this.sequelize = new SequelizeStatic(
       config.name,
       config.user,

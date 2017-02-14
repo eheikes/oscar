@@ -1,12 +1,20 @@
-import config = require('config');
-import Database = require('./database');
+import * as config from 'config';
+import { Database, DatabaseConfig } from './database';
 import getHandlers = require('./handlers');
 import restify = require('restify');
 
-let db = new Database(config.get('database'));
+let db = new Database(config.get<DatabaseConfig>('database'));
 let handlers = getHandlers(db);
 
-let apiConfig = config.get('api');
+interface ApiConfig {
+  name: string;
+  protocol: string;
+  hostname: string;
+  port: number;
+  pathname: string;
+}
+let apiConfig = config.get<ApiConfig>('api');
+
 let server = restify.createServer(apiConfig);
 
 server.use(restify.bodyParser({ mapParams: false }));

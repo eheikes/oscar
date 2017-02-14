@@ -1,9 +1,9 @@
 "use strict";
 const config = require("config");
-const Database = require("./database");
+const database_1 = require("./database");
 const getHandlers = require("./handlers");
 const restify = require("restify");
-let db = new Database(config.get('database'));
+let db = new database_1.Database(config.get('database'));
 let handlers = getHandlers(db);
 let apiConfig = config.get('api');
 let server = restify.createServer(apiConfig);

@@ -6,13 +6,30 @@
   version "3.0.37"
   resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.0.37.tgz#2e76b394aa9bea40d04241a31c0887a260283388"
 
+"@types/bunyan@*":
+  version "0.0.35"
+  resolved "https://registry.yarnpkg.com/@types/bunyan/-/bunyan-0.0.35.tgz#7bab9f9e26c580413b8c323d3fa76bd08dd1bcac"
+  dependencies:
+    "@types/node" "*"
+
+"@types/config@^0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@types/config/-/config-0.0.32.tgz#c106055802d78e234e28374adc4dad460d098558"
+
 "@types/lodash@*":
   version "4.14.52"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.52.tgz#de5c7ab14da1289733233c9b0ec6f9e377db90f5"
 
-"@types/node@^7.0.5":
+"@types/node@*", "@types/node@^7.0.5":
   version "7.0.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.5.tgz#96a0f0a618b7b606f1ec547403c00650210bfbb7"
+
+"@types/restify@^2.0.38":
+  version "2.0.38"
+  resolved "https://registry.yarnpkg.com/@types/restify/-/restify-2.0.38.tgz#a5484e5d45d0f0bed8a76ee06580b5ec475ba57a"
+  dependencies:
+    "@types/bunyan" "*"
+    "@types/node" "*"
 
 "@types/sequelize@^4.0.40":
   version "4.0.40"
