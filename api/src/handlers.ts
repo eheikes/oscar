@@ -1,56 +1,98 @@
-'use strict';
-const { BadRequestError, NotFoundError } = require('restify');
+import {
+  BadRequestError,
+  InternalError,
+  NotFoundError,
+  RequestHandler,
+  Response
+} from 'restify';
+import { DestroyOptions, FindOptions, UpdateOptions } from 'sequelize';
+import {
+  CollectorAttributes,
+  CollectorInstance,
+  CollectorLogAttributes,
+  CollectorLogInstance,
+  Database,
+  ItemAttributes,
+  ItemInstance,
+  TypeAttributes,
+  TypeInstance
+} from './database';
 
-module.exports = function(db) {
-  return {
-    deleteItem,
-    getCollector,
-    getCollectors,
-    getCollectorLogs,
-    getItem,
-    getItems,
-    getTypes,
-    patchItem
+interface Collector {
+  id: string;
+  name: string;
+  numErrors: number;
+}
+
+interface CollectorLog {
+  id: number;
+  timestamp: string;
+  log: string;
+  numErrors: number;
+}
+
+interface Item {
+  id: number;
+  added: string;
+  deleted: string|null;
+  url: string;
+  title: string;
+  author: string|null;
+  summary: string|null;
+  categories: string[];
+  length: number|null;
+  rating: number|null;
+  due: string|null;
+  rank: number;
+  expectedRank: number|null;
+}
+
+export = function(db: Database) {
+  let formatItem = (item: ItemAttributes): Item => {
+    let formattedItem: Item = {
+      id: item.id,
+      url: item.url,
+      title: item.title,
+      author: item.author,
+      summary: item.summary,
+      length: item.length,
+      rating: item.rating,
+      due: item.due && item.due.toISOString(),
+      rank: item.rank,
+      expectedRank: item.expectedRank,
+      categories: item.categories.length === 0 ?
+        [] :
+        item.categories.split(','),
+      added: item.createdAt.toISOString(),
+      deleted: item.deletedAt && item.deletedAt.toISOString(),
+    };
+    return formattedItem;
   };
 
-  function formatItem(item) {
-    item.added = item.createdAt.toISOString();
-    item.categories = item.categories.length === 0 ?
-      [] :
-      item.categories.split(',');
-    item.deleted = item.deletedAt && item.deletedAt.toISOString();
-    item.due = item.due && item.due.toISOString();
-    delete item.createdAt;
-    delete item.deletedAt;
-    delete item.type_id;
-    delete item.updatedAt;
-    return item;
-  }
-
-  function getData(result) {
-    return result.toJSON();
-  }
-
-  function deleteItem(req, res, next) {
-    let opts = {
+  let deleteItem: RequestHandler = (req, res, next) => {
+    let opts: FindOptions & DestroyOptions = {
       where: {
         id: req.params.itemId,
         type_id: req.params.typeId // eslint-disable-line camelcase
       }
     };
-    return db.items.destroy(opts).then(result => {
+    return db.items.destroy(opts).then((result: number) => {
       if (result) {
         opts.paranoid = false; // include the deleted item
         return db.items.findOne(opts).then(newItem => {
-          res.send(formatItem(getData(newItem)));
+          if (newItem) {
+            res.send(formatItem(newItem.toJSON()));
+          } else {
+            res.send(new InternalError('Cannot find item that was deleted'));
+          }
         });
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
     }).then(next);
-  }
+  };
 
-  function getCollector(req, res, next) {
+  let getCollector: RequestHandler = (req, res, next) => {
     // Ideally we could just use a subquery:
     // SELECT *,
     //   (SELECT num_errors as numErrors FROM collector_logs
@@ -78,9 +120,9 @@ module.exports = function(db) {
       }
       next();
     });
-  }
+  };
 
-  function getCollectors(req, res, next) {
+  let getCollectors: RequestHandler = (req, res, next) => {
     return db.collectors.findAll({
       include: [{
         model: db.collectorLogs,
@@ -91,17 +133,20 @@ module.exports = function(db) {
         [{ model: db.collectorLogs, as: 'Logs' }, 'timestamp', 'DESC']
       ]
     }).then(results => {
-      let reformatted = results.map(getData).map(item => {
-        item.numErrors = (item.Logs[0] && item.Logs[0].numErrors) || 0;
-        delete item.Logs;
-        return item;
+      let reformatted = results.map(item => item.toJSON()).map(item => {
+        let formattedCollector: Collector = {
+          id: item.id,
+          name: item.name,
+          numErrors: (item.Logs && item.Logs[0] && item.Logs[0].numErrors) || 0,
+        };
+        return formattedCollector;
       });
       res.send(reformatted);
       next();
     });
-  }
+  };
 
-  function getCollectorLogs(req, res, next) {
+  let getCollectorLogs: RequestHandler = (req, res, next) => {
     return db.collectorLogs.findAll({
       where: {
         collector_id: req.params.collectorId // eslint-disable-line camelcase
@@ -110,17 +155,21 @@ module.exports = function(db) {
         ['timestamp', 'DESC']
       ]
     }).then(results => {
-      let data = results.map(getData).map(log => {
-        log.timestamp = log.timestamp.toISOString();
-        delete log.collector_id;
-        return log;
+      let data = results.map(item => item.toJSON()).map(log => {
+        let formattedLog: CollectorLog = {
+          id: log.id,
+          timestamp: log.timestamp.toISOString(),
+          log: log.log,
+          numErrors: log.numErrors,
+        };
+        return formattedLog;
       });
       res.send(data);
       next();
     });
-  }
+  };
 
-  function getItem(req, res, next) {
+  let getItem: RequestHandler = (req, res, next) => {
     return db.items.findOne({
       where: {
         id: req.params.itemId,
@@ -128,15 +177,15 @@ module.exports = function(db) {
       }
     }).then(result => {
       if (result) {
-        res.send(formatItem(getData(result)));
+        res.send(formatItem(result.toJSON()));
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
       next();
     });
-  }
+  };
 
-  function getItems(req, res, next) {
+  let getItems: RequestHandler = (req, res, next) => {
     const defaultOffset = 0;
     const defaultLimit = 20;
     const maxNumItems = 1000;
@@ -153,22 +202,22 @@ module.exports = function(db) {
         ['rank', 'DESC']
       ]
     }).then(results => {
-      let data = results.map(getData).map(formatItem);
+      let data = results.map(item => item.toJSON()).map(formatItem);
       res.send(data);
       next();
     });
-  }
+  };
 
-  function getTypes(req, res, next) {
+  let getTypes: RequestHandler = (req, res, next) => {
     return db.types.findAll().then(results => {
-      res.send(results.map(getData));
+      res.send(results.map(item => item.toJSON()));
       next();
     });
-  }
+  };
 
-  function patchItem(req, res, next) {
+  let patchItem: RequestHandler = (req, res, next) => {
     req.body = req.body || {};
-    let opts = {
+    let opts: FindOptions & UpdateOptions = {
       where: {
         id: req.params.itemId,
         type_id: req.params.typeId // eslint-disable-line camelcase
@@ -176,7 +225,7 @@ module.exports = function(db) {
     };
     let keys = Object.keys(req.body);
     let allowedFields = ['expectedRank'];
-    let notAllowed = key => { return !allowedFields.includes(key); };
+    let notAllowed = (key: string) => { return !allowedFields.includes(key); };
     if (keys.length === 0 || keys.some(notAllowed)) {
       res.send(new BadRequestError(`The only patchable fields are ${allowedFields.join(', ')}`));
       next();
@@ -186,12 +235,26 @@ module.exports = function(db) {
       if (result[0]) {
         opts.paranoid = false; // allow deleted items
         return db.items.findOne(opts).then(item => {
-          res.send(formatItem(getData(item)));
+          if (item) {
+            res.send(formatItem(item.toJSON()));
+          } else {
+            res.send(new InternalError('Cannot find item that was updated'));
+          }
         });
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
     }).then(next);
-  }
+  };
 
+  return {
+    deleteItem,
+    getCollector,
+    getCollectors,
+    getCollectorLogs,
+    getItem,
+    getItems,
+    getTypes,
+    patchItem
+  };
 };

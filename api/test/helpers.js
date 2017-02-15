@@ -1,6 +1,6 @@
 'use strict';
 
-const Database = require('../build/database');
+const Database = require('../build/database').Database;
 const fs = require('fs');
 const tempfile = require('tempfile');
 const types = require('typology');

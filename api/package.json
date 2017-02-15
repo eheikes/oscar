@@ -9,7 +9,7 @@
   },
   "main": "build/index.js",
   "scripts": {
-    "build": "babel ./src --out-dir=./build",
+    "build": "tsc",
     "lint": "node_modules/.bin/ux-lint --extend .lintrc src test",
     "start": "node build/index.js",
     "test": "node_modules/.bin/jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
@@ -27,10 +27,13 @@
     "tedious": "^1.14.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-plugin-transform-flow-strip-types": "^6.21.0",
+    "@types/config": "^0.0.32",
+    "@types/node": "^7.0.5",
+    "@types/restify": "^2.0.38",
+    "@types/sequelize": "^4.0.40",
     "jasmine": "^2.5.3",
     "tempfile": "^1.1.1",
+    "typescript": "^2.1.6",
     "typology": "^1.2.0",
     "ux-lint": "^1.4.0"
   }
