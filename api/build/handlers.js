@@ -32,7 +32,12 @@ module.exports = function (db) {
             if (result) {
                 opts.paranoid = false; // include the deleted item
                 return db.items.findOne(opts).then(newItem => {
-                    res.send(formatItem(newItem.toJSON()));
+                    if (newItem) {
+                        res.send(formatItem(newItem.toJSON()));
+                    }
+                    else {
+                        res.send(new restify_1.InternalError('Cannot find item that was deleted'));
+                    }
                 });
             }
             else {
@@ -85,7 +90,7 @@ module.exports = function (db) {
                 let formattedCollector = {
                     id: item.id,
                     name: item.name,
-                    numErrors: (item.Logs[0] && item.Logs[0].numErrors) || 0,
+                    numErrors: (item.Logs && item.Logs[0] && item.Logs[0].numErrors) || 0,
                 };
                 return formattedCollector;
             });
@@ -179,7 +184,12 @@ module.exports = function (db) {
             if (result[0]) {
                 opts.paranoid = false; // allow deleted items
                 return db.items.findOne(opts).then(item => {
-                    res.send(formatItem(item.toJSON()));
+                    if (item) {
+                        res.send(formatItem(item.toJSON()));
+                    }
+                    else {
+                        res.send(new restify_1.InternalError('Cannot find item that was updated'));
+                    }
                 });
             }
             else {

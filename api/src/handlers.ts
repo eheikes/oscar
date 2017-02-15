@@ -1,4 +1,10 @@
-import { BadRequestError, NotFoundError, RequestHandler, Response } from 'restify';
+import {
+  BadRequestError,
+  InternalError,
+  NotFoundError,
+  RequestHandler,
+  Response
+} from 'restify';
 import { DestroyOptions, FindOptions, UpdateOptions } from 'sequelize';
 import {
   CollectorAttributes,
@@ -74,7 +80,11 @@ export = function(db: Database) {
       if (result) {
         opts.paranoid = false; // include the deleted item
         return db.items.findOne(opts).then(newItem => {
-          res.send(formatItem(newItem.toJSON()));
+          if (newItem) {
+            res.send(formatItem(newItem.toJSON()));
+          } else {
+            res.send(new InternalError('Cannot find item that was deleted'));
+          }
         });
       } else {
         res.send(new NotFoundError('Cannot find item'));
@@ -127,7 +137,7 @@ export = function(db: Database) {
         let formattedCollector: Collector = {
           id: item.id,
           name: item.name,
-          numErrors: (item.Logs[0] && item.Logs[0].numErrors) || 0,
+          numErrors: (item.Logs && item.Logs[0] && item.Logs[0].numErrors) || 0,
         };
         return formattedCollector;
       });
@@ -225,7 +235,11 @@ export = function(db: Database) {
       if (result[0]) {
         opts.paranoid = false; // allow deleted items
         return db.items.findOne(opts).then(item => {
-          res.send(formatItem(item.toJSON()));
+          if (item) {
+            res.send(formatItem(item.toJSON()));
+          } else {
+            res.send(new InternalError('Cannot find item that was updated'));
+          }
         });
       } else {
         res.send(new NotFoundError('Cannot find item'));
