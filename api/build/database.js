@@ -34,7 +34,7 @@ class Database {
             freezeTableName: true,
             timestamps: false
         });
-        var summaryLength = 1000;
+        const summaryLength = 1000;
         this.items = this.sequelize.define('items', {
             url: {
                 type: SequelizeStatic.STRING,

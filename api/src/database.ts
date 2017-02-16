@@ -4,7 +4,7 @@ import { Instance, Options as SequelizeOptions, Sequelize } from 'sequelize';
 export interface CollectorAttributes {
   id: string;
   name: string;
-  Logs?: CollectorLogAttributes[]
+  Logs?: CollectorLogAttributes[];
 }
 
 export interface CollectorInstance extends Instance<CollectorAttributes> {
@@ -68,13 +68,13 @@ export interface DatabaseConfig extends SequelizeOptions {
 }
 
 export class Database {
-  sequelize: Sequelize;
-  ready: Promise<any>;
+  public ready: Promise<any>;
+  public collectors: CollectorModel;
+  public collectorLogs: CollectorLogModel;
+  public items: ItemModel;
+  public types: TypeModel;
 
-  collectors: CollectorModel;
-  collectorLogs: CollectorLogModel;
-  items: ItemModel;
-  types: TypeModel;
+  private sequelize: Sequelize;
 
   constructor(config: DatabaseConfig) {
     this.sequelize = new SequelizeStatic(
@@ -117,7 +117,7 @@ export class Database {
       timestamps: false
     });
 
-    var summaryLength = 1000;
+    const summaryLength = 1000;
     this.items = this.sequelize.define<ItemInstance, ItemAttributes>('items', {
       url: {
         type: SequelizeStatic.STRING,

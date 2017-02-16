@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "del build",
-    "lint": "ux-lint --extend .lintrc src test",
+    "lint": "ux-lint --extend .lintrc test && tslint -c tslint.json -t stylish src/**/*.ts",
     "start": "node build/index.js",
     "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
   },
@@ -35,6 +35,7 @@
     "del-cli": "^0.2.1",
     "jasmine": "^2.5.3",
     "tempfile": "^1.1.1",
+    "tslint": "^4.4.2",
     "typescript": "^2.1.6",
     "typology": "^1.2.0",
     "ux-lint": "^1.4.0"

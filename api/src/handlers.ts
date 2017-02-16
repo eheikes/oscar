@@ -47,7 +47,7 @@ interface Item {
   expectedRank: number|null;
 }
 
-export = function(db: Database) {
+export = (db: Database) => {
   let formatItem = (item: ItemAttributes): Item => {
     let formattedItem: Item = {
       id: item.id,
@@ -196,8 +196,8 @@ export = function(db: Database) {
       where: {
         type_id: req.params.typeId // eslint-disable-line camelcase
       },
-      offset: offset,
-      limit: limit,
+      offset,
+      limit,
       order: [
         ['rank', 'DESC']
       ]

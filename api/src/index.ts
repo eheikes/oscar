@@ -29,9 +29,8 @@ server.del('/types/:typeId/:itemId', handlers.deleteItem);
 server.patch('/types/:typeId/:itemId', handlers.patchItem);
 
 db.ready.then(() => {
-  server.listen(apiConfig.port, apiConfig.hostname, function() {
-    /* eslint-disable no-console */
+  server.listen(apiConfig.port, apiConfig.hostname, () => {
+    // tslint:disable-next-line no-console
     console.log('%s listening at %s', server.name, server.url);
-    /* eslint-enable no-console */
   });
 });

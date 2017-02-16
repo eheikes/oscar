@@ -1,6 +1,6 @@
 "use strict";
 const restify_1 = require("restify");
-module.exports = function (db) {
+module.exports = (db) => {
     let formatItem = (item) => {
         let formattedItem = {
             id: item.id,
@@ -147,8 +147,8 @@ module.exports = function (db) {
             where: {
                 type_id: req.params.typeId // eslint-disable-line camelcase
             },
-            offset: offset,
-            limit: limit,
+            offset,
+            limit,
             order: [
                 ['rank', 'DESC']
             ]
