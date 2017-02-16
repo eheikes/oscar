@@ -6,17 +6,11 @@ import {
   Response
 } from 'restify';
 import { DestroyOptions, FindOptions, UpdateOptions } from 'sequelize';
-import {
-  CollectorAttributes,
-  CollectorInstance,
-  CollectorLogAttributes,
-  CollectorLogInstance,
-  Database,
-  ItemAttributes,
-  ItemInstance,
-  TypeAttributes,
-  TypeInstance
-} from './database';
+import { Database } from './database';
+import { CollectorAttributes, CollectorInstance } from './models/collector';
+import { CollectorLogAttributes, CollectorLogInstance } from './models/collectorlog';
+import { ItemAttributes, ItemInstance } from './models/item';
+import { TypeAttributes, TypeInstance } from './models/type';
 
 interface Collector {
   id: string;

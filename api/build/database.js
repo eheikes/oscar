@@ -1,89 +1,26 @@
 "use strict";
 const SequelizeStatic = require("sequelize");
+const collector_1 = require("./models/collector");
+const collectorlog_1 = require("./models/collectorlog");
+const item_1 = require("./models/item");
+const type_1 = require("./models/type");
 class Database {
     constructor(config) {
         this.sequelize = new SequelizeStatic(config.name, config.user, config.password, Object.assign({ dialect: config.type }, config));
-        this.collectors = this.sequelize.define('collectors', {
-            id: {
-                type: SequelizeStatic.STRING,
-                primaryKey: true
-            },
-            name: {
-                type: SequelizeStatic.STRING,
-                allowNull: false
-            }
-        }, {
+        this.collectors = this.sequelize.define('collectors', collector_1.collectorDefinition, {
             freezeTableName: true,
             timestamps: false
         });
-        this.collectorLogs = this.sequelize.define('collector_logs', {
-            timestamp: {
-                type: SequelizeStatic.DATE,
-                allowNull: false
-            },
-            log: {
-                type: SequelizeStatic.TEXT,
-                allowNull: false
-            },
-            numErrors: {
-                type: SequelizeStatic.INTEGER,
-                allowNull: false,
-                field: 'num_errors'
-            }
-        }, {
+        this.collectorLogs = this.sequelize.define('collector_logs', collectorlog_1.collectorLogDefinition, {
             freezeTableName: true,
             timestamps: false
         });
-        const summaryLength = 1000;
-        this.items = this.sequelize.define('items', {
-            url: {
-                type: SequelizeStatic.STRING,
-                allowNull: false
-            },
-            title: {
-                type: SequelizeStatic.STRING,
-                allowNull: false
-            },
-            author: {
-                type: SequelizeStatic.STRING
-            },
-            summary: {
-                type: SequelizeStatic.STRING(summaryLength) // eslint-disable-line new-cap
-            },
-            length: {
-                type: SequelizeStatic.INTEGER
-            },
-            rating: {
-                type: SequelizeStatic.FLOAT
-            },
-            due: {
-                type: SequelizeStatic.DATE
-            },
-            rank: {
-                type: SequelizeStatic.FLOAT
-            },
-            expectedRank: {
-                type: SequelizeStatic.FLOAT,
-                field: 'expected_rank'
-            },
-            categories: {
-                type: SequelizeStatic.TEXT,
-                allowNull: false
-            }
-        }, {
+        this.items = this.sequelize.define('items', item_1.itemDefinition, {
             freezeTableName: true,
             timestamps: true,
             paranoid: true // adds deletedAt
         });
-        this.types = this.sequelize.define('types', {
-            id: {
-                type: SequelizeStatic.STRING,
-                primaryKey: true
-            },
-            readable: {
-                type: SequelizeStatic.STRING
-            }
-        }, {
+        this.types = this.sequelize.define('types', type_1.typeDefinition, {
             freezeTableName: true,
             timestamps: false
         });
