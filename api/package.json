@@ -10,6 +10,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
+    "clean": "del build",
     "lint": "node_modules/.bin/ux-lint --extend .lintrc src test",
     "start": "node build/index.js",
     "test": "node_modules/.bin/jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
@@ -31,6 +32,7 @@
     "@types/node": "^7.0.5",
     "@types/restify": "^2.0.38",
     "@types/sequelize": "^4.0.40",
+    "del-cli": "^0.2.1",
     "jasmine": "^2.5.3",
     "tempfile": "^1.1.1",
     "typescript": "^2.1.6",
