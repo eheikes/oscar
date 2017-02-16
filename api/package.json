@@ -11,9 +11,9 @@
   "scripts": {
     "build": "tsc",
     "clean": "del build",
-    "lint": "node_modules/.bin/ux-lint --extend .lintrc src test",
+    "lint": "ux-lint --extend .lintrc src test",
     "start": "node build/index.js",
-    "test": "node_modules/.bin/jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
+    "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
   },
   "author": "Eric Heikes <eheikes@gmail.com>",
   "license": "Apache-2.0",
