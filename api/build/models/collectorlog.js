@@ -15,3 +15,12 @@ exports.collectorLogDefinition = {
         field: 'num_errors'
     }
 };
+exports.toCollectorLog = (log) => {
+    let formattedLog = {
+        id: log.id,
+        timestamp: log.timestamp.toISOString(),
+        log: log.log,
+        numErrors: log.numErrors,
+    };
+    return formattedLog;
+};

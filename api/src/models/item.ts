@@ -21,6 +21,22 @@ export interface ItemInstance extends Instance<ItemAttributes> {
   dataValues: ItemAttributes;
 }
 
+export interface Item {
+  id: number;
+  added: string;
+  deleted: string|null;
+  url: string;
+  title: string;
+  author: string|null;
+  summary: string|null;
+  categories: string[];
+  length: number|null;
+  rating: number|null;
+  due: string|null;
+  rank: number;
+  expectedRank: number|null;
+}
+
 export interface ItemModel extends SequelizeStatic.Model<ItemInstance, ItemAttributes> {}
 
 const summaryLength = 1000;
@@ -59,4 +75,25 @@ export const itemDefinition = {
     type: SequelizeStatic.TEXT,
     allowNull: false
   }
+};
+
+export const toItem = (item: ItemAttributes): Item => {
+  let formattedItem: Item = {
+    id: item.id,
+    url: item.url,
+    title: item.title,
+    author: item.author,
+    summary: item.summary,
+    length: item.length,
+    rating: item.rating,
+    due: item.due && item.due.toISOString(),
+    rank: item.rank,
+    expectedRank: item.expectedRank,
+    categories: item.categories.length === 0 ?
+      [] :
+      item.categories.split(','),
+    added: item.createdAt.toISOString(),
+    deleted: item.deletedAt && item.deletedAt.toISOString(),
+  };
+  return formattedItem;
 };

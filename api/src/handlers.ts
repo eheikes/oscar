@@ -7,62 +7,12 @@ import {
 } from 'restify';
 import { DestroyOptions, FindOptions, UpdateOptions } from 'sequelize';
 import { Database } from './database';
-import { CollectorAttributes, CollectorInstance } from './models/collector';
-import { CollectorLogAttributes, CollectorLogInstance } from './models/collectorlog';
-import { ItemAttributes, ItemInstance } from './models/item';
-import { TypeAttributes, TypeInstance } from './models/type';
-
-interface Collector {
-  id: string;
-  name: string;
-  numErrors: number;
-}
-
-interface CollectorLog {
-  id: number;
-  timestamp: string;
-  log: string;
-  numErrors: number;
-}
-
-interface Item {
-  id: number;
-  added: string;
-  deleted: string|null;
-  url: string;
-  title: string;
-  author: string|null;
-  summary: string|null;
-  categories: string[];
-  length: number|null;
-  rating: number|null;
-  due: string|null;
-  rank: number;
-  expectedRank: number|null;
-}
+import { Collector, CollectorAttributes, CollectorInstance, toCollector } from './models/collector';
+import { CollectorLog, CollectorLogAttributes, CollectorLogInstance, toCollectorLog } from './models/collectorlog';
+import { Item, ItemAttributes, ItemInstance, toItem } from './models/item';
+import { Type, TypeAttributes, TypeInstance } from './models/type';
 
 export = (db: Database) => {
-  let formatItem = (item: ItemAttributes): Item => {
-    let formattedItem: Item = {
-      id: item.id,
-      url: item.url,
-      title: item.title,
-      author: item.author,
-      summary: item.summary,
-      length: item.length,
-      rating: item.rating,
-      due: item.due && item.due.toISOString(),
-      rank: item.rank,
-      expectedRank: item.expectedRank,
-      categories: item.categories.length === 0 ?
-        [] :
-        item.categories.split(','),
-      added: item.createdAt.toISOString(),
-      deleted: item.deletedAt && item.deletedAt.toISOString(),
-    };
-    return formattedItem;
-  };
-
   let deleteItem: RequestHandler = (req, res, next) => {
     let opts: FindOptions & DestroyOptions = {
       where: {
@@ -75,7 +25,7 @@ export = (db: Database) => {
         opts.paranoid = false; // include the deleted item
         return db.items.findOne(opts).then(newItem => {
           if (newItem) {
-            res.send(formatItem(newItem.toJSON()));
+            res.send(toItem(newItem.toJSON()));
           } else {
             res.send(new InternalError('Cannot find item that was deleted'));
           }
@@ -131,14 +81,7 @@ export = (db: Database) => {
         [{ model: db.collectorLogs, as: 'Logs' }, 'timestamp', 'DESC']
       ]
     }).then(results => {
-      let reformatted = results.map(item => item.toJSON()).map(item => {
-        let formattedCollector: Collector = {
-          id: item.id,
-          name: item.name,
-          numErrors: (item.Logs && item.Logs[0] && item.Logs[0].numErrors) || 0,
-        };
-        return formattedCollector;
-      });
+      let reformatted = results.map(item => item.toJSON()).map(toCollector);
       res.send(reformatted);
       next();
     }).catch(err => {
@@ -155,15 +98,7 @@ export = (db: Database) => {
         ['timestamp', 'DESC']
       ]
     }).then(results => {
-      let data = results.map(item => item.toJSON()).map(log => {
-        let formattedLog: CollectorLog = {
-          id: log.id,
-          timestamp: log.timestamp.toISOString(),
-          log: log.log,
-          numErrors: log.numErrors,
-        };
-        return formattedLog;
-      });
+      let data = results.map(item => item.toJSON()).map(toCollectorLog);
       res.send(data);
       next();
     }).catch(err => {
@@ -179,7 +114,7 @@ export = (db: Database) => {
       }
     }).then(result => {
       if (result) {
-        res.send(formatItem(result.toJSON()));
+        res.send(toItem(result.toJSON()));
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
@@ -206,7 +141,7 @@ export = (db: Database) => {
         ['rank', 'DESC']
       ]
     }).then(results => {
-      let data = results.map(item => item.toJSON()).map(formatItem);
+      let data = results.map(item => item.toJSON()).map(toItem);
       res.send(data);
       next();
     }).catch(err => {
@@ -244,7 +179,7 @@ export = (db: Database) => {
         opts.paranoid = false; // allow deleted items
         return db.items.findOne(opts).then(item => {
           if (item) {
-            res.send(formatItem(item.toJSON()));
+            res.send(toItem(item.toJSON()));
           } else {
             res.send(new InternalError('Cannot find item that was updated'));
           }

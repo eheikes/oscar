@@ -10,3 +10,11 @@ exports.collectorDefinition = {
         allowNull: false
     }
 };
+exports.toCollector = (item) => {
+    let formattedCollector = {
+        id: item.id,
+        name: item.name,
+        numErrors: (item.Logs && item.Logs[0] && item.Logs[0].numErrors) || 0,
+    };
+    return formattedCollector;
+};

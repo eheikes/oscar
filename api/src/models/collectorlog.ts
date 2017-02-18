@@ -1,6 +1,13 @@
 import * as SequelizeStatic from 'sequelize';
 import { Instance } from 'sequelize';
 
+export interface CollectorLog {
+  id: number;
+  timestamp: string;
+  log: string;
+  numErrors: number;
+}
+
 export interface CollectorLogAttributes {
   id: number;
   timestamp: Date;
@@ -28,4 +35,14 @@ export const collectorLogDefinition = {
     allowNull: false,
     field: 'num_errors'
   }
+};
+
+export const toCollectorLog = (log: CollectorLogAttributes): CollectorLog => {
+  let formattedLog: CollectorLog = {
+    id: log.id,
+    timestamp: log.timestamp.toISOString(),
+    log: log.log,
+    numErrors: log.numErrors,
+  };
+  return formattedLog;
 };

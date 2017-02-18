@@ -1,6 +1,11 @@
 import * as SequelizeStatic from 'sequelize';
 import { Instance } from 'sequelize';
 
+export interface Type {
+  id: string;
+  readable: string|null;
+}
+
 export interface TypeAttributes {
   id: string;
   readable: string|null;

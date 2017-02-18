@@ -1,26 +1,9 @@
 "use strict";
 const restify_1 = require("restify");
+const collector_1 = require("./models/collector");
+const collectorlog_1 = require("./models/collectorlog");
+const item_1 = require("./models/item");
 module.exports = (db) => {
-    let formatItem = (item) => {
-        let formattedItem = {
-            id: item.id,
-            url: item.url,
-            title: item.title,
-            author: item.author,
-            summary: item.summary,
-            length: item.length,
-            rating: item.rating,
-            due: item.due && item.due.toISOString(),
-            rank: item.rank,
-            expectedRank: item.expectedRank,
-            categories: item.categories.length === 0 ?
-                [] :
-                item.categories.split(','),
-            added: item.createdAt.toISOString(),
-            deleted: item.deletedAt && item.deletedAt.toISOString(),
-        };
-        return formattedItem;
-    };
     let deleteItem = (req, res, next) => {
         let opts = {
             where: {
@@ -33,7 +16,7 @@ module.exports = (db) => {
                 opts.paranoid = false; // include the deleted item
                 return db.items.findOne(opts).then(newItem => {
                     if (newItem) {
-                        res.send(formatItem(newItem.toJSON()));
+                        res.send(item_1.toItem(newItem.toJSON()));
                     }
                     else {
                         res.send(new restify_1.InternalError('Cannot find item that was deleted'));
@@ -90,14 +73,7 @@ module.exports = (db) => {
                 [{ model: db.collectorLogs, as: 'Logs' }, 'timestamp', 'DESC']
             ]
         }).then(results => {
-            let reformatted = results.map(item => item.toJSON()).map(item => {
-                let formattedCollector = {
-                    id: item.id,
-                    name: item.name,
-                    numErrors: (item.Logs && item.Logs[0] && item.Logs[0].numErrors) || 0,
-                };
-                return formattedCollector;
-            });
+            let reformatted = results.map(item => item.toJSON()).map(collector_1.toCollector);
             res.send(reformatted);
             next();
         }).catch(err => {
@@ -113,15 +89,7 @@ module.exports = (db) => {
                 ['timestamp', 'DESC']
             ]
         }).then(results => {
-            let data = results.map(item => item.toJSON()).map(log => {
-                let formattedLog = {
-                    id: log.id,
-                    timestamp: log.timestamp.toISOString(),
-                    log: log.log,
-                    numErrors: log.numErrors,
-                };
-                return formattedLog;
-            });
+            let data = results.map(item => item.toJSON()).map(collectorlog_1.toCollectorLog);
             res.send(data);
             next();
         }).catch(err => {
@@ -136,7 +104,7 @@ module.exports = (db) => {
             }
         }).then(result => {
             if (result) {
-                res.send(formatItem(result.toJSON()));
+                res.send(item_1.toItem(result.toJSON()));
             }
             else {
                 res.send(new restify_1.NotFoundError('Cannot find item'));
@@ -163,7 +131,7 @@ module.exports = (db) => {
                 ['rank', 'DESC']
             ]
         }).then(results => {
-            let data = results.map(item => item.toJSON()).map(formatItem);
+            let data = results.map(item => item.toJSON()).map(item_1.toItem);
             res.send(data);
             next();
         }).catch(err => {
@@ -199,7 +167,7 @@ module.exports = (db) => {
                 opts.paranoid = false; // allow deleted items
                 return db.items.findOne(opts).then(item => {
                     if (item) {
-                        res.send(formatItem(item.toJSON()));
+                        res.send(item_1.toItem(item.toJSON()));
                     }
                     else {
                         res.send(new restify_1.InternalError('Cannot find item that was updated'));
