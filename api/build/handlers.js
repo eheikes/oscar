@@ -43,7 +43,9 @@ module.exports = (db) => {
             else {
                 res.send(new restify_1.NotFoundError('Cannot find item'));
             }
-        }).then(next);
+        }).then(next).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
+        });
     };
     let getCollector = (req, res, next) => {
         // Ideally we could just use a subquery:
@@ -73,6 +75,8 @@ module.exports = (db) => {
                 res.send(new restify_1.NotFoundError('Cannot find collector'));
             }
             next();
+        }).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
         });
     };
     let getCollectors = (req, res, next) => {
@@ -96,6 +100,8 @@ module.exports = (db) => {
             });
             res.send(reformatted);
             next();
+        }).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
         });
     };
     let getCollectorLogs = (req, res, next) => {
@@ -118,6 +124,8 @@ module.exports = (db) => {
             });
             res.send(data);
             next();
+        }).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
         });
     };
     let getItem = (req, res, next) => {
@@ -134,6 +142,8 @@ module.exports = (db) => {
                 res.send(new restify_1.NotFoundError('Cannot find item'));
             }
             next();
+        }).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
         });
     };
     let getItems = (req, res, next) => {
@@ -156,12 +166,16 @@ module.exports = (db) => {
             let data = results.map(item => item.toJSON()).map(formatItem);
             res.send(data);
             next();
+        }).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
         });
     };
     let getTypes = (req, res, next) => {
         return db.types.findAll().then(results => {
             res.send(results.map(item => item.toJSON()));
             next();
+        }).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
         });
     };
     let patchItem = (req, res, next) => {
@@ -195,7 +209,9 @@ module.exports = (db) => {
             else {
                 res.send(new restify_1.NotFoundError('Cannot find item'));
             }
-        }).then(next);
+        }).then(next).catch(err => {
+            res.send(new restify_1.InternalError(err.message));
+        });
     };
     return {
         deleteItem,

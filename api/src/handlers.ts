@@ -83,7 +83,9 @@ export = (db: Database) => {
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
-    }).then(next);
+    }).then(next).catch(err => {
+      res.send(new InternalError(err.message));
+    });
   };
 
   let getCollector: RequestHandler = (req, res, next) => {
@@ -113,6 +115,8 @@ export = (db: Database) => {
         res.send(new NotFoundError('Cannot find collector'));
       }
       next();
+    }).catch(err => {
+      res.send(new InternalError(err.message));
     });
   };
 
@@ -137,6 +141,8 @@ export = (db: Database) => {
       });
       res.send(reformatted);
       next();
+    }).catch(err => {
+      res.send(new InternalError(err.message));
     });
   };
 
@@ -160,6 +166,8 @@ export = (db: Database) => {
       });
       res.send(data);
       next();
+    }).catch(err => {
+      res.send(new InternalError(err.message));
     });
   };
 
@@ -176,6 +184,8 @@ export = (db: Database) => {
         res.send(new NotFoundError('Cannot find item'));
       }
       next();
+    }).catch(err => {
+      res.send(new InternalError(err.message));
     });
   };
 
@@ -199,6 +209,8 @@ export = (db: Database) => {
       let data = results.map(item => item.toJSON()).map(formatItem);
       res.send(data);
       next();
+    }).catch(err => {
+      res.send(new InternalError(err.message));
     });
   };
 
@@ -206,6 +218,8 @@ export = (db: Database) => {
     return db.types.findAll().then(results => {
       res.send(results.map(item => item.toJSON()));
       next();
+    }).catch(err => {
+      res.send(new InternalError(err.message));
     });
   };
 
@@ -238,7 +252,9 @@ export = (db: Database) => {
       } else {
         res.send(new NotFoundError('Cannot find item'));
       }
-    }).then(next);
+    }).then(next).catch(err => {
+      res.send(new InternalError(err.message));
+    });
   };
 
   return {

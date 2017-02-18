@@ -21,4 +21,6 @@ db.ready.then(() => {
         // tslint:disable-next-line no-console
         console.log('%s listening at %s', server.name, server.url);
     });
+}).catch(err => {
+    console.error('Error starting database:', err);
 });
