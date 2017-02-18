@@ -23,14 +23,14 @@ describe('getItems() handler', () => {
         createdAt: undefined,
         deleted: item.deletedAt,
         deletedAt: undefined,
-        type_id: undefined,
+        type_id: undefined, // eslint-disable-line camelcase
         updatedAt: undefined
       }
     );
   };
 
 
-  let db, getItems, types, testItems, req, res, next;
+  let db, getItems, testItems, req, res, next;
 
   beforeEach(done => {
     createDatabase().then(dbInstance => {
@@ -54,7 +54,7 @@ describe('getItems() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      db.items.destroy({ where: {} }).then(() => {
+      db.items.destroy({ where: {}}).then(() => {
         return getItems(req, res, next);
       }).then(done);
     });

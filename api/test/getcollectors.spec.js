@@ -35,7 +35,7 @@ describe('getCollectors() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      db.collectors.destroy({ where: {} }).then(() => {
+      db.collectors.destroy({ where: {}}).then(() => {
         return getCollectors(req, res, next);
       }).then(done);
     });

@@ -35,7 +35,7 @@ describe('getTypes() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      db.types.destroy({ where: {} }).then(() => {
+      db.types.destroy({ where: {}}).then(() => {
         return getTypes(req, res, next);
       }).then(done);
     });

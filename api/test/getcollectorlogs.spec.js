@@ -18,7 +18,7 @@ describe('getCollectorLogs() handler', () => {
       db = dbInstance;
       ({ getCollectorLogs } = module(db));
       testLogs = db.data.collectorLogs.map(log => {
-        return Object.assign({}, log, { collector_id: undefined });
+        return Object.assign({}, log, { collector_id: undefined }); // eslint-disable-line camelcase
       });
     }).then(done);
   });
@@ -37,7 +37,7 @@ describe('getCollectorLogs() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      db.collectorLogs.destroy({ where: {} }).then(() => {
+      db.collectorLogs.destroy({ where: {}}).then(() => {
         return getCollectorLogs(req, res, next);
       }).then(done);
     });

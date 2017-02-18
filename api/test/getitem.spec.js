@@ -23,7 +23,7 @@ describe('getItem() handler', () => {
         createdAt: undefined,
         deleted: item.deletedAt,
         deletedAt: undefined,
-        type_id: undefined,
+        type_id: undefined, // eslint-disable-line camelcase
         updatedAt: undefined
       }
     );
