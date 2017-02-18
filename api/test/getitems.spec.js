@@ -11,114 +11,38 @@ describe('getItems() handler', () => {
     deleteDatabase
   } = require('./helpers');
 
-  const testTypes = [{
-    id: 'type1',
-    readable: 'Type 1'
-  }, {
-    id: 'type2',
-    readable: 'Type 2'
-  }];
-
-  const matchingTypeId = 'type1';
-
-  const convertFormat = item => {
-    item.added = item.createdAt;
-    item.categories = item.categories ? item.categories.split(',') : [];
-    item.deleted = item.deletedAt;
-    delete item.createdAt;
-    delete item.deletedAt;
-    delete item.type_id;
-    delete item.updatedAt;
-    return item;
+  const formatItem = item => {
+    return Object.assign(
+      {},
+      item,
+      {
+        added: item.createdAt,
+        categories: item.categories.length === 0 ?
+          [] :
+          item.categories.split(','),
+        createdAt: undefined,
+        deleted: item.deletedAt,
+        deletedAt: undefined,
+        type_id: undefined,
+        updatedAt: undefined
+      }
+    );
   };
+
 
   let db, getItems, types, testItems, req, res, next;
 
   beforeEach(done => {
-    db = createDatabase();
-    ({ getItems } = module(db));
-    types = [];
-    // TODO this is horrible
-    db.ready.then(() => {
-      return db.types.bulkCreate(testTypes);
-    }).then(() => {
-      return db.types.findById(testTypes[0].id);
-    }).then(instance => {
-      types[instance.id] = instance;
-      return db.types.findById(testTypes[1].id);
-    }).then(instance => {
-      types[instance.id] = instance;
-      testItems = [{
-        id: 1,
-        url: 'http://example.com/1',
-        title: 'Example Site',
-        author: null,
-        summary: null,
-        length: null,
-        rating: null,
-        due: null,
-        rank: 6,
-        expectedRank: null,
-        categories: '',
-        createdAt: '2017-01-01T00:00:00.000Z',
-        updatedAt: '2017-01-01T00:00:00.000Z',
-        deletedAt: null,
-        type_id: testTypes[0].id // eslint-disable-line camelcase
-      }, {
-        id: 2,
-        url: 'http://example.com/2',
-        title: 'Example Site',
-        author: null,
-        summary: null,
-        length: null,
-        rating: null,
-        due: null,
-        rank: 7,
-        expectedRank: null,
-        categories: 'foo,bar',
-        createdAt: '2017-01-02T00:00:00.000Z',
-        updatedAt: '2017-01-02T00:00:00.000Z',
-        deletedAt: null,
-        type_id: testTypes[1].id // eslint-disable-line camelcase
-      }, {
-        id: 3,
-        url: 'http://example.com/3',
-        title: 'Example Site',
-        author: null,
-        summary: null,
-        length: null,
-        rating: null,
-        due: null,
-        rank: 8,
-        expectedRank: null,
-        categories: 'foo,bar',
-        createdAt: '2017-01-03T00:00:00.000Z',
-        updatedAt: '2017-01-03T00:00:00.000Z',
-        deletedAt: null,
-        type_id: testTypes[0].id // eslint-disable-line camelcase
-      }, {
-        id: 4,
-        url: 'http://example.com/4',
-        title: 'Example Site',
-        author: null,
-        summary: null,
-        length: null,
-        rating: null,
-        due: null,
-        rank: 1,
-        expectedRank: null,
-        categories: 'foo,bar',
-        createdAt: '2017-01-03T00:00:00.000Z',
-        updatedAt: '2017-01-03T00:00:00.000Z',
-        deletedAt: null,
-        type_id: testTypes[0].id // eslint-disable-line camelcase
-      }];
+    createDatabase().then(dbInstance => {
+      db = dbInstance;
+      ({ getItems } = module(db));
+      testItems = db.data.items;
     }).then(done);
   });
 
   beforeEach(() => {
     jasmine.addMatchers(customMatchers);
-    req = createRequest({ typeId: matchingTypeId });
+    req = createRequest({ typeId: 'type1' });
     res = createResponseStub();
     next = createNextStub();
   });
@@ -130,7 +54,9 @@ describe('getItems() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      getItems(req, res, next).then(done);
+      db.items.destroy({ where: {} }).then(() => {
+        return getItems(req, res, next);
+      }).then(done);
     });
 
     it('should respond with an empty array', () => {
@@ -146,18 +72,7 @@ describe('getItems() handler', () => {
   describe('when the database is populated', () => {
 
     beforeEach(done => {
-      db.items.bulkCreate(testItems).then(() => {
-        return db.items.findAll();
-      }).then(instances => {
-        return Promise.all([
-          instances[0].setType('type1'),
-          instances[1].setType('type2'),
-          instances[2].setType('type1'),
-          instances[3].setType('type1'),
-        ]);
-      }).then(instances => {
-        return getItems(req, res, next);
-      }).then(done);
+      getItems(req, res, next).then(done);
     });
 
     it('should respond with the items matching the type ID', () => {
@@ -165,7 +80,7 @@ describe('getItems() handler', () => {
         testItems[2],
         testItems[0],
         testItems[3]
-      ].map(convertFormat);
+      ].map(formatItem);
       expect(res).toSendData(expected);
     });
 
@@ -181,7 +96,7 @@ describe('getItems() handler', () => {
         testItems[2],
         testItems[0],
         testItems[3]
-      ].map(convertFormat);
+      ].map(formatItem);
       expect(res).toSendData(expected);
     });
 
@@ -198,29 +113,29 @@ describe('getItems() handler', () => {
         let expected = [
           testItems[0],
           testItems[3]
-        ].map(convertFormat);
+        ].map(formatItem);
         expect(res).toSendData(expected);
       }).then(done);
     });
 
     it('should accept a "start" param', done => {
-      req = createRequest({ typeId: matchingTypeId, start: 1 });
+      req = createRequest({ typeId: 'type1', start: 1 });
       getItems(req, res, next).then(() => {
         let expected = [
           testItems[0],
           testItems[3]
-        ].map(convertFormat);
+        ].map(formatItem);
         expect(res).toSendData(expected);
       }).then(done);
     });
 
     it('should accept a "limit" param', done => {
-      req = createRequest({ typeId: matchingTypeId, limit: 2 });
+      req = createRequest({ typeId: 'type1', limit: 2 });
       getItems(req, res, next).then(() => {
         let expected = [
           testItems[2],
           testItems[0]
-        ].map(convertFormat);
+        ].map(formatItem);
         expect(res).toSendData(expected);
       }).then(done);
     });

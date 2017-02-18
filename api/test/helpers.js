@@ -167,7 +167,14 @@ let toSendError = (util, customEqualityTesters) => {
   };
 };
 
+// Creates and populates the database.
 exports.createDatabase = () => {
+  let collectors = require('./fixture/collectors.json');
+  let collectorLogs = require('./fixture/collectorlogs.json');
+  let items = require('./fixture/items.json');
+  let types = require('./fixture/types.json');
+
+  // Create the database and save the configuration.
   let config = {
     type: 'sqlite',
     name: 'db',
@@ -178,7 +185,28 @@ exports.createDatabase = () => {
   };
   let db = new Database(config);
   db.config = config;
-  return db;
+
+  // Save the original data.
+  db.data = { collectors, collectorLogs, items, types };
+  db.data.collectors.forEach((collector, i) => {
+    // Calculate the numErrors for each collector.
+    db.data.collectors[i].numErrors = db.data.collectorLogs.reduce((soFar, log) => {
+      if (log.collector_id === collector.id) { soFar += log.numErrors; }
+      return soFar;
+    }, 0);
+  });
+
+  // Populate the database with the data.
+  return db.ready.then(() => {
+    return Promise.all([
+      db.collectors.bulkCreate(collectors),
+      db.collectorLogs.bulkCreate(collectorLogs),
+      db.items.bulkCreate(items),
+      db.types.bulkCreate(types)
+    ]);
+  }).then(() => {
+    return db;
+  });
 };
 
 exports.createNextStub = () => {

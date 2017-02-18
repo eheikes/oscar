@@ -11,18 +11,13 @@ describe('getCollector() handler', () => {
     deleteDatabase
   } = require('./helpers');
 
-  const testCollector = {
-    id: 'collector1',
-    name: 'Example Collector'
-  };
-
-  let db, getCollector, req, res, next;
+  let db, getCollector, testCollector, req, res, next;
 
   beforeEach(done => {
-    db = createDatabase();
-    ({ getCollector } = module(db));
-    db.ready.then(() => {
-      return db.collectors.create(testCollector);
+    createDatabase().then(dbInstance => {
+      db = dbInstance;
+      ({ getCollector } = module(db));
+      testCollector = db.data.collectors[0];
     }).then(done);
   });
 
@@ -44,7 +39,6 @@ describe('getCollector() handler', () => {
     });
 
     it('should respond with the item', () => {
-      testCollector.numErrors = 0;
       expect(res).toSendData(testCollector);
     });
 

@@ -11,20 +11,14 @@ describe('getCollectors() handler', () => {
     deleteDatabase
   } = require('./helpers');
 
-  const testCollectors = [{
-    id: 'collector1',
-    name: 'Example Collector'
-  }, {
-    id: 'collector2',
-    name: 'Example Collector 2'
-  }];
-
-  let db, getCollectors, req, res, next;
+  let db, getCollectors, testCollectors, req, res, next;
 
   beforeEach(done => {
-    db = createDatabase();
-    ({ getCollectors } = module(db));
-    db.ready.then(done);
+    createDatabase().then(dbInstance => {
+      db = dbInstance;
+      ({ getCollectors } = module(db));
+      testCollectors = db.data.collectors;
+    }).then(done);
   });
 
   beforeEach(() => {
@@ -41,7 +35,9 @@ describe('getCollectors() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      getCollectors(req, res, next).then(done);
+      db.collectors.destroy({ where: {} }).then(() => {
+        return getCollectors(req, res, next);
+      }).then(done);
     });
 
     it('should respond with an empty array', () => {
@@ -57,14 +53,10 @@ describe('getCollectors() handler', () => {
   describe('when the database is populated', () => {
 
     beforeEach(done => {
-      db.collectors.bulkCreate(testCollectors).then(() => {
-        return getCollectors(req, res, next);
-      }).then(done);
+      getCollectors(req, res, next).then(done);
     });
 
     it('should respond with all the items', () => {
-      testCollectors[0].numErrors = 0;
-      testCollectors[1].numErrors = 0;
       expect(res).toSendData(testCollectors);
     });
 

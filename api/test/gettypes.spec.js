@@ -11,20 +11,14 @@ describe('getTypes() handler', () => {
     deleteDatabase
   } = require('./helpers');
 
-  const testTypes = [{
-    id: 'type1',
-    readable: 'Type 1'
-  }, {
-    id: 'type2',
-    readable: 'Type 2'
-  }];
-
-  let db, getTypes, req, res, next;
+  let db, getTypes, testTypes, req, res, next;
 
   beforeEach(done => {
-    db = createDatabase();
-    ({ getTypes } = module(db));
-    db.ready.then(done);
+    createDatabase().then(dbInstance => {
+      db = dbInstance;
+      ({ getTypes } = module(db));
+      testTypes = db.data.types;
+    }).then(done);
   });
 
   beforeEach(() => {
@@ -41,7 +35,9 @@ describe('getTypes() handler', () => {
   describe('when the database is empty', () => {
 
     beforeEach(done => {
-      getTypes(req, res, next).then(done);
+      db.types.destroy({ where: {} }).then(() => {
+        return getTypes(req, res, next);
+      }).then(done);
     });
 
     it('should respond with an empty array', () => {
@@ -57,9 +53,7 @@ describe('getTypes() handler', () => {
   describe('when the database is populated', () => {
 
     beforeEach(done => {
-      db.types.bulkCreate(testTypes).then(instances => {
-        return getTypes(req, res, next);
-      }).then(done);
+      getTypes(req, res, next).then(done);
     });
 
     it('should respond with all the types', () => {

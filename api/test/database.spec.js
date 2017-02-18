@@ -5,12 +5,13 @@ describe('database', () => {
 
   let db;
 
-  beforeAll(done => {
-    db = createDatabase();
-    db.ready.then(done);
+  beforeEach(done => {
+    createDatabase().then(dbInstance => {
+      db = dbInstance;
+    }).then(done);
   });
 
-  afterAll(() => {
+  afterEach(() => {
     deleteDatabase(db.config.storage);
   });
 

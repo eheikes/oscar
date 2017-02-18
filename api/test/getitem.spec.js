@@ -11,53 +11,32 @@ describe('getItem() handler', () => {
     deleteDatabase
   } = require('./helpers');
 
-  const testType = {
-    id: 'type1',
-    readable: 'Type 1'
-  };
-
   const formatItem = item => {
-    item.added = item.createdAt;
-    item.categories = item.categories.length === 0 ?
-      [] :
-      item.categories.split(',');
-    item.deleted = item.deletedAt;
-    delete item.createdAt;
-    delete item.deletedAt;
-    delete item.type_id;
-    delete item.updatedAt;
-    return item;
+    return Object.assign(
+      {},
+      item,
+      {
+        added: item.createdAt,
+        categories: item.categories.length === 0 ?
+          [] :
+          item.categories.split(','),
+        createdAt: undefined,
+        deleted: item.deletedAt,
+        deletedAt: undefined,
+        type_id: undefined,
+        updatedAt: undefined
+      }
+    );
   };
 
-  let db, getItem, testItem, req, res, next;
+  let db, getItem, testItem, testType, req, res, next;
 
   beforeEach(done => {
-    testItem = {
-      id: 1,
-      url: 'http://example.com',
-      title: 'Example Item',
-      author: 'John Doe',
-      summary: 'Summary',
-      length: 42,
-      rating: 5.6,
-      due: '2017-10-11T00:00:00.000Z',
-      rank: 6.7,
-      expectedRank: 7.1,
-      categories: '',
-      createdAt: '2017-01-01T00:00:00.000Z',
-      updatedAt: '2017-01-01T00:00:00.000Z',
-      deletedAt: null
-    };
-    db = createDatabase();
-    ({ getItem } = module(db));
-    // TODO this is horrible
-    db.ready.then(() => {
-      return db.types.create(testType);
-    }).then(type => {
-      testItem.type_id = type.id; // eslint-disable-line camelcase
-      return db.items.create(testItem);
-    }).then(item => {
-      testItem.updatedAt = item.updatedAt;
+    createDatabase().then(dbInstance => {
+      db = dbInstance;
+      ({ getItem } = module(db));
+      testItem = db.data.items[0];
+      testType = db.data.types[0];
     }).then(done);
   });
 
