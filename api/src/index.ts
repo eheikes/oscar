@@ -4,7 +4,16 @@ import getHandlers = require('./handlers');
 import restify = require('restify');
 
 let db = new Database(config.get<DatabaseConfig>('database'));
-let handlers = getHandlers(db);
+let {
+  getCollector,
+  getCollectors,
+  getCollectorLogs,
+  getItem,
+  getItems,
+  deleteItem,
+  patchItem,
+  getTypes,
+} = getHandlers(db);
 
 interface ApiConfig {
   name: string;
@@ -19,14 +28,14 @@ let server = restify.createServer(apiConfig);
 
 server.use(restify.bodyParser({ mapParams: false }));
 
-server.get('/collectors', handlers.getCollectors);
-server.get('/collectors/:collectorId', handlers.getCollector);
-server.get('/collectors/:collectorId/logs', handlers.getCollectorLogs);
-server.get('/types', handlers.getTypes);
-server.get('/types/:typeId', handlers.getItems);
-server.get('/types/:typeId/:itemId', handlers.getItem);
-server.del('/types/:typeId/:itemId', handlers.deleteItem);
-server.patch('/types/:typeId/:itemId', handlers.patchItem);
+server.get('/collectors', getCollectors);
+server.get('/collectors/:collectorId', getCollector);
+server.get('/collectors/:collectorId/logs', getCollectorLogs);
+server.get('/types', getTypes);
+server.get('/types/:typeId', getItems);
+server.get('/types/:typeId/:itemId', getItem);
+server.del('/types/:typeId/:itemId', deleteItem);
+server.patch('/types/:typeId/:itemId', patchItem);
 
 db.ready.then(() => {
   server.listen(apiConfig.port, apiConfig.hostname, () => {
