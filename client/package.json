@@ -1,0 +1,31 @@
+{
+  "name": "oscar-assistant-client",
+  "version": "0.1.0",
+  "description": "Client UI for OSCAR assistant",
+  "homepage": "https://github.com/eheikes/oscar/client",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eheikes/oscar.git"
+  },
+  "scripts": {
+    "build": "cp src/index.html build/ && webpack",
+    "clean": "del build",
+    "lint": "ux-lint --extend .lintrc test && tslint -c tslint.json -t stylish src/**/*.ts",
+    "start": "http-server build",
+    "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
+  },
+  "author": "Eric Heikes <eheikes@gmail.com>",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "del-cli": "^0.2.1",
+    "http-server": "^0.9.0",
+    "jasmine": "^2.5.3",
+    "ts-loader": "^2.0.0",
+    "tslint": "^4.4.2",
+    "typescript": "~2.1.6",
+    "ux-lint": "^1.4.0",
+    "vue": "^2.1.10",
+    "webpack": "^2.2.1"
+  }
+}

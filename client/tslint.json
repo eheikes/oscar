@@ -1,0 +1,12 @@
+{
+  "extends": "tslint:recommended",
+  "rules": {
+    "arrow-parens": false,
+    "interface-name": [true, "never-prefix"],
+    "object-literal-shorthand": false,
+    "object-literal-sort-keys": false,
+    "only-arrow-functions": false,
+    "quotemark": [true, "single"],
+    "trailing-comma": false
+  }
+}

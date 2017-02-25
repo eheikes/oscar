@@ -1,0 +1,11 @@
+{
+  "eslint":{
+    "env": {
+      "browser": true,
+      "node": false
+    },
+    "rules": {
+      "indent": ["error", 2]
+    }
+  }
+}
