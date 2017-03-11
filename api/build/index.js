@@ -8,6 +8,7 @@ let { getCollector, getCollectors, getCollectorLogs, getItem, getItems, deleteIt
 let apiConfig = config.get('api');
 let server = restify.createServer(apiConfig);
 server.use(restify.bodyParser({ mapParams: false }));
+server.use(restify.CORS());
 server.get('/collectors', getCollectors);
 server.get('/collectors/:collectorId', getCollector);
 server.get('/collectors/:collectorId/logs', getCollectorLogs);

@@ -27,6 +27,7 @@ let apiConfig = config.get<ApiConfig>('api');
 let server = restify.createServer(apiConfig);
 
 server.use(restify.bodyParser({ mapParams: false }));
+server.use(restify.CORS());
 
 server.get('/collectors', getCollectors);
 server.get('/collectors/:collectorId', getCollector);
