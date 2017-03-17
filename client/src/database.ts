@@ -1,5 +1,18 @@
 const apiUrl = 'http://localhost:8080';
 
+export interface Collector {
+  id: string;
+  name: string;
+  numErrors: number;
+}
+
+export interface CollectorLog {
+  id: number;
+  timestamp: string;
+  log: string;
+  numErrors: number;
+}
+
 export interface Item {
   id: number;
   added: string;
@@ -22,18 +35,52 @@ export interface Type {
 }
 
 export interface Cache {
+  collectorLogs: {[id: string]: CollectorLog[]};
+  collectors: Collector[]|null;
   itemDetails: {[id: number]: Item};
   items: {[type: string]: Item[]};
   types: Type[]|null;
 }
 
 const cache: Cache = {
+  collectorLogs: {},
+  collectors: null,
   itemDetails: {},
   items: {},
   types: null
 };
 
 class Database {
+  public getCollectorLogs(collectorId: string): Promise<CollectorLog[]> {
+    if (cache.collectorLogs[collectorId]) {
+      return Promise.resolve(cache.collectorLogs[collectorId]);
+    }
+    return fetch(`${apiUrl}/collectors/${collectorId}/logs`).then(response => {
+      if (!response.ok) {
+        throw new Error('Could not retrieve collector logs from server');
+      }
+      return response.json() as Promise<CollectorLog[]>;
+    }).then(logs => {
+      cache.collectorLogs[collectorId] = logs;
+      return logs;
+    });
+  }
+
+  public getCollectors(): Promise<Collector[]> {
+    if (cache.collectors) {
+      return Promise.resolve(cache.collectors);
+    }
+    return fetch(`${apiUrl}/collectors`).then(response => {
+      if (!response.ok) {
+        throw new Error('Could not retrieve collectors from server');
+      }
+      return response.json() as Promise<Collector[]>;
+    }).then(collectors => {
+      cache.collectors = collectors;
+      return collectors;
+    });
+  }
+
   public getItem(typeId: string, itemId: number): Promise<Item> {
     if (cache.itemDetails[itemId]) {
       return Promise.resolve(cache.itemDetails[itemId]);

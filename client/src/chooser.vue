@@ -8,6 +8,7 @@
       something.
     </p>
     <input type="button" value="Go" @click="gotoItems">
+    <oscar-collector-footer></oscar-collector-footer>
   </div>
 </template>
 
