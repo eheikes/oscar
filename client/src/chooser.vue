@@ -2,13 +2,14 @@
   <div>
     <p>
       I want to
-      <select v-model="selectedType">
+      <select class="input-field" v-model="selectedType">
         <option v-for="type in types" :value="type.id">{{type.readable ? type.readable : type.id}}</option>
       </select>
       something.
     </p>
-    <input type="button" value="Go" @click="gotoItems">
-    <oscar-collector-footer></oscar-collector-footer>
+    <button class="btn-large waves-effect waves-light" type="submit" @click="gotoItems">
+      Go
+    </button>
   </div>
 </template>
 
@@ -37,6 +38,14 @@
         if (this.types && this.types.length > 0) {
           this.selectedType = this.types[0].id;
         }
+      });
+    }
+
+    private updated() {
+      const select = $('select', this.$el);
+      select.material_select();
+      select.on('change', e => {
+        this.selectedType = $(e.currentTarget).val();
       });
     }
 

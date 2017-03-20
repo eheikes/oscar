@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <router-view></router-view>
-  </div>
+  <main class="row">
+    <div class="col s12">
+      <router-view></router-view>
+    </div>
+  </main>
 </template>
 
 <script lang="ts">

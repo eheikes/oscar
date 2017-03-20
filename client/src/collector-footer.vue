@@ -1,10 +1,18 @@
 <template>
-  <footer @click="gotoLogs()">
-    <span>Collectors</span>
-    <span v-if="totalErrors === 0">OK</span>
-    <span v-else>{{totalErrors}}</span>
+  <footer class="grey lighten-2" @click="gotoLogs()" v-if="$route.name === 'choose'">
+    <div class="row">
+      <div class="col s9">Collectors</div>
+      <div class="col s3 white-text green lighten-2" v-if="totalErrors === 0">OK</div>
+      <div class="col s3 white-text red lighten-2" v-else>{{totalErrors}} errors</div>
+    </div>
   </footer>
 </template>
+
+<style>
+  footer {
+    cursor: pointer;
+  }
+</style>
 
 <script lang="ts">
   import Vue from 'vue';

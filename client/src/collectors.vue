@@ -1,12 +1,18 @@
 <template>
-  <ul>
-    <li v-for="item in collectors" @click="gotoLogs(item.id)">
+  <ul class="oscar-collectors collection">
+    <li class="collection-item" v-for="item in collectors" @click="gotoLogs(item.id)">
       <span>{{item.name}}</span>
-      <span v-if="item.numErrors === 0">OK</span>
-      <span v-else>{{item.numErrors}} errors</span>
+      <span class="secondary-content green-text" v-if="item.numErrors === 0">OK</span>
+      <span class="secondary-content red-text" v-else>{{item.numErrors}} errors</span>
     </li>
   </ul>
 </template>
+
+<style>
+  .oscar-collectors .collection-item {
+    cursor: pointer;
+  }
+</style>
 
 <script lang="ts">
   import Vue from 'vue';
