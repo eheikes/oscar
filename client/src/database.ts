@@ -125,6 +125,25 @@ class Database {
       return types;
     });
   }
+
+  public setRank(typeId: string, itemId: number, rank: number): Promise<Item> {
+    let request = JSON.stringify({
+      expectedRank: rank
+    });
+    return fetch(`${apiUrl}/types/${typeId}/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: request
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('Could not save rank');
+      }
+      return response.json() as Promise<Item>;
+    }).then(item => {
+      cache.itemDetails[itemId] = item;
+      return item;
+    });
+  }
 }
 
 export const database = new Database();

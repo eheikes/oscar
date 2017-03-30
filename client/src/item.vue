@@ -2,8 +2,12 @@
   <div class="oscar-item">
     <div v-if="item">
       <div class="badge">
-        <div class="rank" v-if="item.expectedRank">{{item.expectedRank | toFixed}}</div>
-        <div class="rank" v-else>{{item.rank | toFixed}}</div>
+        <div class="rank">
+          <a href="#ranking-modal" @click="openRankingModal()">
+            <span v-if="item.expectedRank">{{item.expectedRank | toFixed}}</span>
+            <span class="rank" v-else>{{item.rank | toFixed}}</span>
+          </a>
+        </div>
         <div v-if="!item.expectedRank">Best Guess</div>
       </div>
       <div class="subtitle"><a :href="item.url" target="_blank">{{item.url}}</a></div>
@@ -17,6 +21,18 @@
       </div>
       <div class="flow-text" v-if="item.summary">{{item.summary}}</div>
     </div>
+    <div id="ranking-modal" class="modal">
+      <div class="modal-content">
+        <h4>Set New Rank</h4>
+        <div class="input-field">
+          <input id="ranking-value" type="number" class="validate">
+          <label for="ranking-value">Rank</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="saveRanking()" class="waves-effect waves-light btn">Save</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -27,6 +43,9 @@
   .oscar-item .badge .rank {
     font-size: 200%;
     text-align: center;
+  }
+  .oscar-item .badge .rank a {
+    cursor: pointer;
   }
   .oscar-item .subtitle {
     font-size: 125%;
@@ -79,6 +98,26 @@
         this.categories = this.item.categories.length > 0 ?
           this.item.categories.join(', ') :
           '';
+      });
+    }
+
+    private mounted() {
+      $('#ranking-modal').modal('init');
+    }
+
+    private openRankingModal() {
+      $('#ranking-modal').modal('open');
+    }
+
+    private saveRanking() {
+      let newRank = $('#ranking-value').val();
+      database.setRank(
+        this.$route.params.type,
+        Number(this.$route.params.item),
+        newRank
+      ).then(item => {
+        this.item = item;
+        $('#ranking-modal').modal('close');
       });
     }
   }
