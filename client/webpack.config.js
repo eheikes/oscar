@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
   entry: [
     'whatwg-fetch',
+    'jquery',
     'materialize-loader!./materialize.config.js', // CSS
     'materialize-css', // JS
     './src/main.ts',
