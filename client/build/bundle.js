@@ -33322,7 +33322,7 @@ var AppHeader = (function (_super) {
     AppHeader.prototype.data = function () {
         return {
             collectors: [],
-            title: null
+            itemTitle: null
         };
     };
     AppHeader.prototype.created = function () {
@@ -33330,12 +33330,7 @@ var AppHeader = (function (_super) {
         __WEBPACK_IMPORTED_MODULE_2__database__["a" /* database */].getCollectors().then(function (collectors) {
             _this.collectors = collectors;
         });
-        if (this.$route.name === 'item') {
-            var itemId = Number(this.$route.params.item);
-            __WEBPACK_IMPORTED_MODULE_2__database__["a" /* database */].getItem(this.$route.params.type, itemId).then(function (item) {
-                _this.title = item.title;
-            });
-        }
+        this.getItemTitle();
     };
     Object.defineProperty(AppHeader.prototype, "currentCollector", {
         get: function () {
@@ -33354,12 +33349,26 @@ var AppHeader = (function (_super) {
     AppHeader.prototype.goBack = function () {
         this.$router.go(-1);
     };
+    AppHeader.prototype.getItemTitle = function () {
+        var _this = this;
+        if (this.$route.name === 'item') {
+            var itemId = Number(this.$route.params.item);
+            __WEBPACK_IMPORTED_MODULE_2__database__["a" /* database */].getItem(this.$route.params.type, itemId).then(function (item) {
+                _this.itemTitle = item.title;
+            });
+        }
+    };
     return AppHeader;
 }(__WEBPACK_IMPORTED_MODULE_0_vue___default.a));
 AppHeader = __decorate([
     __WEBPACK_IMPORTED_MODULE_1_vue_class_component___default()({
         name: 'AppHeader',
-        filters: { capitalize: capitalize }
+        filters: { capitalize: capitalize },
+        watch: {
+            '$route': function () {
+                this.getItemTitle();
+            }
+        }
     })
 ], AppHeader);
 /* harmony default export */ __webpack_exports__["default"] = AppHeader;
@@ -34423,7 +34432,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
         _vm.goBack()
       }
     }
-  }, [_vm._v("‹")]) : _vm._e(), _vm._v(" "), (_vm.$route.name === 'choose') ? _c('span', [_vm._v("OSCAR")]) : (_vm.$route.name === 'items') ? _c('span', [_vm._v(_vm._s(_vm._f("capitalize")(_vm.$route.params.type)))]) : (_vm.$route.name === 'item') ? _c('span', [_vm._v(_vm._s(_vm.title))]) : (_vm.$route.name === 'logs') ? _c('span', [_vm._v(_vm._s(_vm.currentCollector) + " Logs")]) : _c('span', [_vm._v(_vm._s(_vm._f("capitalize")(_vm.$route.name)))])])])])])
+  }, [_vm._v("‹")]) : _vm._e(), _vm._v(" "), (_vm.$route.name === 'choose') ? _c('span', [_vm._v("OSCAR")]) : (_vm.$route.name === 'items') ? _c('span', [_vm._v(_vm._s(_vm._f("capitalize")(_vm.$route.params.type)))]) : (_vm.$route.name === 'item') ? _c('span', [_vm._v(_vm._s(_vm.itemTitle))]) : (_vm.$route.name === 'logs') ? _c('span', [_vm._v(_vm._s(_vm.currentCollector) + " Logs")]) : _c('span', [_vm._v(_vm._s(_vm._f("capitalize")(_vm.$route.name)))])])])])])
 },staticRenderFns: []}
 module.exports.render._withStripped = true
 if (false) {

@@ -6,7 +6,7 @@
           <a href class="back" v-if="$route.name !== 'choose'" @click="goBack()">‹</a>
           <span v-if="$route.name === 'choose'">OSCAR</span>
           <span v-else-if="$route.name === 'items'">{{$route.params.type | capitalize}}</span>
-          <span v-else-if="$route.name === 'item'">{{title}}</span>
+          <span v-else-if="$route.name === 'item'">{{itemTitle}}</span>
           <span v-else-if="$route.name === 'logs'">{{currentCollector}} Logs</span>
           <span v-else>{{$route.name | capitalize}}</span>
         </div>
@@ -34,16 +34,21 @@
 
   @Component({
     name: 'AppHeader',
-    filters: { capitalize }
+    filters: { capitalize },
+    watch: {
+      '$route': function(this: AppHeader) {
+        this.getItemTitle();
+      }
+    }
   })
   export default class AppHeader extends Vue {
     collectors: Collector[];
-    title: string|null;
+    itemTitle: string|null;
 
     private data () {
       return {
         collectors: [],
-        title: null
+        itemTitle: null
       }
     }
 
@@ -51,12 +56,7 @@
       database.getCollectors().then(collectors => {
         this.collectors = collectors;
       });
-      if (this.$route.name === 'item') {
-        let itemId = Number(this.$route.params.item);
-        database.getItem(this.$route.params.type, itemId).then(item => {
-          this.title = item.title;
-        });
-      }
+      this.getItemTitle();
     }
 
     private get currentCollector(): string {
@@ -71,6 +71,15 @@
 
     private goBack() {
       this.$router.go(-1);
+    }
+
+    private getItemTitle() {
+      if (this.$route.name === 'item') {
+        let itemId = Number(this.$route.params.item);
+        database.getItem(this.$route.params.type, itemId).then(item => {
+          this.itemTitle = item.title;
+        });
+      }
     }
   }
 </script>
