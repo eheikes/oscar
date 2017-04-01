@@ -1,3 +1,5 @@
+import Cache from './cache';
+
 const apiUrl = 'http://localhost:8080';
 
 export interface Collector {
@@ -34,23 +36,23 @@ export interface Type {
   readable: string|null;
 }
 
-export interface Cache {
-  collectorLogs: {[id: string]: CollectorLog[]};
-  collectors: Collector[]|null;
-  itemDetails: {[id: number]: Item};
-  items: {[type: string]: Item[]};
-  types: Type[]|null;
-}
-
-const cache: Cache = {
-  collectorLogs: {},
-  collectors: null,
-  itemDetails: {},
-  items: {},
-  types: null
-};
+const genericRoot = 'all';
 
 class Database {
+  private collectorLogs: Cache<CollectorLog[]>;
+  private collectors: Cache<Collector[]>;
+  private itemDetails: Cache<Item>;
+  private items: Cache<Item[]>;
+  private types: Cache<Type[]>;
+
+  constructor() {
+    this.collectorLogs = new Cache<CollectorLog[]>();
+    this.collectors = new Cache<Collector[]>();
+    this.itemDetails = new Cache<Item>();
+    this.items = new Cache<Item[]>();
+    this.types = new Cache<Type[]>();
+  }
+
   public deleteItem(typeId: string, itemId: number): Promise<Item> {
     return fetch(`${apiUrl}/types/${typeId}/${itemId}`, {
       method: 'DELETE',
@@ -61,14 +63,14 @@ class Database {
       }
       return response.json() as Promise<Item>;
     }).then(item => {
-      cache.itemDetails[itemId] = item;
+      this.itemDetails.save(itemId, item);
       return item;
     });
   }
 
   public getCollectorLogs(collectorId: string): Promise<CollectorLog[]> {
-    if (cache.collectorLogs[collectorId]) {
-      return Promise.resolve(cache.collectorLogs[collectorId]);
+    if (this.collectorLogs.has(collectorId)) {
+      return this.collectorLogs.get(collectorId);
     }
     return fetch(`${apiUrl}/collectors/${collectorId}/logs`).then(response => {
       if (!response.ok) {
@@ -76,14 +78,14 @@ class Database {
       }
       return response.json() as Promise<CollectorLog[]>;
     }).then(logs => {
-      cache.collectorLogs[collectorId] = logs;
+      this.collectorLogs.save(collectorId, logs);
       return logs;
     });
   }
 
   public getCollectors(): Promise<Collector[]> {
-    if (cache.collectors) {
-      return Promise.resolve(cache.collectors);
+    if (this.collectors.has(genericRoot)) {
+      return this.collectors.get(genericRoot);
     }
     return fetch(`${apiUrl}/collectors`).then(response => {
       if (!response.ok) {
@@ -91,14 +93,14 @@ class Database {
       }
       return response.json() as Promise<Collector[]>;
     }).then(collectors => {
-      cache.collectors = collectors;
+      this.collectors.save(genericRoot, collectors);
       return collectors;
     });
   }
 
   public getItem(typeId: string, itemId: number): Promise<Item> {
-    if (cache.itemDetails[itemId]) {
-      return Promise.resolve(cache.itemDetails[itemId]);
+    if (this.itemDetails.has(itemId)) {
+      return this.itemDetails.get(itemId);
     }
     return fetch(`${apiUrl}/types/${typeId}/${itemId}`).then(response => {
       if (!response.ok) {
@@ -106,14 +108,14 @@ class Database {
       }
       return response.json() as Promise<Item>;
     }).then(item => {
-      cache.itemDetails[itemId] = item;
+      this.itemDetails.save(itemId, item);
       return item;
     });
   }
 
   public getItems(typeId: string): Promise<Item[]> {
-    if (cache.items[typeId]) {
-      return Promise.resolve(cache.items[typeId]);
+    if (this.items.has(typeId)) {
+      return this.items.get(typeId);
     }
     return fetch(`${apiUrl}/types/${typeId}`).then(response => {
       if (!response.ok) {
@@ -121,14 +123,14 @@ class Database {
       }
       return response.json() as Promise<Item[]>;
     }).then(items => {
-      cache.items[typeId] = items;
+      this.items.save(typeId, items);
       return items;
     });
   }
 
   public getTypes(): Promise<Type[]> {
-    if (cache.types) {
-      return Promise.resolve(cache.types);
+    if (this.types.has(genericRoot)) {
+      return this.types.get(genericRoot);
     }
     return fetch(`${apiUrl}/types`).then(response => {
       if (!response.ok) {
@@ -136,7 +138,7 @@ class Database {
       }
       return response.json() as Promise<Type[]>;
     }).then(types => {
-      cache.types = types;
+      this.types.save(genericRoot, types);
       return types;
     });
   }
@@ -155,7 +157,7 @@ class Database {
       }
       return response.json() as Promise<Item>;
     }).then(item => {
-      cache.itemDetails[itemId] = item;
+      this.itemDetails.save(String(itemId), item);
       return item;
     });
   }
