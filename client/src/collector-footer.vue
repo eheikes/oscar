@@ -11,6 +11,17 @@
 <style>
   footer {
     cursor: pointer;
+    flex: 0 1 auto;
+  }
+  footer .row {
+    margin-bottom: 0;
+  }
+  footer .row .col {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+  }
+  footer .row .col:nth-of-type(2) {
+    text-align: right;
   }
 </style>
 
