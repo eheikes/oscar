@@ -51,6 +51,21 @@ const cache: Cache = {
 };
 
 class Database {
+  public deleteItem(typeId: string, itemId: number): Promise<Item> {
+    return fetch(`${apiUrl}/types/${typeId}/${itemId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('Could not delete item');
+      }
+      return response.json() as Promise<Item>;
+    }).then(item => {
+      cache.itemDetails[itemId] = item;
+      return item;
+    });
+  }
+
   public getCollectorLogs(collectorId: string): Promise<CollectorLog[]> {
     if (cache.collectorLogs[collectorId]) {
       return Promise.resolve(cache.collectorLogs[collectorId]);

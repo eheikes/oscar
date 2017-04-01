@@ -10,6 +10,14 @@
           <span v-else-if="$route.name === 'logs'">{{currentCollector}} Logs</span>
           <span v-else>{{$route.name | capitalize}}</span>
         </div>
+        <ul class="right" v-if="$route.name === 'item'">
+          <li>
+            <a @click="markAsDone()" class="waves-effect waves-light btn">
+              Done
+              <i class="material-icons right">done</i>
+            </a>
+          </li>
+        </ul>
       </div>
     </nav>
   </header>
@@ -80,6 +88,15 @@
           this.itemTitle = item.title;
         });
       }
+    }
+
+    private markAsDone() {
+      database.deleteItem(
+        this.$route.params.type,
+        Number(this.$route.params.item)
+      ).then(item => {
+        this.goBack();
+      });
     }
   }
 </script>
