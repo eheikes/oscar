@@ -8948,12 +8948,14 @@ var Database = (function () {
         if (this.collectorLogs.has(collectorId)) {
             return this.collectorLogs.get(collectorId);
         }
-        return fetch(apiUrl + "/collectors/" + collectorId + "/logs").then(function (response) {
+        var promise = fetch(apiUrl + "/collectors/" + collectorId + "/logs").then(function (response) {
             if (!response.ok) {
                 throw new Error('Could not retrieve collector logs from server');
             }
             return response.json();
-        }).then(function (logs) {
+        });
+        this.collectorLogs.savePromise(genericRoot, promise);
+        return promise.then(function (logs) {
             _this.collectorLogs.save(collectorId, logs);
             return logs;
         });
@@ -8963,12 +8965,14 @@ var Database = (function () {
         if (this.collectors.has(genericRoot)) {
             return this.collectors.get(genericRoot);
         }
-        return fetch(apiUrl + "/collectors").then(function (response) {
+        var promise = fetch(apiUrl + "/collectors").then(function (response) {
             if (!response.ok) {
                 throw new Error('Could not retrieve collectors from server');
             }
             return response.json();
-        }).then(function (collectors) {
+        });
+        this.collectors.savePromise(genericRoot, promise);
+        return promise.then(function (collectors) {
             _this.collectors.save(genericRoot, collectors);
             return collectors;
         });
@@ -8978,12 +8982,14 @@ var Database = (function () {
         if (this.itemDetails.has(itemId)) {
             return this.itemDetails.get(itemId);
         }
-        return fetch(apiUrl + "/types/" + typeId + "/" + itemId).then(function (response) {
+        var promise = fetch(apiUrl + "/types/" + typeId + "/" + itemId).then(function (response) {
             if (!response.ok) {
                 throw new Error('Could not retrieve item details from server');
             }
             return response.json();
-        }).then(function (item) {
+        });
+        this.itemDetails.savePromise(genericRoot, promise);
+        return promise.then(function (item) {
             _this.itemDetails.save(itemId, item);
             return item;
         });
@@ -8993,12 +8999,14 @@ var Database = (function () {
         if (this.items.has(typeId)) {
             return this.items.get(typeId);
         }
-        return fetch(apiUrl + "/types/" + typeId).then(function (response) {
+        var promise = fetch(apiUrl + "/types/" + typeId).then(function (response) {
             if (!response.ok) {
                 throw new Error('Could not retrieve items from server');
             }
             return response.json();
-        }).then(function (items) {
+        });
+        this.items.savePromise(genericRoot, promise);
+        return promise.then(function (items) {
             _this.items.save(typeId, items);
             return items;
         });
@@ -9008,12 +9016,14 @@ var Database = (function () {
         if (this.types.has(genericRoot)) {
             return this.types.get(genericRoot);
         }
-        return fetch(apiUrl + "/types").then(function (response) {
+        var promise = fetch(apiUrl + "/types").then(function (response) {
             if (!response.ok) {
                 throw new Error('Could not retrieve types from server');
             }
             return response.json();
-        }).then(function (types) {
+        });
+        this.types.savePromise(genericRoot, promise);
+        return promise.then(function (types) {
             _this.types.save(genericRoot, types);
             return types;
         });
@@ -36047,15 +36057,23 @@ var Cache = (function () {
     }
     Cache.prototype.get = function (key) {
         var k = String(key);
-        return Promise.resolve(this.cache.get(k));
+        var val = this.cache.get(k);
+        if (val instanceof Promise) {
+            return val;
+        }
+        return Promise.resolve(val);
     };
     Cache.prototype.has = function (key) {
         var k = String(key);
-        return typeof this.cache.get(k) !== 'undefined';
+        return this.cache.has(k);
     };
     Cache.prototype.save = function (key, val) {
         var k = String(key);
         this.cache.set(k, val);
+    };
+    Cache.prototype.savePromise = function (key, promise) {
+        var k = String(key);
+        this.cache.set(k, promise);
     };
     return Cache;
 }());

@@ -72,12 +72,14 @@ class Database {
     if (this.collectorLogs.has(collectorId)) {
       return this.collectorLogs.get(collectorId);
     }
-    return fetch(`${apiUrl}/collectors/${collectorId}/logs`).then(response => {
+    let promise = fetch(`${apiUrl}/collectors/${collectorId}/logs`).then(response => {
       if (!response.ok) {
         throw new Error('Could not retrieve collector logs from server');
       }
       return response.json() as Promise<CollectorLog[]>;
-    }).then(logs => {
+    });
+    this.collectorLogs.savePromise(genericRoot, promise);
+    return promise.then(logs => {
       this.collectorLogs.save(collectorId, logs);
       return logs;
     });
@@ -87,12 +89,14 @@ class Database {
     if (this.collectors.has(genericRoot)) {
       return this.collectors.get(genericRoot);
     }
-    return fetch(`${apiUrl}/collectors`).then(response => {
+    let promise = fetch(`${apiUrl}/collectors`).then(response => {
       if (!response.ok) {
         throw new Error('Could not retrieve collectors from server');
       }
       return response.json() as Promise<Collector[]>;
-    }).then(collectors => {
+    });
+    this.collectors.savePromise(genericRoot, promise);
+    return promise.then(collectors => {
       this.collectors.save(genericRoot, collectors);
       return collectors;
     });
@@ -102,12 +106,14 @@ class Database {
     if (this.itemDetails.has(itemId)) {
       return this.itemDetails.get(itemId);
     }
-    return fetch(`${apiUrl}/types/${typeId}/${itemId}`).then(response => {
+    let promise = fetch(`${apiUrl}/types/${typeId}/${itemId}`).then(response => {
       if (!response.ok) {
         throw new Error('Could not retrieve item details from server');
       }
       return response.json() as Promise<Item>;
-    }).then(item => {
+    });
+    this.itemDetails.savePromise(genericRoot, promise);
+    return promise.then(item => {
       this.itemDetails.save(itemId, item);
       return item;
     });
@@ -117,12 +123,14 @@ class Database {
     if (this.items.has(typeId)) {
       return this.items.get(typeId);
     }
-    return fetch(`${apiUrl}/types/${typeId}`).then(response => {
+    let promise = fetch(`${apiUrl}/types/${typeId}`).then(response => {
       if (!response.ok) {
         throw new Error('Could not retrieve items from server');
       }
       return response.json() as Promise<Item[]>;
-    }).then(items => {
+    });
+    this.items.savePromise(genericRoot, promise);
+    return promise.then(items => {
       this.items.save(typeId, items);
       return items;
     });
@@ -132,12 +140,14 @@ class Database {
     if (this.types.has(genericRoot)) {
       return this.types.get(genericRoot);
     }
-    return fetch(`${apiUrl}/types`).then(response => {
+    let promise = fetch(`${apiUrl}/types`).then(response => {
       if (!response.ok) {
         throw new Error('Could not retrieve types from server');
       }
       return response.json() as Promise<Type[]>;
-    }).then(types => {
+    });
+    this.types.savePromise(genericRoot, promise);
+    return promise.then(types => {
       this.types.save(genericRoot, types);
       return types;
     });
