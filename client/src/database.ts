@@ -1,6 +1,5 @@
 import Cache from './cache';
-
-const apiUrl = 'http://localhost:8080';
+import { apiUrl } from './config';
 
 export interface Collector {
   id: string;
