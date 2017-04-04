@@ -39,6 +39,8 @@
     "ts-loader": "^2.0.3",
     "tslint": "^4.4.2",
     "typescript": "^2.2.0",
+    "uglify-js": "^2.8.21",
+    "uglifyjs-webpack-plugin": "^0.4.0",
     "url-loader": "^0.5.8",
     "ux-lint": "^1.4.0",
     "vue": "^2.1.10",
