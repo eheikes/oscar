@@ -28,12 +28,7 @@
   import Vue from 'vue';
   import Component from 'vue-class-component';
   import { database, Item } from './database';
-
-  const toFixed = (val?: string) => {
-    if (!val) { return ''; }
-    let num = Number(val);
-    return num.toFixed(1);
-  };
+  import { toFixed } from './filters';
 
   @Component({
     name: 'OscarItems',

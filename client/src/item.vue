@@ -63,18 +63,7 @@
   import Vue from 'vue';
   import Component from 'vue-class-component';
   import { database, Item } from './database';
-
-  const readableDate = (val?: string) => {
-    if (!val) { return ''; }
-    let date = new Date(val);
-    return date.toLocaleDateString();
-  };
-
-  const toFixed = (val?: string) => {
-    if (!val) { return ''; }
-    let num = Number(val);
-    return num.toFixed(1);
-  };
+  import { readableDate, toFixed } from './filters';
 
   @Component({
     name: 'OscarItem',
