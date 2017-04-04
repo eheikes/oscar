@@ -4,9 +4,11 @@ This project contains the client app for the OSCAR assistant.
 
 ## Requirements
 
+A modern browser (Chrome, Firefox, Edge, Safari) is required to run the app.
 
 ## Installation & Usage
 
+The built files are stored in the `build` folder. However, you may want to change the app configuration (in the `src/config.ts` file) and rebuild for your specific setup.
 
 ## Development
 
