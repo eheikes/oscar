@@ -2,6 +2,8 @@
 
 This project contains the client app for the OSCAR assistant.
 
+It is written in [Vue.js](https://vuejs.org/) and Typescript, with [Vue class decorators](https://github.com/vuejs/vue-class-component). The design uses [Materialize](http://materializecss.com/).
+
 ## Requirements
 
 A modern browser (Chrome, Firefox, Edge, Safari) is required to run the app.
