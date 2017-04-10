@@ -20,5 +20,4 @@ If you want to make changes to the software, the following npm scripts are avail
 npm run clean  # deletes the build folder
 npm run lint   # checks the code for errors
 npm run build  # compiles the source code and saves it into the "build" folder
-npm test       # runs the test suite
 ```

@@ -11,8 +11,7 @@
     "build": "mkdirp build && cp src/index.html build/ && webpack",
     "clean": "del build",
     "lint": "ux-lint --extend .lintrc test && tslint -c tslint.json -t stylish src/**/*.ts",
-    "start": "http-server build",
-    "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json"
+    "start": "http-server build"
   },
   "author": "Eric Heikes <eheikes@gmail.com>",
   "license": "Apache-2.0",
