@@ -18,7 +18,8 @@
   "license": "Apache-2.0",
   "keywords": [
     "AI",
-    "assistant"
+    "assistant",
+    "oscar-assistant"
   ],
   "dependencies": {},
   "devDependencies": {
