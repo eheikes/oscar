@@ -2,7 +2,7 @@
 
 OSCAR consists of the following parts:
 
-* [API](api)
+* [REST API](api)
 * [client UI](client)
 
 ## Contributing
