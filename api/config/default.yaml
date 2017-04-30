@@ -11,3 +11,7 @@ database:
   user: your_db_user
   password: your_db_password
   name: db_name
+
+ranking:
+  numVars: 100  # how many items to use for the MLR ranking
+  numKeywords: 100 # max number of keywords to include in ranking

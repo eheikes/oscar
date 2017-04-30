@@ -108,6 +108,20 @@ The offset and number of items returned can be changed with the (zero-based) `st
 }]
 ```
 
+### `POST /types/:typeId/rankings`
+
+Updates the rankings for the given type.
+
+Returns the task status.
+
+```json
+{
+  "taskId": "UUID", // reserved for future use
+  "status": "started", // or "error"
+  "details": "message if an error occurred"
+}
+```
+
 ### `GET /types/:typeId/:itemId`
 
 Return the item details.

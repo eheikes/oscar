@@ -13,13 +13,27 @@ const stringOrNullType = val => {
   return val === null || typeof val === 'string';
 };
 
+const stringOrUndefinedType = val => {
+  return typeof val === 'undefined' || typeof val === 'string';
+};
+
 const timestampType = val => {
   return typeof val === 'string' &&
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|([-+]\d{2}:\d{2}))$/.test(val);
 };
 
+const taskStatusType = val => {
+  const statuses = ['started', 'success', 'error'];
+  return typeof val === 'string' && statuses.includes(val);
+};
+
 const timestampOrNullType = val => {
   return val === null || timestampType(val);
+};
+
+const uuidType = val => {
+  return typeof val === 'string' &&
+    /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(val);
 };
 
 // Checks if the given object has the expected properties,
@@ -72,7 +86,7 @@ let toBeCollectorLog = (util, customEqualityTesters) => {
 };
 
 // Jasmine matcher to check if the passed object
-//   matches the type schema.
+//   matches the item schema.
 let toBeItem = (util, customEqualityTesters) => {
   return {
     compare: (actual) => {
@@ -90,6 +104,25 @@ let toBeItem = (util, customEqualityTesters) => {
         due: timestampOrNullType,
         rank: 'number',
         expectedRank: numberOrNullType
+      });
+      let result = {
+        pass: errors.length === 0,
+        message: errors.join(' ')
+      };
+      return result;
+    }
+  };
+};
+
+// Jasmine matcher to check if the passed object
+//   matches the task schema.
+let toBeTask = (util, customEqualityTesters) => {
+  return {
+    compare: (actual) => {
+      let errors = checkProperties(actual, {
+        taskId: uuidType,
+        status: taskStatusType,
+        details: stringOrUndefinedType,
       });
       let result = {
         pass: errors.length === 0,
@@ -226,6 +259,7 @@ exports.customMatchers = {
   toBeCollector,
   toBeCollectorLog,
   toBeItem,
+  toBeTask,
   toBeType,
   toSendData,
   toSendError

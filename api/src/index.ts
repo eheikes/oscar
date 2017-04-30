@@ -10,6 +10,7 @@ let {
   getCollectorLogs,
   getItem,
   getItems,
+  rankItems,
   deleteItem,
   patchItem,
   getTypes,
@@ -37,6 +38,7 @@ server.get('/types/:typeId', getItems);
 server.get('/types/:typeId/:itemId', getItem);
 server.del('/types/:typeId/:itemId', deleteItem);
 server.patch('/types/:typeId/:itemId', patchItem);
+server.post('/types/:typeId/rankings', rankItems);
 
 db.ready.then(() => {
   server.listen(apiConfig.port, apiConfig.hostname, () => {
