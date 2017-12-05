@@ -1,6 +1,6 @@
 # OSCAR Assistant
 
-OSCAR consists of the following parts:
+This project is a monorepo. OSCAR consists of the following parts:
 
 * [REST API](api)
 * [client UI](client)
