@@ -1,0 +1,57 @@
+{
+  "name": "oscar-assistant-collector",
+  "version": "0.1.0",
+  "description": "Collector agent for OSCAR assistant",
+  "homepage": "https://github.com/eheikes/oscar/collector",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eheikes/oscar.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "del-cli dist",
+    "lint": "tslint -t stylish --project . --fix",
+    "start": "node dist/index.js",
+    "test": "JASMINE_CONFIG_PATH=test/jasmine.json nyc jasmine-ts"
+  },
+  "author": "Eric Heikes <eheikes@gmail.com>",
+  "license": "Apache-2.0",
+  "keywords": [
+    "AI",
+    "assistant",
+    "oscar-assistant"
+  ],
+  "dependencies": {
+    "del-cli": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^2.8.2",
+    "jasmine": "^2.8.0",
+    "jasmine-ts": "^0.2.1",
+    "nyc": "^11.3.0",
+    "tslint": "^5.8.0",
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.6.2"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "per-file": true,
+    "lines": 95,
+    "statements": 95,
+    "functions": 95,
+    "branches": 95,
+    "include": [
+      "src/**/*.ts"
+    ],
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "cache": true,
+    "all": true,
+    "report-dir": "./coverage"
+  }
+}
