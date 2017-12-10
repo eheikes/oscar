@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc && chmod a+x ./dist/index.js",
     "clean": "del-cli dist",
-    "lint": "tslint -t stylish --project . --fix",
+    "lint": "tslint -t stylish --fix \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/index.js",
     "test": "JASMINE_CONFIG_PATH=test/jasmine.json nyc jasmine-ts"
   },

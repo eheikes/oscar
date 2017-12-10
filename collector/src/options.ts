@@ -1,7 +1,7 @@
 import * as yargs from 'yargs'
 
 interface Options extends yargs.Arguments {
-  count: number;
+  count: number
 }
 
 const allOptions = {
@@ -9,7 +9,7 @@ const allOptions = {
     alias: 'c',
     default: 5,
     describe: 'number of sources to poll',
-    number: true,
+    number: true
   }
 }
 

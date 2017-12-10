@@ -6,7 +6,7 @@ const allOptions = {
         alias: 'c',
         default: 5,
         describe: 'number of sources to poll',
-        number: true,
+        number: true
     }
 };
 exports.allOptions = allOptions;
