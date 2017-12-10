@@ -7,8 +7,11 @@
     "type": "git",
     "url": "https://github.com/eheikes/oscar.git"
   },
+  "bin": {
+    "oscar-collector": "./dist/index.js"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod a+x ./dist/index.js",
     "clean": "del-cli dist",
     "lint": "tslint -t stylish --project . --fix",
     "start": "node dist/index.js",
@@ -26,6 +29,7 @@
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.2",
+    "@types/node": "^8.0.57",
     "jasmine": "^2.8.0",
     "jasmine-ts": "^0.2.1",
     "nyc": "^11.3.0",
