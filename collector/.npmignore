@@ -1,0 +1,4 @@
+# Only publish the dist folder.
+# Note that npm always includes README, package.json, etc when publishing.
+/*
+!/dist/
