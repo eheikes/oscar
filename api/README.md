@@ -4,7 +4,7 @@ This project contains the API server for the OSCAR assistant.
 
 ## Requirements
 
-* [Node.js](https://nodejs.org/) or similar runtime
+* [Node.js](https://nodejs.org/) 8.0 or higher
 * PostgreSQL, MySQL, SQLite, or MSSQL database
 
 ## Installation & Usage
