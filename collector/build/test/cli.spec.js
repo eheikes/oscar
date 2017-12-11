@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const child_process_1 = require("child_process");
 describe('CLI', () => {
-    const bin = path.resolve(__dirname, '../build/src/index.js');
+    const bin = path.resolve(__dirname, '../build/src/main.js');
     it('script should be executable', () => {
         return new Promise((resolve, reject) => {
             const proc = child_process_1.spawn(bin);

@@ -1,4 +1,4 @@
-import { opts } from '../src/index'
+import { opts } from '../src/main'
 
 describe('main', () => {
   it('should parse the CLI arguments', () => {

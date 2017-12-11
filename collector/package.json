@@ -11,10 +11,10 @@
     "oscar-collector": "./build/src/main.js"
   },
   "scripts": {
-    "build": "tsc && chmod a+x ./build/src/index.js",
+    "build": "tsc && chmod a+x ./build/src/main.js",
     "clean": "del-cli ./coverage ./build",
     "lint": "tslint -t stylish --project . --fix",
-    "start": "node build/src/index.js",
+    "start": "node build/src/main.js",
     "test": "JASMINE_CONFIG_PATH=test/jasmine.json nyc jasmine-ts"
   },
   "author": "Eric Heikes <eheikes@gmail.com>",

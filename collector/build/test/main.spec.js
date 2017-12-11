@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("../src/index");
+const main_1 = require("../src/main");
 describe('main', () => {
     it('should parse the CLI arguments', () => {
-        expect(index_1.opts).toEqual(jasmine.any(Object));
-        expect(index_1.opts.$0).toMatch(/jasmine-ts$/);
+        expect(main_1.opts).toEqual(jasmine.any(Object));
+        expect(main_1.opts.$0).toMatch(/jasmine-ts$/);
     });
 });

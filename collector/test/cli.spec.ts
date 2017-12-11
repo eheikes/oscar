@@ -2,7 +2,7 @@ import * as path from 'path'
 import { spawn } from 'child_process'
 
 describe('CLI', () => {
-  const bin = path.resolve(__dirname, '../build/src/index.js')
+  const bin = path.resolve(__dirname, '../build/src/main.js')
 
   it('script should be executable', () => {
     return new Promise((resolve, reject) => {
