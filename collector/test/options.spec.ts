@@ -1,4 +1,4 @@
-import { allOptions, Options, parseArguments } from '../src/options'
+import { allOptions, parseArguments } from '../src/options'
 
 describe('options', () => {
   describe('allOptions', () => {
