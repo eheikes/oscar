@@ -16,6 +16,8 @@ const allOptions = {
 const parseArgs = (args: string[]): Options => {
   return yargs
     .options(allOptions)
+    .help()
+    .version()
     .parse(args) as Options
 }
 
