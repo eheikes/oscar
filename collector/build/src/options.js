@@ -13,6 +13,8 @@ exports.allOptions = allOptions;
 const parseArgs = (args) => {
     return yargs
         .options(allOptions)
+        .help()
+        .version()
         .parse(args);
 };
 exports.parseArguments = parseArgs;
