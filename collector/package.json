@@ -44,7 +44,7 @@
   },
   "nyc": {
     "check-coverage": true,
-    "per-file": true,
+    "per-file": false,
     "lines": 95,
     "statements": 95,
     "functions": 95,
@@ -59,8 +59,8 @@
     "extension": [
       ".ts"
     ],
-    "cache": true,
-    "all": true,
+    "cache": false,
+    "all": false,
     "report-dir": "./coverage"
   }
 }
