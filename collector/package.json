@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc && chmod a+x ./build/src/main.js",
     "clean": "del-cli ./coverage ./build",
-    "dev": "watch \"run-s lint clean build test\" src test",
+    "dev": "watch \"run-s lint clean build test\" ../types src test",
     "lint": "tslint -t stylish --project . --fix",
     "start": "node build/src/main.js",
     "test": "JASMINE_CONFIG_PATH=test/jasmine.json nyc jasmine-ts"
