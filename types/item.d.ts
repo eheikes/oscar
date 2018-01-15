@@ -4,12 +4,14 @@ interface OscarItem {
   title: string;
   author: string | null;
   summary: string | null;
+  language: string | null;
+  imageUri: string | null;
   length: number | null;
   rating: number | null;
   due: Date | null;
-  rank: number;
+  rank: number | null;
   expectedRank: number | null;
-  categories: string;
+  categories: string[];
   createdAt: Date;
   deletedAt: Date | null;
 }

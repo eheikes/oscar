@@ -1,4 +1,4 @@
-abstract class BaseCollector implements OscarCollector {
+export abstract class BaseCollector implements OscarCollector {
   abstract id: string
   abstract name: string
   logs: OscarCollectorLog[] = []
@@ -8,6 +8,5 @@ abstract class BaseCollector implements OscarCollector {
     return this.logs[0].numErrors
   }
 
-  abstract collect (source: OscarSource): Promise<OscarItem[]>
-  abstract collect (itemId: string): Promise<OscarItem>
+  abstract retrieve (): Promise<OscarItem[]>
 }

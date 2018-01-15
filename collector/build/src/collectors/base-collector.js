@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class BaseCollector {
     constructor() {
         this.logs = [];
@@ -9,3 +11,4 @@ class BaseCollector {
         return this.logs[0].numErrors;
     }
 }
+exports.BaseCollector = BaseCollector;

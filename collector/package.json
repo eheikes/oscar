@@ -27,11 +27,17 @@
   ],
   "dependencies": {
     "del-cli": "^1.1.0",
+    "feedparser": "^2.2.7",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
     "yargs": "^10.0.3"
   },
   "devDependencies": {
+    "@types/feedparser": "^2.2.1",
     "@types/jasmine": "^2.8.2",
     "@types/node": "^8.0.57",
+    "@types/request": "^2.0.9",
+    "@types/request-promise-native": "^1.0.10",
     "@types/yargs": "^10.0.0",
     "jasmine": "^2.8.0",
     "jasmine-ts": "^0.2.1",
