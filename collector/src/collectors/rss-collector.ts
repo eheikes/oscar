@@ -11,7 +11,7 @@ export class RssCollector extends BaseCollector {
     super()
   }
 
-  retrieve (): Promise<OscarItem[]> {
+  async retrieve (): Promise<OscarItem[]> {
     return this.requestFile().then(file => {
       return this.parseFile(file)
     }).then(parsedItems => {
@@ -39,10 +39,10 @@ export class RssCollector extends BaseCollector {
     }
   }
 
-  private parseFile (xml: string): Promise<FeedParser.Item[]> {
+  private async parseFile (xml: string): Promise<FeedParser.Item[]> {
     const feedparser = new FeedParser({})
     const s = new Readable()
-    return new Promise((resolve, reject) => {
+    return new Promise<FeedParser.Item[]>((resolve, reject) => {
       const items: FeedParser.Item[] = []
       feedparser.on('error', (err: Error) => { reject(err) })
       feedparser.on('end', () => { resolve(items) })
@@ -60,7 +60,7 @@ export class RssCollector extends BaseCollector {
     })
   }
 
-  private requestFile (): Promise<string> {
+  private async requestFile (): Promise<string> {
     return request({
       uri: this.uri,
       timeout: 10000,

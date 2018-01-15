@@ -5,28 +5,31 @@ const testFeed = 'http://lorem-rss.herokuapp.com/feed';
 describe('RSS collector', () => {
     let collector;
     describe('retrieve()', () => {
-        it('should return the items in the feed', () => {
+        it('should return the items in the feed', async () => {
             collector = new rss_collector_1.RssCollector(testFeed);
-            return collector.retrieve().then(items => {
-                expect(items.length).toBeGreaterThan(0);
-                expect(items[0].title).toMatch(/lorem ipsum/i);
-            });
+            const items = await collector.retrieve();
+            expect(items.length).toBeGreaterThan(0);
+            expect(items[0].title).toMatch(/lorem ipsum/i);
         });
-        it('should return a rejected promise if the request fails', () => {
+        it('should return a rejected promise if the request fails', async () => {
             collector = new rss_collector_1.RssCollector('http://example.com/nonexistent.rss');
-            return collector.retrieve().then(result => {
-                expect(result).not.toBeDefined();
-            }).catch(err => {
+            try {
+                const items = await collector.retrieve();
+                expect(items).not.toBeUndefined();
+            }
+            catch (err) {
                 expect(err).toEqual(jasmine.any(Error));
-            });
+            }
         });
-        it('should return a rejected promise if the URL is not a feed', () => {
+        it('should return a rejected promise if the URL is not a feed', async () => {
             collector = new rss_collector_1.RssCollector('http://example.com/');
-            return collector.retrieve().then(result => {
-                expect(result).not.toBeDefined();
-            }).catch(err => {
+            try {
+                const items = await collector.retrieve();
+                expect(items).toBeUndefined();
+            }
+            catch (err) {
                 expect(err).toEqual(jasmine.any(Error));
-            });
+            }
         });
     });
 });

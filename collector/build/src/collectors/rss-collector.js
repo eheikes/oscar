@@ -11,7 +11,7 @@ class RssCollector extends base_collector_1.BaseCollector {
         this.id = 'rss';
         this.name = 'RSS Collector';
     }
-    retrieve() {
+    async retrieve() {
         return this.requestFile().then(file => {
             return this.parseFile(file);
         }).then(parsedItems => {
@@ -37,7 +37,7 @@ class RssCollector extends base_collector_1.BaseCollector {
             deletedAt: null
         };
     }
-    parseFile(xml) {
+    async parseFile(xml) {
         const feedparser = new FeedParser({});
         const s = new stream_1.Readable();
         return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ class RssCollector extends base_collector_1.BaseCollector {
             s.push(null);
         });
     }
-    requestFile() {
+    async requestFile() {
         return request({
             uri: this.uri,
             timeout: 10000,

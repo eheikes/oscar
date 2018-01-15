@@ -8,5 +8,5 @@ export abstract class BaseCollector implements OscarCollector {
     return this.logs[0].numErrors
   }
 
-  abstract retrieve (): Promise<OscarItem[]>
+  abstract async retrieve (): Promise<OscarItem[]>
 }
