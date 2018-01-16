@@ -1,4 +1,6 @@
 import * as FeedParser from 'feedparser'
+import * as findPackageDir from 'pkg-dir'
+import * as path from 'path'
 import * as request from 'request-promise-native'
 import { Readable } from 'stream'
 import { BaseCollector } from './base-collector'
@@ -61,8 +63,18 @@ export class RssCollector extends BaseCollector {
   }
 
   private async requestFile (): Promise<string> {
+    const pkgPath = await findPackageDir(__dirname)
+    /* istanbul ignore if */
+    if (!pkgPath) {
+      throw new Error('Could not find package.json')
+    }
+    const pkg = require(path.join(pkgPath, 'package.json'))
     return request({
       uri: this.uri,
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml',
+        'User-Agent': `${pkg.name}/${pkg.version}`
+      },
       timeout: 10000,
       pool: false
     })

@@ -27,6 +27,10 @@
   version "8.0.57"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.57.tgz#e5d8b4dc112763e35cfc51988f4f38da3c486d99"
 
+"@types/pkg-dir@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@types/pkg-dir/-/pkg-dir-2.0.0.tgz#c75b68f7e5be4cd1b9deb490add2f5bd52135c32"
+
 "@types/request-promise-native@^1.0.10":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@types/request-promise-native/-/request-promise-native-1.0.10.tgz#94d142fb817bd8df4a080da1f3ef0bae45fc6304"
@@ -1738,6 +1742,12 @@ pkg-dir@^1.0.0:
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-1.0.0.tgz#7a4b508a8d5bb2d629d447056ff4e9c9314cf3d4"
   dependencies:
     find-up "^1.0.0"
+
+pkg-dir@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-2.0.0.tgz#f6d5d1109e19d63edf428e0bd57e12777615334b"
+  dependencies:
+    find-up "^2.1.0"
 
 prepend-http@^1.0.1:
   version "1.0.4"

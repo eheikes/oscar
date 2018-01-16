@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const FeedParser = require("feedparser");
+const findPackageDir = require("pkg-dir");
+const path = require("path");
 const request = require("request-promise-native");
 const stream_1 = require("stream");
 const base_collector_1 = require("./base-collector");
@@ -58,8 +60,18 @@ class RssCollector extends base_collector_1.BaseCollector {
         });
     }
     async requestFile() {
+        const pkgPath = await findPackageDir(__dirname);
+        /* istanbul ignore if */
+        if (!pkgPath) {
+            throw new Error('Could not find package.json');
+        }
+        const pkg = require(path.join(pkgPath, 'package.json'));
         return request({
             uri: this.uri,
+            headers: {
+                'Accept': 'text/html,application/xhtml+xml',
+                'User-Agent': `${pkg.name}/${pkg.version}`
+            },
             timeout: 10000,
             pool: false
         });
