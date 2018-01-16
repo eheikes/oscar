@@ -2,8 +2,8 @@
 // A log is created when a source is collected.
 //
 interface OscarCollectorLog {
-  id: number;
-  timestamp: string;
+  id: string; // internal ID
+  timestamp: Date;
   log: string;
   numErrors: number;
 }
