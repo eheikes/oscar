@@ -1,4 +1,4 @@
-# OSCAR Assistant
+# OSCAR Assistant (in progress)
 
 This project is a monorepo. OSCAR consists of the following parts:
 
