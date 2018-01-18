@@ -6,6 +6,7 @@ class BaseCollector {
     // It can also take an optional object with options.
     constructor() {
         this.logs = []; // logs in descending order
+        // base class does nothing
     }
     get numErrors() {
         if (this.logs.length === 0) {

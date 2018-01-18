@@ -12,7 +12,9 @@ export abstract class BaseCollector implements OscarCollector {
 
   // The constructor for a collector usually takes a URI.
   // It can also take an optional object with options.
-  constructor () {}
+  constructor () {
+    // base class does nothing
+  }
 
   addLog (log: OscarCollectorLog) {
     this.logs.unshift(log)

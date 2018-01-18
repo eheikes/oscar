@@ -33,7 +33,9 @@ describe('RSS collector', () => {
         collector = new RssCollector('http://example.com/nonexistent.rss')
         try {
           items = await collector.retrieve()
-        } catch (e) {}
+        } catch (e) {
+          // swallow the error
+        }
       })
 
       it('should return no items', async () => {
@@ -52,7 +54,9 @@ describe('RSS collector', () => {
         collector = new RssCollector('http://example.com/')
         try {
           items = await collector.retrieve()
-        } catch (e) {}
+        } catch (e) {
+          // swallow the error
+        }
       })
 
       it('should return no items', async () => {

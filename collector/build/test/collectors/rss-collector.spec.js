@@ -29,7 +29,9 @@ describe('RSS collector', () => {
                 try {
                     items = await collector.retrieve();
                 }
-                catch (e) { }
+                catch (e) {
+                    // swallow the error
+                }
             });
             it('should return no items', async () => {
                 expect(items).toEqual([]);
@@ -46,7 +48,9 @@ describe('RSS collector', () => {
                 try {
                     items = await collector.retrieve();
                 }
-                catch (e) { }
+                catch (e) {
+                    // swallow the error
+                }
             });
             it('should return no items', async () => {
                 expect(items).toEqual([]);
