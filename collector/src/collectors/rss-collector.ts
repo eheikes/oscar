@@ -2,7 +2,6 @@ import * as FeedParser from 'feedparser'
 import * as findPackageDir from 'pkg-dir'
 import * as path from 'path'
 import * as request from 'request-promise-native'
-import * as uuid from 'uuid/v4'
 import { Readable } from 'stream'
 import { BaseCollector } from './base-collector'
 
@@ -16,12 +15,7 @@ export class RssCollector extends BaseCollector {
 
   async retrieve (): Promise<OscarItem[]> {
     let items: OscarItem[] = []
-    let log: OscarCollectorLog = {
-      id: uuid(),
-      timestamp: new Date(),
-      log: '',
-      numErrors: 0
-    }
+    let log = this.createLog()
     try {
       const file = await this.requestFile()
       const parsedItems = await this.parseFile(file)
@@ -30,7 +24,7 @@ export class RssCollector extends BaseCollector {
       log.log = err
       log.numErrors = 1
     }
-    this.logs.unshift(log)
+    this.addLog(log)
     return items
   }
 

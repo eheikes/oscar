@@ -1,3 +1,5 @@
+import * as uuid from 'uuid/v4'
+
 export abstract class BaseCollector implements OscarCollector {
   abstract id: string   // internal alphanumeric ID
   abstract name: string // human-readable name
@@ -10,7 +12,20 @@ export abstract class BaseCollector implements OscarCollector {
 
   // The constructor for a collector usually takes a URI.
   // It can also take an optional object with options.
-  constructor() {}
+  constructor () {}
+
+  addLog (log: OscarCollectorLog) {
+    this.logs.unshift(log)
+  }
+
+  createLog (message: string = '', numErrors = 0): OscarCollectorLog {
+    return {
+      id: uuid(),
+      timestamp: new Date(),
+      log: message,
+      numErrors: numErrors
+    }
+  }
 
   // Returns the items from the collector.
   // It should add a log to this.logs (whether successful or not).

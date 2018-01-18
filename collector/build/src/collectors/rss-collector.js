@@ -4,7 +4,6 @@ const FeedParser = require("feedparser");
 const findPackageDir = require("pkg-dir");
 const path = require("path");
 const request = require("request-promise-native");
-const uuid = require("uuid/v4");
 const stream_1 = require("stream");
 const base_collector_1 = require("./base-collector");
 class RssCollector extends base_collector_1.BaseCollector {
@@ -16,12 +15,7 @@ class RssCollector extends base_collector_1.BaseCollector {
     }
     async retrieve() {
         let items = [];
-        let log = {
-            id: uuid(),
-            timestamp: new Date(),
-            log: '',
-            numErrors: 0
-        };
+        let log = this.createLog();
         try {
             const file = await this.requestFile();
             const parsedItems = await this.parseFile(file);
@@ -31,7 +25,7 @@ class RssCollector extends base_collector_1.BaseCollector {
             log.log = err;
             log.numErrors = 1;
         }
-        this.logs.unshift(log);
+        this.addLog(log);
         return items;
     }
     normalizeItem(item) {
