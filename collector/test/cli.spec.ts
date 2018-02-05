@@ -1,18 +1,13 @@
-import * as path from 'path'
-import { spawn } from 'child_process'
+import { access, constants } from 'fs'
+import { resolve } from 'path'
+import { promisify } from 'util'
 
 describe('CLI', () => {
-  const bin = path.resolve(__dirname, '../build/src/main.js')
+  const bin = resolve(__dirname, '../build/src/main.js')
 
   it('script should be executable', () => {
-    return new Promise((resolve, reject) => {
-      const proc = spawn(bin)
-      proc.on('close', code => {
-        if (code !== 0) {
-          return reject(new Error(`Binary exited with error code ${code}`))
-        }
-        resolve()
-      })
-    })
+    // Note that Windows doesn't support executable flags;
+    //   it will only check if the file is visible.
+    return promisify(access)(bin, constants.X_OK)
   })
 })
