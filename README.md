@@ -4,6 +4,7 @@ This project is a monorepo. OSCAR consists of the following parts:
 
 * [REST API](api)
 * [client UI](client)
+* [collector agent](collector)
 
 ## Contributing
 
