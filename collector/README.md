@@ -8,13 +8,10 @@ This project contains the collector agent for the OSCAR assistant.
 
 ## Usage
 
-```
-# Calling with npm:
-npm start -- OPTIONS
+Example that pulls from 5 sources, using `config.yaml` for the configuration:
 
-# Calling with yarn:
-yarn start OPTIONS
-
-# Calling when the package has been installed globally:
-oscar-collector OPTIONS
 ```
+oscar-collector -c 5 config.yaml
+```
+
+Run `oscar-collector --help` to see the full list of options.

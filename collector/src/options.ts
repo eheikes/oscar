@@ -15,6 +15,7 @@ const allOptions = {
 
 const parseArgs = (args: string[]): Options => {
   return yargs
+    .usage('$0 [OPTIONS] [CONFIG_FILE]')
     .options(allOptions)
     .help()
     .version()
