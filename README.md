@@ -6,6 +6,10 @@ This project is a monorepo. OSCAR consists of the following parts:
 * [client UI](client)
 * [collector agent](collector)
 
+## Configuration
+
+You'll need to create a [YAML](https://en.wikipedia.org/wiki/YAML) configuration file for some pieces of the assistant. Use the [example file](example-config.yaml) as a guide.
+
 ## Contributing
 
 Bug reports and contributions are welcome. [Create an issue or feature request](https://github.com/eheikes/oscar/issues), or [submit a pull request](https://help.github.com/articles/creating-a-pull-request/) with your proposed changes.
