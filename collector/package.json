@@ -30,6 +30,8 @@
     "del-cli": "^1.1.0",
     "feedparser": "^2.2.7",
     "js-yaml": "^3.10.0",
+    "knex": "^0.14.2",
+    "objection": "^0.9.4",
     "pkg-dir": "^2.0.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
