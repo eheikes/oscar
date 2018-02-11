@@ -10,13 +10,16 @@ interface OscarApiConfig {
 }
 
 interface OscarDatabaseConfig {
-  type?: string
+  type: string
   host?: string
   user?: string
+  port?: number
   socket?: string
+  ssl?: boolean
   password?: string
   name?: string
   filename?: string
+  pool?: boolean
 }
 
 interface OscarRankingConfig {
