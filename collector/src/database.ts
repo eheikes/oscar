@@ -2,15 +2,15 @@
 // DB abstraction
 //
 import * as caminte from 'caminte'
-import { CollectorModel } from './models/collector-model';
-import { CollectorLogModel } from './models/collector-log-model';
+import { SourceModel } from './models/source-model';
+import { SourceLogModel } from './models/source-log-model';
 import { ItemModel } from './models/item-model';
 import { TypeModel } from './models/type-model'
 
 let db: caminte.Schema | undefined
 
-export let collectorLogs: CollectorLogModel | undefined
-export let collectors: CollectorModel | undefined
+export let sourceLogs: SourceLogModel | undefined
+export let sources: SourceModel | undefined
 export let items: ItemModel | undefined
 export let types: TypeModel | undefined
 
@@ -32,8 +32,8 @@ const convertConfig = (config: OscarDatabaseConfig): caminte.Config => {
 export const init = (config: OscarDatabaseConfig) => {
   const convertedConfig = convertConfig(config)
   db = new caminte.Schema(convertedConfig.driver, convertedConfig)
-  collectorLogs = new CollectorLogModel(db)
-  collectors = new CollectorModel(db)
+  sourceLogs = new SourceLogModel(db)
+  sources = new SourceModel(db)
   items = new ItemModel(db)
   types = new TypeModel(db)
 }

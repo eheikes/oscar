@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const caminte = require("caminte");
 const tempy_1 = require("tempy");
-const collector_log_model_1 = require("../../src/models/collector-log-model");
-describe('Collector Log model', () => {
+const source_log_model_1 = require("../../src/models/source-log-model");
+describe('Source Log model', () => {
     let db;
     let model;
     beforeEach(() => {
@@ -11,9 +11,9 @@ describe('Collector Log model', () => {
             driver: 'sqlite3',
             database: tempy_1.file()
         });
-        model = new collector_log_model_1.CollectorLogModel(db);
+        model = new source_log_model_1.SourceLogModel(db);
     });
     it('should create a model', () => {
-        expect(model).toEqual(jasmine.any(collector_log_model_1.CollectorLogModel));
+        expect(model).toEqual(jasmine.any(source_log_model_1.SourceLogModel));
     });
 });

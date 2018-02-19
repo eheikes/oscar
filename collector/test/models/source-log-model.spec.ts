@@ -1,20 +1,20 @@
 import * as caminte from 'caminte'
 import { file as tempfile } from 'tempy'
-import { CollectorLogModel } from '../../src/models/collector-log-model'
+import { SourceLogModel } from '../../src/models/source-log-model'
 
-describe('Collector Log model', () => {
+describe('Source Log model', () => {
   let db
-  let model: CollectorLogModel
+  let model: SourceLogModel
 
   beforeEach(() => {
     db = new caminte.Schema('sqlite3', {
       driver: 'sqlite3',
       database: tempfile()
     })
-    model = new CollectorLogModel(db)
+    model = new SourceLogModel(db)
   })
 
   it('should create a model', () => {
-    expect(model).toEqual(jasmine.any(CollectorLogModel))
+    expect(model).toEqual(jasmine.any(SourceLogModel))
   })
 })
