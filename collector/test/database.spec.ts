@@ -1,7 +1,7 @@
 import { file as tempfile } from 'tempy'
-import { SourceModel } from '../src/models/source-model';
-import { SourceLogModel } from '../src/models/source-log-model';
-import { ItemModel } from '../src/models/item-model';
+import { SourceModel } from '../src/models/source-model'
+import { SourceLogModel } from '../src/models/source-log-model'
+import { ItemModel } from '../src/models/item-model'
 import { TypeModel } from '../src/models/type-model'
 import {
   init,
@@ -12,12 +12,12 @@ import {
 } from '../src/database'
 
 describe('database', () => {
-  describe('before init', () => {
-    it('should start with uninitialized models', () => {
-      expect(sourceLogs).toBe(undefined)
-      expect(sources).toBe(undefined)
-      expect(items).toBe(undefined)
-      expect(types).toBe(undefined)
+  describe('before init()', () => {
+    it('should still start with models', () => {
+      expect(sourceLogs).toEqual(jasmine.any(SourceLogModel))
+      expect(sources).toEqual(jasmine.any(SourceModel))
+      expect(items).toEqual(jasmine.any(ItemModel))
+      expect(types).toEqual(jasmine.any(TypeModel))
     })
   })
 
@@ -27,10 +27,13 @@ describe('database', () => {
         type: 'sqlite3',
         filename: tempfile()
       })
-      expect(sourceLogs).toEqual(jasmine.any(SourceLogModel))
-      expect(sources).toEqual(jasmine.any(SourceModel))
-      expect(items).toEqual(jasmine.any(ItemModel))
-      expect(types).toEqual(jasmine.any(TypeModel))
+      // checkModel() is private; this is a hack to get around that
+      return Promise.all([
+        sourceLogs['checkModel'](),
+        sources['checkModel'](),
+        items['checkModel'](),
+        types['checkModel']()
+      ])
     })
 
     it('should use a port when specified', () => {
@@ -39,10 +42,12 @@ describe('database', () => {
         filename: tempfile(),
         port: 123456
       })
-      expect(sourceLogs).toEqual(jasmine.any(SourceLogModel))
-      expect(sources).toEqual(jasmine.any(SourceModel))
-      expect(items).toEqual(jasmine.any(ItemModel))
-      expect(types).toEqual(jasmine.any(TypeModel))
+      return Promise.all([
+        sourceLogs['checkModel'](),
+        sources['checkModel'](),
+        items['checkModel'](),
+        types['checkModel']()
+      ])
     })
 
     it('should use a socket when specified', () => {
@@ -51,10 +56,12 @@ describe('database', () => {
         filename: tempfile(),
         socket: 'testSocket'
       })
-      expect(sourceLogs).toEqual(jasmine.any(SourceLogModel))
-      expect(sources).toEqual(jasmine.any(SourceModel))
-      expect(items).toEqual(jasmine.any(ItemModel))
-      expect(types).toEqual(jasmine.any(TypeModel))
+      return Promise.all([
+        sourceLogs['checkModel'](),
+        sources['checkModel'](),
+        items['checkModel'](),
+        types['checkModel']()
+      ])
     })
   })
 })

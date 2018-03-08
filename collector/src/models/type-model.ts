@@ -1,6 +1,6 @@
 import { BaseModel } from './base-model'
 
-const name = 'Type'
+const name = 'Types'
 
 const schema: OscarModelSchema = {
   id: { type: String, default: '', null: false },
@@ -8,7 +8,7 @@ const schema: OscarModelSchema = {
 }
 
 export class TypeModel extends BaseModel {
-  constructor (db: any) {
+  constructor (db?: any) {
     super(db, name, schema)
   }
 }

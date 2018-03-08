@@ -1,6 +1,6 @@
 import { BaseModel } from './base-model'
 
-const name = 'Item'
+const name = 'Items'
 
 const schema: OscarModelSchema = {
   id: { type: Number, autoIncrement: true, null: false },
@@ -17,11 +17,11 @@ const schema: OscarModelSchema = {
   createdAt: { type: Date, null: false },
   updatedAt: { type: Date, null: false },
   deletedAt: { type: Date, null: false },
-  typeId: { type: String, null: false, limit: 255 },
+  typeId: { type: String, null: false, limit: 255 }
 }
 
 export class ItemModel extends BaseModel {
-  constructor(db: any) {
+  constructor (db?: any) {
     super(db, name, schema)
   }
 }

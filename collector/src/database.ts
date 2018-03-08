@@ -2,17 +2,17 @@
 // DB abstraction
 //
 import * as caminte from 'caminte'
-import { SourceModel } from './models/source-model';
-import { SourceLogModel } from './models/source-log-model';
-import { ItemModel } from './models/item-model';
+import { SourceModel } from './models/source-model'
+import { SourceLogModel } from './models/source-log-model'
+import { ItemModel } from './models/item-model'
 import { TypeModel } from './models/type-model'
 
 let db: caminte.Schema | undefined
 
-export let sourceLogs: SourceLogModel | undefined
-export let sources: SourceModel | undefined
-export let items: ItemModel | undefined
-export let types: TypeModel | undefined
+export let sourceLogs: SourceLogModel = new SourceLogModel()
+export let sources: SourceModel = new SourceModel()
+export let items: ItemModel = new ItemModel()
+export let types: TypeModel = new TypeModel()
 
 const convertConfig = (config: OscarDatabaseConfig): caminte.Config => {
   return {

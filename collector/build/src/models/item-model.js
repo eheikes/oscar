@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const base_model_1 = require("./base-model");
-const name = 'Item';
+const name = 'Items';
 const schema = {
     id: { type: Number, autoIncrement: true, null: false },
     name: { type: String, null: false, limit: 255 },
@@ -17,7 +17,7 @@ const schema = {
     createdAt: { type: Date, null: false },
     updatedAt: { type: Date, null: false },
     deletedAt: { type: Date, null: false },
-    typeId: { type: String, null: false, limit: 255 },
+    typeId: { type: String, null: false, limit: 255 }
 };
 class ItemModel extends base_model_1.BaseModel {
     constructor(db) {

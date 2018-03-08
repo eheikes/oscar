@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const base_model_1 = require("./base-model");
-const name = 'SourceLog';
+const name = 'SourceLogs';
 const schema = {
     id: { type: Number, autoIncrement: true, null: false },
     timestamp: { type: Date, default: null },
