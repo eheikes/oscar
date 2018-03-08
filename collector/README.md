@@ -9,12 +9,7 @@ This project contains the collector agent for the OSCAR assistant.
 
 ## Installation
 
-Run `npm install -g oscar-assistant-collector DATABASE-DRIVER`, where `DATABASE-DRIVER` is replaced with the database you will be using:
-
-* `mariasql` for MariaDB
-* `mysql` or `mysql2` for MySQL
-* `pg` for PostgreSQL
-* `sqlite3` for SQLite
+Run `npm install -g oscar-assistant-collector`.
 
 ## Usage
 
