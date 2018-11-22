@@ -1,0 +1,18 @@
+{
+  "name": "oscar-scripts",
+  "version": "1.0.0",
+  "description": "Temporary scripts",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^4.0.1",
+    "glob": "^7.1.3",
+    "tinytime": "^0.2.6",
+    "uuid": "^3.3.2"
+  }
+}
