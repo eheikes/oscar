@@ -9,6 +9,10 @@ const source_log_model_1 = require("./models/source-log-model");
 const item_model_1 = require("./models/item-model");
 const type_model_1 = require("./models/type-model");
 let db;
+exports.sourceLogs = new source_log_model_1.SourceLogModel();
+exports.sources = new source_model_1.SourceModel();
+exports.items = new item_model_1.ItemModel();
+exports.types = new type_model_1.TypeModel();
 const convertConfig = (config) => {
     return {
         driver: config.type,
