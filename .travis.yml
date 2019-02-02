@@ -1,10 +1,12 @@
 language: node_js
 node_js:
   - "node"
+  - "11"
+  - "10"
   - "9"
   - "8"
 env:
   - PROJECT=api
   - PROJECT=client
   - PROJECT=collector
-script: cd $PROJECT && npm install && npm run lint && npm test
+script: cd $PROJECT && yarn install && yarn lint && yarn test

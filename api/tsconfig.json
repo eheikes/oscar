@@ -1,15 +1,12 @@
 {
   "compilerOptions": {
-    "outDir": "./build",
-    "module": "commonjs",
-    "moduleResolution": "Node",
+    "strict": true,
     "target": "es2016",
-    "allowJs": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true
+    "module": "commonjs",
+    "outDir": "dist",
+    "sourceMap": true
   },
   "include": [
-    "./src/**/*"
+    "src/**/*.ts"
   ]
 }
