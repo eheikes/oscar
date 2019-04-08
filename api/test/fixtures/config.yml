@@ -1,0 +1,10 @@
+routes:
+  - path: /types/:typeId/:itemId
+    method: get
+    controller: getItem
+  - path: /types/:typeId
+    method: get
+    controller: getItems
+  - path: /types
+    method: get
+    controller: getTypes

@@ -1,3 +1,4 @@
+import { resolve } from 'path'
 import * as request from 'supertest'
 import app from '../../src/app'
 import { getConfig, RouteConfig } from '../../src/lib/config'
@@ -9,7 +10,7 @@ const fillInPath = (path: string) => {
 }
 
 describe('app', () => {
-  getConfig().routes.filter(isGet).forEach(route => {
+  getConfig(resolve(__dirname, '..', '..')).routes.filter(isGet).forEach(route => {
     it(`should respond to GET ${route.path}`, () => {
       return request(app)
         .get(fillInPath(route.path))

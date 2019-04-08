@@ -1,4 +1,5 @@
 dist/
+.env
 
 # Dependency directories
 bower_components/
