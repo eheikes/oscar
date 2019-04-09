@@ -4,6 +4,7 @@ import * as cors from 'cors'
 import * as express from 'express'
 import { resolve } from 'path'
 import { getConfig } from './lib/config'
+import { setDatabaseConnection } from './lib/database'
 import { getItem, getItems } from './controllers/item'
 import { getTypes } from './controllers/type'
 
@@ -26,5 +27,8 @@ app.options('*', cors({
 config.routes.forEach(route => {
   app[route.method](route.path, controllers[route.controller])
 })
+
+// Set up the database connection.
+setDatabaseConnection(config.env)
 
 export default app
