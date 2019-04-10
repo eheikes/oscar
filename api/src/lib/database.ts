@@ -1,7 +1,6 @@
 import * as Knex from 'knex'
+import { QueryResult } from 'pg'
 import { Environment } from './config'
-
-type QueryBuilder = Knex.QueryBuilder
 
 interface DatabaseOptions {
   database?: string
@@ -26,9 +25,12 @@ export class DatabaseConnection {
     })
   }
 
-  /* istanbul ignore next */
-  query (sql: string) {
-    console.log(this.knex)
+  /**
+   * Performs a SQL query against the database.
+   * See https://knexjs.org/#Raw for how to use bindings.
+   */
+  async query (sql: string, bindings: any[] = []): Promise<QueryResult> {
+    return this.knex.raw(sql, bindings).then<QueryResult>(r => r)
   }
 }
 

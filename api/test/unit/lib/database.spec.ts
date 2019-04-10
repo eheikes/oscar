@@ -21,23 +21,68 @@ describe('database routines', () => {
       }).DatabaseConnection
     })
 
-    it('should setup a connection to the Postgres DB', () => {
-      new DBConnection({})
-      expect(knexSpy).toHaveBeenCalled()
+    describe('constructor()', () => {
+      it('should setup a connection to the Postgres DB', () => {
+        new DBConnection({})
+        expect(knexSpy).toHaveBeenCalled()
+      })
+
+      it('should use the passed options to configure the connection', () => {
+        new DBConnection({
+          database: 'test',
+          host: 'example.com',
+          user: 'username',
+          password: 'password'
+        })
+        const args = knexSpy.calls.mostRecent().args[0]
+        expect(args.connection.database).toBe('test')
+        expect(args.connection.host).toBe('example.com')
+        expect(args.connection.user).toBe('username')
+        expect(args.connection.password).toBe('password')
+      })
     })
 
-    it('should use the passed options to configure the connection', () => {
-      new DBConnection({
-        database: 'test',
-        host: 'example.com',
-        user: 'username',
-        password: 'password'
+    describe('query()', () => {
+      const fakeResult: any = {
+        rows: [],
+        rowCount: 0
+      }
+
+      let rawSpy: jasmine.Spy
+      let conn: DatabaseConnection
+
+      beforeEach(() => {
+        rawSpy = jasmine.createSpy('raw').and.returnValue(Promise.resolve(fakeResult))
+        knexSpy.and.returnValue({
+          raw: rawSpy
+        })
+        conn = new DBConnection({})
       })
-      const args = knexSpy.calls.mostRecent().args[0]
-      expect(args.connection.database).toBe('test')
-      expect(args.connection.host).toBe('example.com')
-      expect(args.connection.user).toBe('username')
-      expect(args.connection.password).toBe('password')
+
+      it('should call Knex with the given SQL and bindings', async () => {
+        await conn.query('SELECT * FROM :test:', ['test'])
+        expect(rawSpy).toHaveBeenCalledWith('SELECT * FROM :test:', ['test'])
+      })
+
+      it('should default to no bindings', async () => {
+        await conn.query('SELECT * FROM test')
+        expect(rawSpy).toHaveBeenCalledWith('SELECT * FROM test', [])
+      })
+
+      it('should return the query result', async () => {
+        const result = await conn.query('SELECT * FROM test')
+        expect(result).toEqual(fakeResult)
+      })
+
+      it('should throw an error if the query fails', async () => {
+        rawSpy.and.returnValue(Promise.reject(new Error('test error')))
+        try {
+          await conn.query('SELECT * FROM test')
+          throw new Error('did not throw error!')
+        } catch (err) {
+          expect(err.message).toBe('test error')
+        }
+      })
     })
   })
 
