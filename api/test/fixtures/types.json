@@ -1,0 +1,10 @@
+[
+  {
+    "id": "read",
+    "readable": null
+  },
+  {
+    "id": "watch-passive",
+    "readable": "passively watch"
+  }
+]

@@ -1,11 +1,12 @@
 import * as Knex from 'knex'
-import { QueryResult } from 'pg'
 import { Environment } from './config'
 
 interface DatabaseOptions {
   database?: string
+  filename?: string
   host?: string
   password?: string
+  type?: string
   user?: string
 }
 
@@ -14,10 +15,11 @@ export class DatabaseConnection {
 
   constructor (opts: DatabaseOptions) {
     this.knex = Knex({
-      client: 'pg',
+      client: opts.type || 'pg', // usually PG, but allow sqlite for testing
       debug: true,
       connection: {
         database: opts.database,
+        filename: opts.filename,
         host: opts.host,
         password: opts.password,
         user: opts.user
@@ -29,8 +31,8 @@ export class DatabaseConnection {
    * Performs a SQL query against the database.
    * See https://knexjs.org/#Raw for how to use bindings.
    */
-  async query (sql: string, bindings: any[] = []): Promise<QueryResult> {
-    return this.knex.raw(sql, bindings).then<QueryResult>(r => r)
+  async query (sql: string, bindings: any[] = []): Promise<any> {
+    return this.knex.raw(sql, bindings).then<any>(r => r)
   }
 }
 
@@ -48,8 +50,10 @@ export const setDatabaseConnection = (env: Environment): DatabaseConnection => {
     (env && env[name]) ? env[name] : undefined
   db = new DatabaseConnection({
     database: envValue('DATABASE_NAME'),
+    filename: envValue('DATABASE_FILE'),
     host: envValue('DATABASE_HOST'),
     password: envValue('DATABASE_PASSWORD'),
+    type: envValue('DATABASE_TYPE'),
     user: envValue('DATABASE_USER')
   })
   return db

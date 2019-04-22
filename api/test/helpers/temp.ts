@@ -1,6 +1,6 @@
 import { copyFileSync } from 'fs'
 import { join, resolve } from 'path'
-import { directory } from 'tempy'
+import { directory, file } from 'tempy'
 
 const fixturesDir = resolve(__dirname, '..', 'fixtures')
 
@@ -17,4 +17,8 @@ export const createTempDir = (fixtures: FixtureList = {}): string => {
     )
   }
   return dir
+}
+
+export const createTempFile = (): string => {
+  return file()
 }

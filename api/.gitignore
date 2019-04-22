@@ -1,4 +1,5 @@
 dist/
+test/e2e/test.db
 .env
 
 # Dependency directories

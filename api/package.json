@@ -17,6 +17,8 @@
     "lint": "tslint -p tsconfig.json --fix",
     "start": "node dist/server.js",
     "test": "run-s test:*",
+    "pretest:e2e": "del-cli test/e2e/test.db",
+    "test:e2e": "cross-env NODE_ENV=test JASMINE_CONFIG_PATH=test/jasmine.json jasmine-ts \"test/e2e/**/*.spec.ts\"",
     "test:integration": "cross-env NODE_ENV=test JASMINE_CONFIG_PATH=test/jasmine.json jasmine-ts \"test/integration/**/*.spec.ts\"",
     "test:unit": "cross-env NODE_ENV=test JASMINE_CONFIG_PATH=test/jasmine.json nyc jasmine-ts \"test/unit/**/*.spec.ts\""
   },
@@ -36,8 +38,7 @@
     "express": "^4.16.4",
     "js-yaml": "^3.12.1",
     "knex": "^0.16.3",
-    "pg": "^7.9.0",
-    "proxyquire": "^2.1.0"
+    "pg": "^7.9.0"
   },
   "devDependencies": {
     "@types/aws-serverless-express": "^3.3.0",
@@ -60,7 +61,9 @@
     "jasmine-ts": "~0.2.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^13.1.0",
-    "supertest": "^3.4.1",
+    "proxyquire": "^2.1.0",
+    "sqlite3": "^4.0.6",
+    "supertest": "^4.0.2",
     "tempy": "^0.2.1",
     "ts-node": "^7.0.1",
     "tslint": "^5.12.1",
