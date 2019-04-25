@@ -7,6 +7,4 @@ node_js:
   - "8"
 env:
   - PROJECT=api
-  - PROJECT=client
-  - PROJECT=collector
 script: cd $PROJECT && yarn install && yarn lint && yarn test
