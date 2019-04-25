@@ -33,6 +33,20 @@ Timestamps are in ISO 8601 format.
 
 Returns all types.
 
+```json
+[{
+  "id": "read",
+  "readable": null
+}, {
+  "id": "watch",
+  "readable": null
+}, {
+  "id": "listen-passive",
+  "readable": "passively listen to"
+}]
+```
+
+
 ### `GET /types/:typeId?start&limit&q&order`
 
 Returns the collected items for the given type. Deleted items are excluded.
