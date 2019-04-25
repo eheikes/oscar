@@ -25,7 +25,7 @@ This project contains the API server for the OSCAR assistant. It is written for 
 
 ## API Reference
 
-All endpoints receive and return JSON data.
+All endpoints receive and return JSON data (`application/json`).
 
 Timestamps are in ISO 8601 format.
 
@@ -46,7 +46,6 @@ Return the item details.
 If you want to make changes to the software, the following npm scripts are available:
 
 ```
-yarn clean  # deletes the build folder
 yarn lint   # checks the code for errors
 yarn build  # compiles the source code and saves it into the "dist" folder
 yarn test   # runs the test suite
