@@ -54,7 +54,7 @@
     "jasmine": "^2.8.0",
     "jasmine-ts": "^0.2.1",
     "npm-run-all": "^4.1.2",
-    "nyc": "^11.3.0",
+    "nyc": "^14.1.1",
     "tempy": "^0.2.1",
     "tslint": "^5.8.0",
     "tslint-config-standard": "^7.0.0",
