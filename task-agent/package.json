@@ -1,0 +1,42 @@
+{
+  "name": "@eheikes/oscar-task-agent",
+  "version": "0.1.0",
+  "description": "Task agent for OSCAR assistant",
+  "homepage": "https://github.com/eheikes/oscar/tree/master/api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eheikes/oscar.git"
+  },
+  "main": "dist/agent.js",
+  "files": [
+    "dist/**",
+    "config.yml"
+  ],
+  "scripts": {
+    "prebuild": "del-cli ./dist",
+    "build": "tsc",
+    "start": "node $npm_package_main"
+  },
+  "author": "Eric Heikes <eheikes@gmail.com>",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agent",
+    "AI",
+    "assistant",
+    "oscar-assistant",
+    "task"
+  ],
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "dotenv": "^8.2.0",
+    "got": "^10.0.4",
+    "js-priority-queue": "^0.1.5",
+    "js-yaml": "^3.13.1"
+  },
+  "devDependencies": {
+    "@types/js-priority-queue": "^0.0.5",
+    "@types/js-yaml": "^3.12.1",
+    "del-cli": "^3.0.0",
+    "typescript": "^3.7.0"
+  }
+}
