@@ -6,7 +6,7 @@ This project contains the task agent for the OSCAR assistant.
 
 * A [Trello](https://trello.com) account.
 * A Trello API key and token. You can get your key and token from [trello.com/app-key](https://trello.com/app-key).
-* An email server or email account.
+* An email server or email account with SMTP.
 * The [Card Size power-up](https://screenful.com/card-size-for-trello/) should be installed on your Trello board(s).
 
 ## Configuration

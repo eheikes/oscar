@@ -2,3 +2,15 @@ trello:
   lists:
     - 5b09d7346cad9862b28a687f
   cardsPerList: 200
+
+email:
+  server:
+    host: smtp.example.com
+    port: 587
+    secure: true
+    username: example_username
+    password: example_password
+  message:
+    from: '"John Doe" <jdoe@example.com>'
+    to: a@example.com, b@example.com
+    subject: Your Daily Tasks

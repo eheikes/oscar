@@ -30,12 +30,12 @@
     "chalk": "^3.0.0",
     "dotenv": "^8.2.0",
     "got": "^10.0.4",
-    "js-priority-queue": "^0.1.5",
-    "js-yaml": "^3.13.1"
+    "js-yaml": "^3.13.1",
+    "nodemailer": "^6.4.2"
   },
   "devDependencies": {
-    "@types/js-priority-queue": "^0.0.5",
     "@types/js-yaml": "^3.12.1",
+    "@types/nodemailer": "^6.4.0",
     "del-cli": "^3.0.0",
     "typescript": "^3.7.0"
   }

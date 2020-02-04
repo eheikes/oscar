@@ -8,6 +8,8 @@ export interface Task {
   position: number
   url: string
   rank: number
+  urgent: boolean
+  important: boolean
 }
 
 const ONE_DAY = 1000 * 60 * 60 * 24
@@ -83,15 +85,14 @@ export const calculateTaskRank = (task: Task): number => {
 }
 
 export const compareTasks = (a: Task, b: Task): number => {
-  const aRank = a.rank
-  const bRank = b.rank
-  if (aRank === bRank) {
+  const aDateDue = a.dateDue || new Date(Date.now() + ONE_WEEK * 2)
+  const bDateDue = b.dateDue || new Date(Date.now() + ONE_WEEK * 2)
+  if (aDateDue === bDateDue) {
     // TODO tiebreakers
-    if (a.dateDue !== b.dateDue) {
-      // return a.dateDue - b.dateDue
-    }
-    // return a.dateLastActivity - b.dateLastActivity
-    // TODO consider position
+    // age
+    // dateLastActivity
+    // dateCreated
+    // position
   }
-  return bRank - aRank
+  return aDateDue.valueOf() - bDateDue.valueOf()
 }

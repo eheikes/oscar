@@ -4,6 +4,25 @@ import { safeLoad } from 'js-yaml'
 import { join } from 'path'
 import { promisify } from 'util'
 
+interface EmailConfig {
+  message: EmailMessageConfig
+  server: EmailServerConfig
+}
+
+interface EmailMessageConfig {
+  from: string
+  to: string
+  subject: string
+}
+
+interface EmailServerConfig {
+  host: string
+  port: number
+  secure: boolean
+  username: string
+  password: string
+}
+
 interface TrelloConfig {
   apiKey: string
   apiToken: string
@@ -12,6 +31,7 @@ interface TrelloConfig {
 }
 
 interface Config {
+  email: EmailConfig
   trello: TrelloConfig
 }
 
