@@ -14,6 +14,7 @@ This project contains the task agent for the OSCAR assistant.
 1. Rename the `config.yml.example` file to `config.yml` and fill it out.
     * `trello` -> `lists` should contain the IDs of the Trello lists to include. [Read about how to get the ID of a list.](https://customer.io/actions/trello/)
 1. Rename the `.env.example` file to`.env` and fill it out.
+1. The templates for the email are in the `templates` folder. You can change them as desired, using the [Handlebars language](https://handlebarsjs.com/guide/).
 
 ## Usage
 

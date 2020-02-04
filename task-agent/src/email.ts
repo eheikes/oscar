@@ -1,9 +1,21 @@
+import { readFileSync } from 'fs'
+import { compile } from 'handlebars'
 import { createTransport } from 'nodemailer'
+import { join } from 'path'
 import { getConfig } from './config'
 import { Task } from './task'
 
+const htmlTemplateFilename = join(__dirname, '..', 'templates', 'email.html')
+const plainTextTemplateFilename = join(__dirname, '..', 'templates', 'email.txt')
+
 interface EmailResult {
   messageId: string
+}
+
+const buildEmail = (templateFilename: string, data: any): string => {
+  const template = readFileSync(templateFilename, 'utf8')
+  const compiled = compile(template)
+  return compiled(data)
 }
 
 export const sendEmail = async (
@@ -14,50 +26,9 @@ export const sendEmail = async (
 ): Promise<EmailResult> => {
   const { email } = await getConfig()
 
-  let plainText = `
-To-Do List
-==========
-`
-  let html = `
-<h1>To-Do List</h1>
-`
-
-  plainText += `
-Urgent
-------
-`
-  html += '<h2>Urgent</h2>\n<ul>\n'
-  urgentImportant.forEach(task => {
-    plainText += `* !!! ${task.name} (${task.url})\n`
-    html += `<li>!!! ${task.name} (${task.url})</li>\n`
-  })
-  urgent.forEach(task => {
-    plainText += `* ${task.name} (${task.url})\n`
-    html += `<li>${task.name} (${task.url})</li>\n`
-  })
-  html += '</ul>\n'
-
-  plainText += `
-Important
----------
-`
-  html += '<h2>Important</h2>\n<ul>\n'
-  important.forEach(task => {
-    plainText += `* ${task.name} (${task.url})\n`
-    html += `<li>${task.name} (${task.url})</li>\n`
-  })
-  html += '</ul>\n'
-
-  plainText += `
-If Time
---------
-`
-  html += '<h2>If Time</h2>\n<ul>\n'
-  neither.forEach(task => {
-    plainText += `* ${task.name} (${task.url})\n`
-    html += `<li>${task.name} (${task.url})</li>\n`
-  })
-  html += '</ul>\n'
+  const data = { urgentImportant, urgent, important, neither }
+  const html = buildEmail(htmlTemplateFilename, data)
+  const plainText = buildEmail(plainTextTemplateFilename, data)
 
   const transporter = createTransport({
     host: email.server.host,

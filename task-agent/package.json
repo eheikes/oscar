@@ -30,6 +30,7 @@
     "chalk": "^3.0.0",
     "dotenv": "^8.2.0",
     "got": "^10.0.4",
+    "handlebars": "^4.7.2",
     "js-yaml": "^3.13.1",
     "nodemailer": "^6.4.2"
   },
