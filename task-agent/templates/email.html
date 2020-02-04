@@ -3,23 +3,23 @@
 <h2>Urgent</h2>
 <ul>
   {{#each urgentImportant}}
-    <li>!!! {{this.name}} ({{this.url}})</li>
+    <li>‼️ <a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
   {{/each}}
   {{#each urgent}}
-    <li>{{this.name}} ({{this.url}})</li>
+    <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
   {{/each}}
 </ul>
 
 <h2>Important</h2>
 <ul>
   {{#each important}}
-    <li>{{this.name}} ({{this.url}})</li>
+    <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
   {{/each}}
 </ul>
 
 <h2>If Time</h2>
 <ul>
   {{#each neither}}
-    <li>{{this.name}} ({{this.url}})</li>
+    <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
   {{/each}}
 </ul>

@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs'
-import { compile } from 'handlebars'
+import { compile, registerHelper } from 'handlebars'
 import { createTransport } from 'nodemailer'
 import { join } from 'path'
 import { getConfig } from './config'
@@ -18,6 +18,13 @@ const buildEmail = (templateFilename: string, data: any): string => {
   return compiled(data)
 }
 
+const toDateString = (x: any): string => {
+  if (x instanceof Date) {
+    return x.toLocaleDateString()
+  }
+  return x
+}
+
 export const sendEmail = async (
   urgentImportant: Task[],
   urgent: Task[],
@@ -25,6 +32,8 @@ export const sendEmail = async (
   neither: Task[]
 ): Promise<EmailResult> => {
   const { email } = await getConfig()
+
+  registerHelper('date', toDateString)
 
   const data = { urgentImportant, urgent, important, neither }
   const html = buildEmail(htmlTemplateFilename, data)
