@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs'
 import { compile, registerHelper } from 'handlebars'
+import juice = require('juice')
 import { createTransport } from 'nodemailer'
 import { join } from 'path'
 import { getConfig } from './config'
@@ -35,8 +36,18 @@ export const sendEmail = async (
 
   registerHelper('date', toDateString)
 
-  const data = { urgentImportant, urgent, important, neither }
-  const html = buildEmail(htmlTemplateFilename, data)
+  const data = {
+    urgentImportant,
+    urgent,
+    important,
+    neither,
+    title: email.message.subject,
+    app: {
+      name: 'OSCAR',
+      url: 'https://github.com/eheikes/oscar'
+    }
+  }
+  const html = juice(buildEmail(htmlTemplateFilename, data))
   const plainText = buildEmail(plainTextTemplateFilename, data)
 
   const transporter = createTransport({
