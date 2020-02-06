@@ -70,6 +70,9 @@
     "tslint-config-standard": "^8.0.1",
     "typescript": "^3.2.4"
   },
+  "resolutions": {
+    "mem": "^4.0.0"
+  },
   "nyc": {
     "check-coverage": true,
     "per-file": false,
