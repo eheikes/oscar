@@ -1,37 +1,13 @@
 import { getConfig } from './config'
 import { sendEmail } from './email'
 import { log } from './log'
-import { calculateTaskRank, compareTasks, Task } from './task'
-import { getListCards, TrelloCard } from './trello'
-
-const ONE_DAY = 1000 * 60 * 60 * 24
-const ONE_WEEK = ONE_DAY * 7
+import { compareTasks, Task } from './task'
+import { getListCards } from './trello'
 
 const FLAG_URGENT = 0x01
 const FLAG_IMPORTANT = 0x10
 
-const convertCardToTask = (card: TrelloCard): Task => {
-  const task: Task = {
-    id: card.id,
-    // see https://help.trello.com/article/759-getting-the-time-a-card-or-board-was-created
-    dateCreated: new Date(parseInt(card.id.substring(0,8), 16) * 1000),
-    dateLastActivity: new Date(card.dateLastActivity),
-    dateDue: card.due ? new Date(card.due) : null,
-    labels: card.labels.map(label => label.name.toLocaleLowerCase()),
-    name: card.name,
-    position: card.pos,
-    url: card.shortUrl,
-    rank: 0,
-    important: false,
-    urgent: false
-  }
-  task.important = task.labels.includes('important')
-  task.urgent = Boolean(task.dateDue && (task.dateDue.valueOf() < Date.now() + ONE_WEEK))
-  task.rank = calculateTaskRank(task)
-  return task
-}
-
-(async () => {
+;(async () => {
   log('main', 'Loading configuration')
   const config = await getConfig()
 
@@ -39,7 +15,7 @@ const convertCardToTask = (card: TrelloCard): Task => {
   const cards = await getListCards(config.trello.lists, {
     numCards: config.trello.cardsPerList || 100
   })
-  const tasks = cards.map(convertCardToTask)
+  const tasks = cards.map(card => new Task(card))
   log('main', tasks.length, 'cards retrieved')
 
   // Sort the tasks into 4 buckets.

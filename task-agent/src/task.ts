@@ -1,4 +1,10 @@
-export interface Task {
+import { TrelloCard } from './trello'
+
+const ONE_DAY = 1000 * 60 * 60 * 24
+const ONE_WEEK = ONE_DAY * 7
+const ONE_YEAR = ONE_DAY * 365
+
+export class Task {
   id: string
   dateCreated: Date
   dateLastActivity: Date
@@ -10,78 +16,91 @@ export interface Task {
   rank: number
   urgent: boolean
   important: boolean
-}
 
-const ONE_DAY = 1000 * 60 * 60 * 24
-const ONE_WEEK = ONE_DAY * 7
-const ONE_YEAR = ONE_DAY * 365
-
-// Factor values are 0-1.
-export const calculateTaskRank = (task: Task): number => {
-  const maxWeight = 10
-  const factors: {[key: string]: {weight: number, func: Function}} = {
-    age: {
-      weight: 2,
-      func: (task: Task): number => {
-        // If the task has no due date, assume a due date in 2 weeks.
-        // TODO DRY this out
-        if (!task.dateDue) {
-          task.dateDue = new Date(Date.now() + ONE_WEEK * 2)
-        }
-        return (Date.now() - task.dateCreated.valueOf()) / (task.dateDue.valueOf() - task.dateCreated.valueOf())
-      }
-    },
-    // dateLastActivity: { // TODO
-    //   weight: 5
-    // },
-    dateDue: {
-      weight: 10,
-      func: (task: Task): number => {
-        // If the task has no due date, assume a due date in 2 weeks.
-        if (!task.dateDue) {
-          task.dateDue = new Date(Date.now() + ONE_WEEK * 2)
-        }
-
-        // TODO make this non-linear, i.e. more weight as the date nears or goes past
-        if (task.dateDue.valueOf() < Date.now()) { // overdue
-          return 1
-        } else {
-          // TODO what if due date comes before creation date?
-          // TODO what if due date comes before Date.now()?
-          // Assume a maximum lifespan of 1 year.
-          const maxLife = ONE_YEAR
-          const timeUntilMax = maxLife - (task.dateDue.valueOf() - Date.now())
-          return timeUntilMax / maxLife
-          // const accelerant = 1000
-          // score += (accelerant ** distance - 1) / (accelerant - 1)
-          // score += distance ** 2 * factors.dateDue.weight
-        }
-      }
-    },
-    // importance: {
-    //   weight: 5,
-    //   func: (task: Task): number => {
-    //     if (task.labels.includes('important')) {
-    //       return 1
-    //     } else if (task.labels.includes('not important')) {
-    //       return 0.2
-    //     } else {
-    //       return 0.5
-    //     }
-    //   }
-    // },
-    // size: {// TODO
-    //   weight: 5
-    // }
+  constructor(card: TrelloCard) {
+    this.id = card.id
+    // see https://help.trello.com/article/759-getting-the-time-a-card-or-board-was-created
+    this.dateCreated = new Date(parseInt(card.id.substring(0,8), 16) * 1000)
+    this.dateLastActivity = new Date(card.dateLastActivity)
+    this.dateDue = card.due ? new Date(card.due) : null
+    this.labels = card.labels.map(label => label.name.toLocaleLowerCase())
+    this.name = card.name
+    this.position = card.pos
+    this.url = card.shortUrl
+    this.important = this.labels.includes('important')
+    this.urgent = Boolean(this.dateDue && (this.dateDue.valueOf() < Date.now() + ONE_WEEK))
+    this.rank = this.calculateRank()
   }
 
-  // The rank is the average of the scores.
-  const total = Object.keys(factors).reduce((soFar: number, key: string): number => {
-    const factor = factors[key]
-    const val = factor.func(task)
-    return soFar + val * factor.weight
-  }, 0)
-  return total// / Object.keys(factors).length / maxWeight
+  // Factor values are 0-1.
+  calculateRank(): number {
+    const maxWeight = 10
+    const factors: {[key: string]: {weight: number, func: Function}} = {
+      age: {
+        weight: 2,
+        func: (): number => {
+          // If the task has no due date, assume a due date in 2 weeks.
+          // TODO DRY this out
+          let dateDue = this.dateDue
+          if (!dateDue) {
+            dateDue = new Date(Date.now() + ONE_WEEK * 2)
+          }
+          return (Date.now() - this.dateCreated.valueOf()) / (dateDue.valueOf() - this.dateCreated.valueOf())
+        }
+      },
+      // dateLastActivity: { // TODO
+      //   weight: 5
+      // },
+      dateDue: {
+        weight: 10,
+        func: (): number => {
+          // If the task has no due date, assume a due date in 2 weeks.
+          let dateDue = this.dateDue
+          if (!dateDue) {
+            dateDue = new Date(Date.now() + ONE_WEEK * 2)
+          }
+
+          // TODO make this non-linear, i.e. more weight as the date nears or goes past
+          if (dateDue.valueOf() < Date.now()) { // overdue
+            return 1
+          } else {
+            // TODO what if due date comes before creation date?
+            // TODO what if due date comes before Date.now()?
+            // Assume a maximum lifespan of 1 year.
+            const maxLife = ONE_YEAR
+            const timeUntilMax = maxLife - (dateDue.valueOf() - Date.now())
+            return timeUntilMax / maxLife
+            // const accelerant = 1000
+            // score += (accelerant ** distance - 1) / (accelerant - 1)
+            // score += distance ** 2 * factors.dateDue.weight
+          }
+        }
+      },
+      // importance: {
+      //   weight: 5,
+      //   func: (): number => {
+      //     if (this.labels.includes('important')) {
+      //       return 1
+      //     } else if (this.labels.includes('not important')) {
+      //       return 0.2
+      //     } else {
+      //       return 0.5
+      //     }
+      //   }
+      // },
+      // size: {// TODO
+      //   weight: 5
+      // }
+    }
+
+    // The rank is the average of the scores.
+    const total = Object.keys(factors).reduce((soFar: number, key: string): number => {
+      const factor = factors[key]
+      const val = factor.func()
+      return soFar + val * factor.weight
+    }, 0)
+    return total// / Object.keys(factors).length / maxWeight
+  }
 }
 
 export const compareTasks = (a: Task, b: Task): number => {
