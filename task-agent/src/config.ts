@@ -7,6 +7,7 @@ import { promisify } from 'util'
 interface EmailConfig {
   message: EmailMessageConfig
   server: EmailServerConfig
+  template: EmailTemplateConfig
 }
 
 interface EmailMessageConfig {
@@ -23,6 +24,18 @@ interface EmailServerConfig {
   password: string
 }
 
+interface EmailTemplateConfig {
+  html: string
+  plain: string
+}
+
+interface TodoConfig {
+  numUrgentImportant: number
+  numImportant: number
+  numUrgent: number
+  numNotImportant: number
+}
+
 interface TrelloConfig {
   apiKey: string
   apiToken: string
@@ -32,6 +45,7 @@ interface TrelloConfig {
 
 interface Config {
   email: EmailConfig
+  todos: TodoConfig
   trello: TrelloConfig
 }
 

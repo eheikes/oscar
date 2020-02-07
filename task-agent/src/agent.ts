@@ -42,10 +42,10 @@ const FLAG_IMPORTANT = 0x10
 
   // Send an email with the top tasks.
   const result = await sendEmail(
-    buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, 2),
-    buckets[FLAG_URGENT].slice(0, 2),
-    buckets[FLAG_IMPORTANT].slice(0, 2),
-    buckets[0].slice(0, 1)
+    buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant),
+    buckets[FLAG_URGENT].slice(0, config.todos.numUrgent),
+    buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant),
+    buckets[0].slice(0, config.todos.numNotImportant)
   )
   log('main', `Email ${result.messageId} sent`)
 })().catch(err => {

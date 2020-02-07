@@ -6,9 +6,6 @@ import { join } from 'path'
 import { getConfig } from './config'
 import { Task } from './task'
 
-const htmlTemplateFilename = join(__dirname, '..', 'templates', 'email.html')
-const plainTextTemplateFilename = join(__dirname, '..', 'templates', 'email.txt')
-
 interface EmailResult {
   messageId: string
 }
@@ -33,8 +30,12 @@ export const sendEmail = async (
   neither: Task[]
 ): Promise<EmailResult> => {
   const { email } = await getConfig()
+  const pkg = require(join(__dirname, '..', 'package.json'))
 
   registerHelper('date', toDateString)
+
+  const htmlTemplateFilename = join(__dirname, '..', email.template.html)
+  const plainTextTemplateFilename = join(__dirname, '..', email.template.plain)
 
   const data = {
     urgentImportant,
@@ -43,8 +44,8 @@ export const sendEmail = async (
     neither,
     title: email.message.subject,
     app: {
-      name: 'OSCAR',
-      url: 'https://github.com/eheikes/oscar'
+      name: pkg.displayName,
+      url: pkg.homepage
     }
   }
   const html = juice(buildEmail(htmlTemplateFilename, data))

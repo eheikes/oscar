@@ -10,7 +10,16 @@ email:
     secure: true
     username: example_username
     password: example_password
+  template:
+    plain: templates/email.txt
+    html: templates/email.html
   message:
     from: '"John Doe" <jdoe@example.com>'
     to: a@example.com, b@example.com
     subject: Your Daily Tasks
+
+todos:
+  numUrgentImportant: 2
+  numImportant: 2
+  numUrgent: 2
+  numNotImportant: 1

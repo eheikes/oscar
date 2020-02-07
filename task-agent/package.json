@@ -1,8 +1,9 @@
 {
   "name": "@eheikes/oscar-task-agent",
   "version": "0.1.0",
+  "displayName": "OSCAR Task Agent",
   "description": "Task agent for OSCAR assistant",
-  "homepage": "https://github.com/eheikes/oscar/tree/master/api",
+  "homepage": "https://github.com/eheikes/oscar/tree/master/task-agent",
   "repository": {
     "type": "git",
     "url": "https://github.com/eheikes/oscar.git"
