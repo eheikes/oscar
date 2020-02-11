@@ -56,7 +56,8 @@ const sanitizeUrl = (url: string): string => {
 
 export const getCardPluginData = async (cardId: string): Promise<any> => {
   const auth = await getAuthParams()
-  const url = `https://api.trello.com/1/card/${cardId}/pluginData/?${auth}`
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/card/${cardId}/pluginData/?${auth}`
   try {
     log('getCardPluginData', `Retrieving ${sanitizeUrl(url)}`)
     return got(url).json<TrelloCard[]>()
@@ -80,7 +81,8 @@ export const getListCards = async (listIds: string | string[], opts: TrelloOptio
   log('getListCards', 'auth is', auth)
   try {
     for (let id of listIds) {
-      const url = `https://api.trello.com/1/lists/${id}/cards/?${auth}&fields=${cardFields.join(',')}&limit=${numCards}`
+      const { trello: { url: baseUrl } } = await getConfig()
+      const url = `${baseUrl}/lists/${id}/cards/?${auth}&fields=${cardFields.join(',')}&limit=${numCards}`
       log('getListCards', `Calling ${sanitizeUrl(url)}`)
       const listCards = await got(url).json<TrelloCard[]>()
       for (let card of listCards) {

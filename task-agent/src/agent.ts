@@ -15,7 +15,12 @@ const FLAG_IMPORTANT = 0x10
   const cards = await getListCards(config.trello.lists, {
     numCards: config.trello.cardsPerList || 100
   })
-  const tasks = cards.map(card => new Task(card))
+  const tasks = cards.map(card => new Task(card, {
+    defaultTimeDue: config.todos.defaultDue,
+    importantLabel: config.trello.labels.important,
+    unimportantLabel: config.trello.labels.unimportant,
+    urgentTime: config.todos.urgentTime
+  }))
   log('main', tasks.length, 'cards retrieved')
 
   // Sort the tasks into 4 buckets.

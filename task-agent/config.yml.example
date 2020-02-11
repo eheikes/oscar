@@ -1,4 +1,8 @@
 trello:
+  url: https://api.trello.com/1 # probably don't want to change this
+  labels:
+    important: important
+    unimportant: not important
   lists:
     - 5b09d7346cad9862b28a687f
   cardsPerList: 200
@@ -19,6 +23,8 @@ email:
     subject: Your Daily Tasks
 
 todos:
+  defaultDue: 1209600
+  urgentTime: 604800
   numUrgentImportant: 2
   numImportant: 2
   numUrgent: 2

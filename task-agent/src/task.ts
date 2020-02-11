@@ -1,14 +1,27 @@
 import { TrelloCard } from './trello'
 
 const ONE_DAY = 1000 * 60 * 60 * 24
-const ONE_WEEK = ONE_DAY * 7
 const ONE_YEAR = ONE_DAY * 365
+
+interface TaskOptions {
+  defaultTimeDue: number // in seconds
+  importantLabel: string
+  unimportantLabel: string
+  urgentTime: number // in seconds
+}
+
+const defaultOpts: TaskOptions = {
+  defaultTimeDue: 1209600,
+  importantLabel: 'important',
+  unimportantLabel: 'not important',
+  urgentTime: 604800
+}
 
 export class Task {
   id: string
   dateCreated: Date
   dateLastActivity: Date
-  dateDue: Date | null
+  dateDue: Date
   labels: string[]
   name: string
   position: number
@@ -17,18 +30,19 @@ export class Task {
   urgent: boolean
   important: boolean
 
-  constructor(card: TrelloCard) {
+  constructor(card: TrelloCard, opts: TaskOptions = defaultOpts) {
     this.id = card.id
     // see https://help.trello.com/article/759-getting-the-time-a-card-or-board-was-created
     this.dateCreated = new Date(parseInt(card.id.substring(0,8), 16) * 1000)
     this.dateLastActivity = new Date(card.dateLastActivity)
-    this.dateDue = card.due ? new Date(card.due) : null
+    // If the task has no due date, assume one.
+    this.dateDue = card.due ? new Date(card.due) : new Date(Date.now() + opts.defaultTimeDue * 1000)
     this.labels = card.labels.map(label => label.name.toLocaleLowerCase())
     this.name = card.name
     this.position = card.pos
     this.url = card.shortUrl
-    this.important = this.labels.includes('important')
-    this.urgent = Boolean(this.dateDue && (this.dateDue.valueOf() < Date.now() + ONE_WEEK))
+    this.important = this.labels.includes(opts.importantLabel)
+    this.urgent = Boolean(this.dateDue && (this.dateDue.valueOf() < Date.now() + opts.urgentTime * 1000))
     this.rank = this.calculateRank()
   }
 
@@ -39,13 +53,7 @@ export class Task {
       age: {
         weight: 2,
         func: (): number => {
-          // If the task has no due date, assume a due date in 2 weeks.
-          // TODO DRY this out
-          let dateDue = this.dateDue
-          if (!dateDue) {
-            dateDue = new Date(Date.now() + ONE_WEEK * 2)
-          }
-          return (Date.now() - this.dateCreated.valueOf()) / (dateDue.valueOf() - this.dateCreated.valueOf())
+          return (Date.now() - this.dateCreated.valueOf()) / (this.dateDue.valueOf() - this.dateCreated.valueOf())
         }
       },
       // dateLastActivity: { // TODO
@@ -54,21 +62,15 @@ export class Task {
       dateDue: {
         weight: 10,
         func: (): number => {
-          // If the task has no due date, assume a due date in 2 weeks.
-          let dateDue = this.dateDue
-          if (!dateDue) {
-            dateDue = new Date(Date.now() + ONE_WEEK * 2)
-          }
-
           // TODO make this non-linear, i.e. more weight as the date nears or goes past
-          if (dateDue.valueOf() < Date.now()) { // overdue
+          if (this.dateDue.valueOf() < Date.now()) { // overdue
             return 1
           } else {
             // TODO what if due date comes before creation date?
             // TODO what if due date comes before Date.now()?
             // Assume a maximum lifespan of 1 year.
             const maxLife = ONE_YEAR
-            const timeUntilMax = maxLife - (dateDue.valueOf() - Date.now())
+            const timeUntilMax = maxLife - (this.dateDue.valueOf() - Date.now())
             return timeUntilMax / maxLife
             // const accelerant = 1000
             // score += (accelerant ** distance - 1) / (accelerant - 1)
@@ -104,14 +106,13 @@ export class Task {
 }
 
 export const compareTasks = (a: Task, b: Task): number => {
-  const aDateDue = a.dateDue || new Date(Date.now() + ONE_WEEK * 2)
-  const bDateDue = b.dateDue || new Date(Date.now() + ONE_WEEK * 2)
-  if (aDateDue === bDateDue) {
+  if (a.dateDue === b.dateDue) {
     // TODO tiebreakers
     // age
     // dateLastActivity
     // dateCreated
     // position
+    return 0
   }
-  return aDateDue.valueOf() - bDateDue.valueOf()
+  return a.dateDue.valueOf() - b.dateDue.valueOf()
 }

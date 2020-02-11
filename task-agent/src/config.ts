@@ -30,17 +30,26 @@ interface EmailTemplateConfig {
 }
 
 interface TodoConfig {
+  defaultDue: number
   numUrgentImportant: number
   numImportant: number
   numUrgent: number
   numNotImportant: number
+  urgentTime: number
 }
 
 interface TrelloConfig {
   apiKey: string
   apiToken: string
   cardsPerList: number
+  labels: TrelloLabelsConfig
   lists: string[]
+  url: string
+}
+
+interface TrelloLabelsConfig {
+  important: string
+  unimportant: string
 }
 
 interface Config {
