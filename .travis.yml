@@ -6,4 +6,5 @@ node_js:
   - "8"
 env:
   - PROJECT=api
+  - PROJECT=task-agent
 script: cd $PROJECT && yarn install && yarn lint && yarn test

@@ -16,7 +16,9 @@
   "scripts": {
     "prebuild": "del-cli ./dist",
     "build": "tsc",
-    "start": "node $npm_package_main"
+    "start": "node $npm_package_main",
+    "test": "jest",
+    "test:watch": "jest --watch-all"
   },
   "author": "Eric Heikes <eheikes@gmail.com>",
   "license": "Apache-2.0",
@@ -37,9 +39,12 @@
     "nodemailer": "^6.4.2"
   },
   "devDependencies": {
+    "@types/jest": "^25.1.2",
     "@types/js-yaml": "^3.12.1",
     "@types/nodemailer": "^6.4.0",
     "del-cli": "^3.0.0",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.0",
     "typescript": "^3.7.0"
   }
 }

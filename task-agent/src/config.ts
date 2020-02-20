@@ -4,19 +4,19 @@ import { safeLoad } from 'js-yaml'
 import { join } from 'path'
 import { promisify } from 'util'
 
-interface EmailConfig {
+export interface EmailConfig {
   message: EmailMessageConfig
   server: EmailServerConfig
   template: EmailTemplateConfig
 }
 
-interface EmailMessageConfig {
+export interface EmailMessageConfig {
   from: string
   to: string
   subject: string
 }
 
-interface EmailServerConfig {
+export interface EmailServerConfig {
   host: string
   port: number
   secure: boolean
@@ -24,12 +24,12 @@ interface EmailServerConfig {
   password: string
 }
 
-interface EmailTemplateConfig {
+export interface EmailTemplateConfig {
   html: string
   plain: string
 }
 
-interface TodoConfig {
+export interface TodoConfig {
   defaultDue: number
   numUrgentImportant: number
   numImportant: number
@@ -38,7 +38,7 @@ interface TodoConfig {
   urgentTime: number
 }
 
-interface TrelloConfig {
+export interface TrelloConfig {
   apiKey: string
   apiToken: string
   cardsPerList: number
@@ -47,12 +47,12 @@ interface TrelloConfig {
   url: string
 }
 
-interface TrelloLabelsConfig {
+export interface TrelloLabelsConfig {
   important: string
   unimportant: string
 }
 
-interface Config {
+export interface Config {
   email: EmailConfig
   todos: TodoConfig
   trello: TrelloConfig
