@@ -47,6 +47,7 @@ export class Task {
   }
 
   // Factor values are 0-1.
+  /* istanbul ignore next */
   calculateRank(): number {
     const maxWeight = 10
     const factors: {[key: string]: {weight: number, func: Function}} = {

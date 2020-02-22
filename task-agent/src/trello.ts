@@ -31,7 +31,7 @@ const cardFields = [
 export interface TrelloCard {
   id: string
   dateLastActivity: string // date
-  due: string // date
+  due: string | null // date
   idBoard: string
   idLabels: string[]
   idList: string
