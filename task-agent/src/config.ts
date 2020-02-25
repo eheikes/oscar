@@ -58,6 +58,17 @@ export interface Config {
   trello: TrelloConfig
 }
 
+export interface EnvConfig {
+  TRELLO_KEY?: string
+  TRELLO_TOKEN?: string
+}
+
+export interface YamlConfig {
+  email: EmailConfig
+  todos: TodoConfig
+  trello: Omit<TrelloConfig, 'apiKey' | 'apiToken'>
+}
+
 let config: Config | null = null
 
 export const getConfig = async (): Promise<Config> => {
