@@ -6,7 +6,7 @@ import { join } from 'path'
 import { getConfig } from './config'
 import { Task } from './task'
 
-interface EmailResult {
+export interface EmailResult {
   messageId: string
 }
 
