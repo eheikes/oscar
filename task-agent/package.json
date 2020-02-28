@@ -16,6 +16,7 @@
   "scripts": {
     "prebuild": "del-cli ./dist",
     "build": "tsc",
+    "lint": "true",
     "start": "node $npm_package_main",
     "test": "jest",
     "test:watch": "jest --watch-all"
