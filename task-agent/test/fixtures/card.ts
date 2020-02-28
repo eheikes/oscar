@@ -9,7 +9,12 @@ export const cards: TrelloCard[] = [{
   idList: 'list1',
   idMembers: [],
   idShort: '1',
-  labels: [],
+  labels: [{
+    id: '1',
+    idBoard: '5',
+    name: 'important',
+    color: 'red'
+  }],
   name: 'Foobar',
   pos: 99,
   shortLink: '',

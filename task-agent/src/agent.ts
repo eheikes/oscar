@@ -7,7 +7,7 @@ import { getListCards } from './trello'
 const FLAG_URGENT = 0x01
 const FLAG_IMPORTANT = 0x10
 
-;(async () => {
+export const main = async () => {
   log('main', 'Loading configuration')
   const config = await getConfig()
 
@@ -53,6 +53,10 @@ const FLAG_IMPORTANT = 0x10
     buckets[0].slice(0, config.todos.numNotImportant)
   )
   log('main', `Email ${result.messageId} sent`)
-})().catch(err => {
-  log('main', 'Error!', err.stack)
-})
+}
+
+if (require.main === module) {
+  main().catch(err => {
+    log('main', 'Error!', err.stack)
+  })
+}
