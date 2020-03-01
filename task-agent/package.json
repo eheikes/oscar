@@ -18,8 +18,8 @@
     "build": "tsc",
     "lint": "eslint . --fix --ext .js,.ts",
     "start": "node $npm_package_main",
-    "test": "jest",
-    "test:watch": "jest --watch-all"
+    "test": "cross-env CONFIG_FILE=test/config.yml jest",
+    "test:watch": "cross-env CONFIG_FILE=test/config.yml jest --watch-all"
   },
   "author": "Eric Heikes <eheikes@gmail.com>",
   "license": "Apache-2.0",
@@ -44,6 +44,7 @@
     "@types/js-yaml": "^3.12.1",
     "@types/nodemailer": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "2",
+    "cross-env": "^7.0.0",
     "del-cli": "^3.0.0",
     "eslint": "6",
     "eslint-config-standard-with-typescript": "^14.0.0",

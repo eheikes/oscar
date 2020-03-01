@@ -74,7 +74,7 @@ let config: Config | null = null
 export const getConfig = async (): Promise<Config> => {
   if (config) { return config }
 
-  const yamlContents = await promisify(readFile)(join('config.yml'), 'utf8')
+  const yamlContents = await promisify(readFile)(join(process.env.CONFIG_FILE ?? 'config.yml'), 'utf8')
   config = safeLoad(yamlContents) as Config
 
   const env = dotenv.config()
