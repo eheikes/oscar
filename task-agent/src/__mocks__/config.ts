@@ -1,4 +1,4 @@
-export { Config } from '../config'
+import { Config } from '../config'
 
 export const fakeConfig: Config = {
   email: {
@@ -29,6 +29,14 @@ export const fakeConfig: Config = {
     },
     lists: ['list1', 'list2'],
     url: 'http://example.com'
+  },
+  todos: {
+    defaultDue: 1209600,
+    urgentTime: 604800,
+    numUrgentImportant: 2,
+    numImportant: 2,
+    numUrgent: 2,
+    numNotImportant: 1
   }
 }
 
