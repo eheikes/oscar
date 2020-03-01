@@ -1,10 +1,10 @@
 import { readFileSync } from 'fs'
 import { compile, registerHelper } from 'handlebars'
-import juice = require('juice')
 import { createTransport } from 'nodemailer'
 import { join } from 'path'
 import { getConfig } from './config'
 import { Task } from './task'
+import juice = require('juice')
 
 export interface EmailResult {
   messageId: string
@@ -30,6 +30,7 @@ export const sendEmail = async (
   neither: Task[]
 ): Promise<EmailResult> => {
   const { email } = await getConfig()
+  /* eslint-disable-next-line @typescript-eslint/no-var-requires */
   const pkg = require(join(__dirname, '..', 'package.json'))
 
   registerHelper('date', toDateString)

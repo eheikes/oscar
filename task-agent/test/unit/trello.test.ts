@@ -12,7 +12,7 @@ describe('trello', () => {
   })
 
   describe('getListCards()', () => {
-    const extractListId = (card: any) => {
+    const extractListId = (card: any): string => {
       return card.url.replace(/^.*\/lists\/(.+)\/cards\/.*$/, '$1')
     }
 

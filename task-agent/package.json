@@ -16,7 +16,7 @@
   "scripts": {
     "prebuild": "del-cli ./dist",
     "build": "tsc",
-    "lint": "true",
+    "lint": "eslint . --fix --ext .js,.ts",
     "start": "node $npm_package_main",
     "test": "jest",
     "test:watch": "jest --watch-all"
@@ -43,7 +43,14 @@
     "@types/jest": "^25.1.2",
     "@types/js-yaml": "^3.12.1",
     "@types/nodemailer": "^6.4.0",
+    "@typescript-eslint/eslint-plugin": "2",
     "del-cli": "^3.0.0",
+    "eslint": "6",
+    "eslint-config-standard-with-typescript": "^14.0.0",
+    "eslint-plugin-import": "2",
+    "eslint-plugin-node": "9",
+    "eslint-plugin-promise": "4",
+    "eslint-plugin-standard": "4",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.0",
     "typescript": "^3.7.0"

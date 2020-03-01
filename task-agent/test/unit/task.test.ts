@@ -88,22 +88,28 @@ describe('Task', () => {
 describe('compareTasks()', () => {
   it('should return <0 if task A has an earlier due date', () => {
     expect(compareTasks(
+      /* eslint-disable @typescript-eslint/consistent-type-assertions */
       { dateDue: new Date(2009, 1, 1) } as Task,
       { dateDue: new Date(2010, 1, 1) } as Task
+      /* eslint-enable @typescript-eslint/consistent-type-assertions */
     )).toBeLessThan(0)
   })
 
   it('should return >0 if task A has a later due date', () => {
     expect(compareTasks(
+      /* eslint-disable @typescript-eslint/consistent-type-assertions */
       { dateDue: new Date(2011, 1, 1) } as Task,
       { dateDue: new Date(2010, 1, 1) } as Task
+      /* eslint-enable @typescript-eslint/consistent-type-assertions */
     )).toBeGreaterThan(0)
   })
 
   it('should return 0 if due dates are the same', () => {
     expect(compareTasks(
+      /* eslint-disable @typescript-eslint/consistent-type-assertions */
       { dateDue: new Date(2010, 1, 1) } as Task,
       { dateDue: new Date(2010, 1, 1) } as Task
+      /* eslint-enable @typescript-eslint/consistent-type-assertions */
     )).toBe(0)
   })
 })

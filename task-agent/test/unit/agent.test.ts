@@ -17,14 +17,14 @@ describe('agent', () => {
     await main()
   })
 
-  it('should retrieve the Trello cards', async () => {
+  it('should retrieve the Trello cards', () => {
     expect(getListCards).toHaveBeenCalledWith(
       config.trello.lists,
       { numCards: config.trello.cardsPerList }
     )
   })
 
-  it('should sort the tasks into buckets', async () => {
+  it('should sort the tasks into buckets', () => {
     const args = sendEmailSpy.mock.calls[0]
     expect(args[0].length).toBe(1)
     expect(args[0][0].id).toBe(cards[0].id)
@@ -34,7 +34,7 @@ describe('agent', () => {
     expect(args[3]).toEqual([])
   })
 
-  it('should send an email', async () => {
+  it('should send an email', () => {
     expect(sendEmailSpy).toHaveBeenCalled()
   })
 })

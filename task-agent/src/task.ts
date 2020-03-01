@@ -30,26 +30,27 @@ export class Task {
   urgent: boolean
   important: boolean
 
-  constructor(card: TrelloCard, opts: TaskOptions = defaultOpts) {
+  constructor (card: TrelloCard, opts: TaskOptions = defaultOpts) {
     this.id = card.id
     // see https://help.trello.com/article/759-getting-the-time-a-card-or-board-was-created
-    this.dateCreated = new Date(parseInt(card.id.substring(0,8), 16) * 1000)
+    this.dateCreated = new Date(parseInt(card.id.substring(0, 8), 16) * 1000)
     this.dateLastActivity = new Date(card.dateLastActivity)
     // If the task has no due date, assume one.
+    /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
     this.dateDue = card.due ? new Date(card.due) : new Date(Date.now() + opts.defaultTimeDue * 1000)
     this.labels = card.labels.map(label => label.name.toLocaleLowerCase())
     this.name = card.name
     this.position = card.pos
     this.url = card.shortUrl
     this.important = this.labels.includes(opts.importantLabel)
-    this.urgent = Boolean(this.dateDue && (this.dateDue.valueOf() < Date.now() + opts.urgentTime * 1000))
+    this.urgent = Boolean(this.dateDue.valueOf() < Date.now() + opts.urgentTime * 1000)
     this.rank = this.calculateRank()
   }
 
   // Factor values are 0-1.
   /* istanbul ignore next */
-  calculateRank(): number {
-    const maxWeight = 10
+  calculateRank (): number {
+    // const maxWeight = 10
     const factors: {[key: string]: {weight: number, func: Function}} = {
       age: {
         weight: 2,
@@ -78,7 +79,7 @@ export class Task {
             // score += distance ** 2 * factors.dateDue.weight
           }
         }
-      },
+      }
       // importance: {
       //   weight: 5,
       //   func: (): number => {

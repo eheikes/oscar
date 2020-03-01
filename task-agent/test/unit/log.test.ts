@@ -5,7 +5,7 @@ describe('log()', () => {
 
   beforeEach(() => {
     spy = jest.spyOn(console, 'log')
-    spy.mockImplementation(() => {})
+    spy.mockImplementation(() => { /* no-op */ })
   })
 
   afterEach(() => {

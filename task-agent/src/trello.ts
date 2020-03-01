@@ -46,7 +46,7 @@ export interface TrelloCard {
 }
 
 const getAuthParams = async (): Promise<string> => {
-  const { trello: { apiKey, apiToken }} = await getConfig()
+  const { trello: { apiKey, apiToken } } = await getConfig()
   return `key=${apiKey}&token=${apiToken}`
 }
 
@@ -67,25 +67,26 @@ export const getCardPluginData = async (cardId: string): Promise<any> => {
   }
 }
 
-export const getListCards = async (listIds: string | string[], opts: TrelloOptions = {}) => {
+export const getListCards = async (listIds: string | string[], opts: TrelloOptions = {}): Promise<TrelloCard[]> => {
   log('getListCards', 'Retrieving lists', listIds)
 
   if (!Array.isArray(listIds)) {
     listIds = [listIds]
   }
 
+  /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing */
   const numCards = opts.numCards || 100
 
-  let cards: TrelloCard[] = []
+  const cards: TrelloCard[] = []
   const auth = await getAuthParams()
   log('getListCards', 'auth is', auth)
   try {
-    for (let id of listIds) {
+    for (const id of listIds) {
       const { trello: { url: baseUrl } } = await getConfig()
-      const url = `${baseUrl}/lists/${id}/cards/?${auth}&fields=${cardFields.join(',')}&limit=${numCards}`
+      const url = `${baseUrl}/lists/${id}/cards/?${auth}&fields=${cardFields.join(',')}&limit=${String(numCards)}`
       log('getListCards', `Calling ${sanitizeUrl(url)}`)
       const listCards = await got(url).json<TrelloCard[]>()
-      for (let card of listCards) {
+      for (const card of listCards) {
         // const pluginData = await getCardPluginData(card.id)
         // console.log('plugin data for card', card.id, ':', pluginData)
         cards.push(card)
@@ -97,4 +98,3 @@ export const getListCards = async (listIds: string | string[], opts: TrelloOptio
   }
   return cards
 }
-

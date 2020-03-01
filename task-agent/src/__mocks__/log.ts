@@ -1,1 +1,1 @@
-export const log = () => {}
+export const log = (): void => { /* no-op */ }

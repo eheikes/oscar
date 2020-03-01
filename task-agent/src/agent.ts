@@ -7,12 +7,13 @@ import { getListCards } from './trello'
 const FLAG_URGENT = 0x01
 const FLAG_IMPORTANT = 0x10
 
-export const main = async () => {
+export const main = async (): Promise<void> => {
   log('main', 'Loading configuration')
   const config = await getConfig()
 
   // Retrieve all the cards from Trello.
   const cards = await getListCards(config.trello.lists, {
+    /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
     numCards: config.trello.cardsPerList || 100
   })
   const tasks = cards.map(card => new Task(card, {
@@ -24,7 +25,7 @@ export const main = async () => {
   log('main', tasks.length, 'cards retrieved')
 
   // Sort the tasks into 4 buckets.
-  let buckets: {[key: number]: Task[]} = {
+  const buckets: {[key: number]: Task[]} = {
     0: [],
     [FLAG_URGENT]: [],
     [FLAG_IMPORTANT]: [],

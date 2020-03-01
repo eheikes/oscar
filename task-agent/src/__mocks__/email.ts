@@ -1,3 +1,3 @@
-export const sendEmail = jest.fn(() => Promise.resolve({
+export const sendEmail = jest.fn(async () => Promise.resolve({
   messageId: 'foobar'
 }))

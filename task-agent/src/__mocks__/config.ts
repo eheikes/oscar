@@ -1,6 +1,6 @@
 export { Config } from '../config'
 
-export const fakeConfig = {
+export const fakeConfig: Config = {
   email: {
     server: {
       host: 'smtp.example.com',
@@ -32,4 +32,4 @@ export const fakeConfig = {
   }
 }
 
-export const getConfig = async () => fakeConfig
+export const getConfig = async (): Promise<Config> => Promise.resolve(fakeConfig)
