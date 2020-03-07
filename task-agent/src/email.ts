@@ -27,7 +27,9 @@ export const sendEmail = async (
   urgentImportant: Task[],
   urgent: Task[],
   important: Task[],
-  neither: Task[]
+  neither: Task[],
+  overdueImportant: Task[],
+  overdue: Task[]
 ): Promise<EmailResult> => {
   const { email } = await getConfig()
   /* eslint-disable-next-line @typescript-eslint/no-var-requires */
@@ -43,6 +45,8 @@ export const sendEmail = async (
     urgent,
     important,
     neither,
+    overdueImportant,
+    overdue,
     title: email.message.subject,
     app: {
       name: pkg.displayName,

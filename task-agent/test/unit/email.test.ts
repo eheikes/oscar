@@ -103,6 +103,47 @@ describe('sendEmail()', () => {
       url: 'http://example.com/n1'
     })
   ]
+  const overdueImportant = [
+    new Task({
+      id: 'odi1',
+      dateLastActivity: (new Date()).toISOString(),
+      due: (new Date(2020, 0, 2, 12, 0, 0)).toISOString(),
+      idBoard: 'board1',
+      idLabels: ['label1'],
+      idList: 'list1',
+      idMembers: ['member1'],
+      idShort: 'odi1',
+      labels: [{
+        id: 'label1',
+        idBoard: 'board1',
+        name: 'Important',
+        color: 'red'
+      }],
+      name: 'Overdue Important 1',
+      pos: 1,
+      shortLink: 'odi1',
+      shortUrl: 'http://example.com/odi1',
+      url: 'http://example.com/odi1'
+    })
+  ]
+  const overdue = [
+    new Task({
+      id: 'od1',
+      dateLastActivity: (new Date()).toISOString(),
+      due: (new Date(2020, 0, 3, 12, 0, 0)).toISOString(),
+      idBoard: 'board1',
+      idLabels: ['label1'],
+      idList: 'list1',
+      idMembers: ['member1'],
+      idShort: 'od1',
+      labels: [],
+      name: 'Overdue 1',
+      pos: 1,
+      shortLink: 'od1',
+      shortUrl: 'http://example.com/od1',
+      url: 'http://example.com/od1'
+    })
+  ]
 
   const createTransportSpy = createTransport as jest.Mock<Transporter>
   const sendMailSpy = sendMail as jest.Mock<SentMessageInfo>
@@ -112,7 +153,7 @@ describe('sendEmail()', () => {
 
   beforeEach(async () => {
     config = await getConfig()
-    result = await sendEmail(urgentImportant, urgent, important, neither)
+    result = await sendEmail(urgentImportant, urgent, important, neither, overdueImportant, overdue)
   })
 
   it('should use the configured email settings', () => {
@@ -150,6 +191,12 @@ describe('sendEmail()', () => {
     neither.forEach(task => {
       expect(sendMailArg.text).toMatch(new RegExp(`If Time.*\\* ${task.name}`, 's'))
     })
+    overdueImportant.forEach(task => {
+      expect(sendMailArg.text).toMatch(new RegExp(`Overdue.*\\* !!! ${task.name}.*\\(due 1/2/2020\\)`, 's'))
+    })
+    overdue.forEach(task => {
+      expect(sendMailArg.text).toMatch(new RegExp(`Overdue.*\\* ${task.name}.*\\(due 1/3/2020\\)`, 's'))
+    })
   })
 
   it('should build the HTML from the given task info', () => {
@@ -165,6 +212,12 @@ describe('sendEmail()', () => {
     })
     neither.forEach(task => {
       expect(sendMailArg.html).toMatch(new RegExp(`If Time.*${task.name}`, 's'))
+    })
+    overdueImportant.forEach(task => {
+      expect(sendMailArg.html).toMatch(new RegExp(`Overdue.*${task.name}.*\\(due 1/2/2020\\)`, 's'))
+    })
+    overdue.forEach(task => {
+      expect(sendMailArg.html).toMatch(new RegExp(`Overdue.*${task.name}.*\\(due 1/3/2020\\)`, 's'))
     })
   })
 

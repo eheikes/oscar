@@ -372,6 +372,16 @@
                             <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
                           {{/each}}
                         </ul>
+
+                        <h2>Overdue</h2>
+                        <ul>
+                          {{#each overdueImportant}}
+                            <li>‼️ <a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
+                          {{/each}}
+                          {{#each overdue}}
+                            <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
+                          {{/each}}
+                        </ul>
                       </td>
                     </tr>
                   </table>

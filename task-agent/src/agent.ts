@@ -4,8 +4,9 @@ import { log } from './log'
 import { compareTasks, Task } from './task'
 import { getListCards } from './trello'
 
-const FLAG_URGENT = 0x01
-const FLAG_IMPORTANT = 0x10
+export const FLAG_URGENT = 0x001
+export const FLAG_IMPORTANT = 0x010
+export const FLAG_OVERDUE = 0x100
 
 export const main = async (): Promise<void> => {
   log('main', 'Loading configuration')
@@ -24,13 +25,16 @@ export const main = async (): Promise<void> => {
   }))
   log('main', tasks.length, 'cards retrieved')
 
-  // Sort the tasks into 4 buckets.
+  // Sort the tasks into buckets.
   const buckets: {[key: number]: Task[]} = {
     0: [],
     [FLAG_URGENT]: [],
     [FLAG_IMPORTANT]: [],
-    [FLAG_URGENT | FLAG_IMPORTANT]: []
+    [FLAG_URGENT | FLAG_IMPORTANT]: [],
+    [FLAG_OVERDUE | FLAG_IMPORTANT]: [],
+    [FLAG_OVERDUE]: [],
   }
+  const now = new Date()
   tasks.forEach(task => {
     let flags = 0
     if (task.important) {
@@ -40,6 +44,9 @@ export const main = async (): Promise<void> => {
       flags |= FLAG_URGENT
     }
     buckets[flags].push(task)
+    if (task.dateDue.valueOf() <= now.valueOf()) {
+      buckets[FLAG_OVERDUE | (task.important ? FLAG_IMPORTANT : 0)].push(task)
+    }
   })
   buckets[FLAG_URGENT | FLAG_IMPORTANT].sort(compareTasks)
   buckets[FLAG_URGENT].sort(compareTasks)
@@ -51,7 +58,9 @@ export const main = async (): Promise<void> => {
     buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant),
     buckets[FLAG_URGENT].slice(0, config.todos.numUrgent),
     buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant),
-    buckets[0].slice(0, config.todos.numNotImportant)
+    buckets[0].slice(0, config.todos.numNotImportant),
+    buckets[FLAG_OVERDUE | FLAG_IMPORTANT],
+    buckets[FLAG_OVERDUE]
   )
   log('main', `Email ${result.messageId} sent`)
 }
