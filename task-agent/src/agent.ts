@@ -8,6 +8,22 @@ export const FLAG_URGENT = 0x001
 export const FLAG_IMPORTANT = 0x010
 export const FLAG_OVERDUE = 0x100
 
+type TaskFilter = (t: Task) => boolean
+
+/**
+ * Returns a filtering function to check if a task is not in a collection (or collections) of tasks.
+ */
+const isNotIn = (...args: Task[][]): TaskFilter => {
+  return (task: Task) => {
+    for (const tasks of args) {
+      if (tasks.some(t => t.id === task.id)) {
+        return false
+      }
+    }
+    return true
+  }
+}
+
 export const main = async (): Promise<void> => {
   log('main', 'Loading configuration')
   const config = await getConfig()
@@ -32,7 +48,7 @@ export const main = async (): Promise<void> => {
     [FLAG_IMPORTANT]: [],
     [FLAG_URGENT | FLAG_IMPORTANT]: [],
     [FLAG_OVERDUE | FLAG_IMPORTANT]: [],
-    [FLAG_OVERDUE]: [],
+    [FLAG_OVERDUE]: []
   }
   const now = new Date()
   tasks.forEach(task => {
@@ -54,13 +70,19 @@ export const main = async (): Promise<void> => {
   buckets[0].sort(compareTasks)
 
   // Send an email with the top tasks.
+  const urgentImportant = buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant)
+  const urgent = buckets[FLAG_URGENT].slice(0, config.todos.numUrgent)
+  const important = buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant)
+  const neither = buckets[0].slice(0, config.todos.numNotImportant)
+  const overdueImportant = buckets[FLAG_OVERDUE | FLAG_IMPORTANT].filter(isNotIn(urgentImportant, urgent, important, neither))
+  const overdue = buckets[FLAG_OVERDUE].filter(isNotIn(urgentImportant, urgent, important, neither))
   const result = await sendEmail(
-    buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant),
-    buckets[FLAG_URGENT].slice(0, config.todos.numUrgent),
-    buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant),
-    buckets[0].slice(0, config.todos.numNotImportant),
-    buckets[FLAG_OVERDUE | FLAG_IMPORTANT],
-    buckets[FLAG_OVERDUE]
+    urgentImportant,
+    urgent,
+    important,
+    neither,
+    overdueImportant,
+    overdue
   )
   log('main', `Email ${result.messageId} sent`)
 }

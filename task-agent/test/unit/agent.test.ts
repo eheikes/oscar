@@ -32,10 +32,9 @@ describe('agent', () => {
     expect(args[1][0].id).toBe(cards[1].id)
     expect(args[2]).toEqual([])
     expect(args[3]).toEqual([])
-    expect(args[4].length).toBe(1)
-    expect(args[4][0].id).toBe(cards[0].id)
+    expect(args[4]).toEqual([])
     expect(args[5].length).toBe(1)
-    expect(args[5][0].id).toBe(cards[1].id)
+    expect(args[5][0].id).toBe(cards[2].id)
   })
 
   it('should send an email', () => {

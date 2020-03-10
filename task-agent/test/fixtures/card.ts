@@ -35,4 +35,19 @@ export const cards: TrelloCard[] = [{
   shortLink: '',
   shortUrl: '',
   url: ''
+}, {
+  id: 'baz',
+  dateLastActivity: '2020-01-01',
+  due: '2020-01-03',
+  idBoard: 'board3',
+  idLabels: [],
+  idList: 'list3',
+  idMembers: [],
+  idShort: '3',
+  labels: [],
+  name: 'Foobar 3',
+  pos: 99,
+  shortLink: '',
+  shortUrl: '',
+  url: ''
 }]

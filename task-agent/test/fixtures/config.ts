@@ -36,9 +36,9 @@ export const yamlConfig: YamlConfig = {
   todos: {
     defaultDue: 1209600,
     urgentTime: 604800,
-    numUrgentImportant: 2,
-    numImportant: 2,
-    numUrgent: 2,
+    numUrgentImportant: 1,
+    numImportant: 1,
+    numUrgent: 1,
     numNotImportant: 1
   }
 }
