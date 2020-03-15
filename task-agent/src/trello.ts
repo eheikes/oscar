@@ -45,6 +45,11 @@ export interface TrelloCard {
   url: string
 }
 
+// Note: Not all fields from the Trello API are included.
+export interface TrelloMember {
+  id: string
+}
+
 const getAuthParams = async (): Promise<string> => {
   const { trello: { apiKey, apiToken } } = await getConfig()
   return `key=${apiKey}&token=${apiToken}`
@@ -65,6 +70,15 @@ export const getCardPluginData = async (cardId: string): Promise<any> => {
     log('getCardPluginData', 'ERROR!', err)
     throw err
   }
+}
+
+export const getCurrentUser = async (): Promise<TrelloMember> => {
+  log('getCurrentUser', 'Retrieving authenticated user')
+  const auth = await getAuthParams()
+  const { trello: { url: baseUrl } } = await getConfig()
+  // "me" user is not well-documented: https://stackoverflow.com/a/54444336
+  const url = `${baseUrl}/members/me?${auth}&fields=id`
+  return got(url).json<TrelloMember>()
 }
 
 export const getListCards = async (listIds: string | string[], opts: TrelloOptions = {}): Promise<TrelloCard[]> => {

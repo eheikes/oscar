@@ -1,5 +1,6 @@
 import { Config, getConfig } from '../../src/config'
-import { getListCards } from '../../src/trello'
+import { getCurrentUser, getListCards } from '../../src/trello'
+import { user as exampleUser } from '../fixtures/user'
 
 jest.mock('../../src/config')
 jest.mock('../../src/log')
@@ -9,6 +10,13 @@ describe('trello', () => {
 
   beforeEach(async () => {
     config = await getConfig()
+  })
+
+  describe('getCurrentUser()', () => {
+    it('should return info about the authenticated user', async () => {
+      const user = await getCurrentUser()
+      expect(user.id).toBe(exampleUser.id)
+    })
   })
 
   describe('getListCards()', () => {

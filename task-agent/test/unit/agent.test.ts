@@ -24,6 +24,11 @@ describe('agent', () => {
     )
   })
 
+  it('should filter out tasks assigned to others', () => {
+    const args = sendEmailSpy.mock.calls[0]
+    expect(args[5].length).toBe(1)
+  })
+
   it('should sort the tasks into buckets', () => {
     const args = sendEmailSpy.mock.calls[0]
     expect(args[0].length).toBe(1)
