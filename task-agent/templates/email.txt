@@ -3,30 +3,18 @@ To-Do List
 
 Urgent
 ------
-{{#each urgentImportant}}
-* !!! {{this.name}} ({{this.url}}) (due {{date this.dateDue}})
-{{/each}}
 {{#each urgent}}
-* {{this.name}} ({{this.url}}) (due {{date this.dateDue}})
+* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) (due {{date this.dateDue}})
 {{/each}}
 
-Important
----------
+Work On These
+-------------
 {{#each important}}
-* {{this.name}} ({{this.url}}) (due {{date this.dateDue}})
-{{/each}}
-
-If Time
---------
-{{#each neither}}
-* {{this.name}} ({{this.url}}) (due {{date this.dateDue}})
+* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) (due {{date this.dateDue}})
 {{/each}}
 
 Overdue
 -------
-{{#each overdueImportant}}
-* !!! {{this.name}} ({{this.url}}) (due {{date this.dateDue}})
-{{/each}}
 {{#each overdue}}
-* {{this.name}} ({{this.url}}) (due {{date this.dateDue}})
+* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) (due {{date this.dateDue}})
 {{/each}}

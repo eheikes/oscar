@@ -1,6 +1,7 @@
 import { main } from '../../src/agent'
 import { Config, getConfig } from '../../src/config'
 import { EmailResult, sendEmail } from '../../src/email'
+import { Task } from '../../src/task'
 import { getListCards } from '../../src/trello'
 import { cards } from '../fixtures/card'
 
@@ -26,20 +27,16 @@ describe('agent', () => {
 
   it('should filter out tasks assigned to others', () => {
     const args = sendEmailSpy.mock.calls[0]
-    expect(args[5].length).toBe(1)
+    expect(args[2].some((t: Task) => t.id === cards[3].id)).toBe(false)
   })
 
   it('should sort the tasks into buckets', () => {
     const args = sendEmailSpy.mock.calls[0]
-    expect(args[0].length).toBe(1)
+    expect(args[0].length).toBe(2)
     expect(args[0][0].id).toBe(cards[0].id)
-    expect(args[1].length).toBe(1)
-    expect(args[1][0].id).toBe(cards[1].id)
-    expect(args[2]).toEqual([])
-    expect(args[3]).toEqual([])
-    expect(args[4]).toEqual([])
-    expect(args[5].length).toBe(1)
-    expect(args[5][0].id).toBe(cards[2].id)
+    expect(args[1]).toEqual([])
+    expect(args[2].length).toBe(1)
+    expect(args[2][0].id).toBe(cards[2].id)
   })
 
   it('should send an email', () => {

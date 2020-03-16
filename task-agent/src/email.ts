@@ -24,11 +24,8 @@ const toDateString = (x: any): string => {
 }
 
 export const sendEmail = async (
-  urgentImportant: Task[],
   urgent: Task[],
   important: Task[],
-  neither: Task[],
-  overdueImportant: Task[],
   overdue: Task[]
 ): Promise<EmailResult> => {
   const { email } = await getConfig()
@@ -41,11 +38,8 @@ export const sendEmail = async (
   const plainTextTemplateFilename = join(__dirname, '..', email.template.plain)
 
   const data = {
-    urgentImportant,
     urgent,
     important,
-    neither,
-    overdueImportant,
     overdue,
     title: email.message.subject,
     app: {

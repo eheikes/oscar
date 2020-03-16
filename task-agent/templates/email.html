@@ -351,35 +351,22 @@
 
                         <h2>Urgent</h2>
                         <ul>
-                          {{#each urgentImportant}}
-                            <li>‼️ <a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
-                          {{/each}}
                           {{#each urgent}}
-                            <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
+                            <li>{{#if this.important}}‼️ {{/if}}<a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
                           {{/each}}
                         </ul>
 
-                        <h2>Important</h2>
+                        <h2>Work On These</h2>
                         <ul>
                           {{#each important}}
-                            <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
-                          {{/each}}
-                        </ul>
-
-                        <h2>If Time</h2>
-                        <ul>
-                          {{#each neither}}
-                            <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
+                            <li>{{#if this.important}}‼️ {{/if}}<a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
                           {{/each}}
                         </ul>
 
                         <h2>Overdue</h2>
                         <ul>
-                          {{#each overdueImportant}}
-                            <li>‼️ <a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
-                          {{/each}}
                           {{#each overdue}}
-                            <li><a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
+                            <li>{{#if this.important}}‼️ {{/if}}<a href="{{this.url}}">{{this.name}}</a> (due {{date this.dateDue}})</li>
                           {{/each}}
                         </ul>
                       </td>

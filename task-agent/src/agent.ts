@@ -92,18 +92,18 @@ export const main = async (): Promise<void> => {
   log('main', 'Overdue:', buckets[FLAG_OVERDUE].length, 'tasks')
 
   // Send an email with the top tasks.
-  const urgentImportant = buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant)
-  const urgent = buckets[FLAG_URGENT].slice(0, config.todos.numUrgent)
-  const important = buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant)
-  const neither = buckets[0].slice(0, config.todos.numNotImportant)
-  const overdueImportant = buckets[FLAG_OVERDUE | FLAG_IMPORTANT].filter(isNotIn(urgentImportant, urgent, important, neither))
-  const overdue = buckets[FLAG_OVERDUE].filter(isNotIn(urgentImportant, urgent, important, neither))
+  const urgent: Task[] = []
+  const important: Task[] = []
+  const overdue: Task[] = []
+  urgent.push(...buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant))
+  urgent.push(...buckets[FLAG_URGENT].slice(0, config.todos.numUrgent))
+  important.push(...buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant))
+  important.push(...buckets[0].slice(0, config.todos.numNotImportant))
+  overdue.push(...buckets[FLAG_OVERDUE | FLAG_IMPORTANT].filter(isNotIn(urgent, important)))
+  overdue.push(...buckets[FLAG_OVERDUE].filter(isNotIn(urgent, important)))
   const result = await sendEmail(
-    urgentImportant,
     urgent,
     important,
-    neither,
-    overdueImportant,
     overdue
   )
   log('main', `Email ${result.messageId} sent`)
