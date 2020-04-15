@@ -4,13 +4,13 @@ To-Do List
 Urgent
 ------
 {{#each urgent}}
-* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) (due {{date this.dateDue}})
+* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) ({{#if this.sizeReadable}}{{this.sizeReadable}}, {{/if}}{{#if this.overdue}}OVERDUE{{else}}due{{/if}} {{date this.dateDue}})
 {{/each}}
 
 Work On These
 -------------
 {{#each important}}
-* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) (due {{date this.dateDue}})
+* {{#if this.important}}!!! {{/if}}{{this.name}} ({{this.url}}) ({{#if this.sizeReadable}}{{this.sizeReadable}}, {{/if}}{{#if this.overdue}}OVERDUE{{else}}due{{/if}} {{date this.dateDue}})
 {{/each}}
 
 Overdue

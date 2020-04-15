@@ -6,6 +6,8 @@ trello:
   lists:
     - 5b09d7346cad9862b28a687f
   cardsPerList: 200
+  cardSizePluginId: 5cd476e1efce1d2e0cbe53a8 # don't need to change this
+  cardSizeUnit: hr
 
 email:
   server:
@@ -25,7 +27,5 @@ email:
 todos:
   defaultDue: 1209600
   urgentTime: 604800
-  numUrgentImportant: 2
-  numImportant: 2
-  numUrgent: 2
-  numNotImportant: 1
+  urgentAmount: 3
+  importantAmount: 2

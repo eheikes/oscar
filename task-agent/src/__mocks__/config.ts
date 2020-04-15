@@ -22,6 +22,8 @@ export const fakeConfig: Config = {
   trello: {
     apiKey: 'api_key',
     apiToken: 'api_token',
+    cardSizePluginId: '5cd476e1efce1d2e0cbe53a8',
+    cardSizeUnit: 'hr',
     cardsPerList: 10,
     labels: {
       important: 'important label',
@@ -33,10 +35,8 @@ export const fakeConfig: Config = {
   todos: {
     defaultDue: 1209600,
     urgentTime: 604800,
-    numUrgentImportant: 2,
-    numImportant: 2,
-    numUrgent: 2,
-    numNotImportant: 1
+    urgentAmount: 5,
+    importantAmount: 5
   }
 }
 

@@ -45,6 +45,21 @@ export interface TrelloCard {
   url: string
 }
 
+export interface TrelloPluginData {
+  id: string
+  idPlugin: string
+  scope: string
+  idModel: string
+  value: string
+  access: string
+}
+
+export interface CardSizePluginValue {
+  size: number
+  spent: number
+  cardLastActivity: string
+}
+
 // Note: Not all fields from the Trello API are included.
 export interface TrelloMember {
   id: string
@@ -59,13 +74,13 @@ const sanitizeUrl = (url: string): string => {
   return url.replace(/(key=)\w+/g, '$1XXX').replace(/(token=)\w+/g, '$1XXX')
 }
 
-export const getCardPluginData = async (cardId: string): Promise<any> => {
+export const getCardPluginData = async (cardId: string): Promise<TrelloPluginData[]> => {
   const auth = await getAuthParams()
   const { trello: { url: baseUrl } } = await getConfig()
   const url = `${baseUrl}/card/${cardId}/pluginData/?${auth}`
   try {
     log('getCardPluginData', `Retrieving ${sanitizeUrl(url)}`)
-    return got(url).json<TrelloCard[]>()
+    return got(url).json<TrelloPluginData[]>()
   } catch (err) {
     log('getCardPluginData', 'ERROR!', err)
     throw err

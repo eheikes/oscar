@@ -79,6 +79,13 @@ describe('Task', () => {
       expect(task.urgent).toBe(true)
     })
 
+    it('should be marked overdue if it is overdue', () => {
+      const due = new Date(Date.now() - 86400)
+      const testCard = { ...card, due: due.toISOString() }
+      task = new Task(testCard)
+      expect(task.overdue).toBe(true)
+    })
+
     it('should calculate a rank', () => {
       expect(task.rank).toEqual(expect.any(Number))
     })

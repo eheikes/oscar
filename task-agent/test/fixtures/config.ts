@@ -13,7 +13,9 @@ export const yamlConfig: YamlConfig = {
       unimportant: 'not important'
     },
     lists: ['5b09d7346cad9862b28a687f'],
-    cardsPerList: 200
+    cardsPerList: 200,
+    cardSizePluginId: '5cd476e1efce1d2e0cbe53a8',
+    cardSizeUnit: 'hr'
   },
   email: {
     server: {
@@ -36,9 +38,7 @@ export const yamlConfig: YamlConfig = {
   todos: {
     defaultDue: 1209600,
     urgentTime: 604800,
-    numUrgentImportant: 1,
-    numImportant: 1,
-    numUrgent: 1,
-    numNotImportant: 1
-  }
+    urgentAmount: 3,
+    importantAmount: 2
+    }
 }

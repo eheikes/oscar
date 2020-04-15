@@ -31,16 +31,16 @@ export interface EmailTemplateConfig {
 
 export interface TodoConfig {
   defaultDue: number
-  numUrgentImportant: number
-  numImportant: number
-  numUrgent: number
-  numNotImportant: number
+  importantAmount: number
+  urgentAmount: number
   urgentTime: number
 }
 
 export interface TrelloConfig {
   apiKey: string
   apiToken: string
+  cardSizePluginId: string
+  cardSizeUnit: string
   cardsPerList: number
   labels: TrelloLabelsConfig
   lists: string[]

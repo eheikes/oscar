@@ -2,7 +2,7 @@ import { getConfig } from './config'
 import { sendEmail } from './email'
 import { log } from './log'
 import { compareTasks, Task } from './task'
-import { TrelloCard, getCurrentUser, getListCards } from './trello'
+import { CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
 export const FLAG_IMPORTANT = 0x010
@@ -10,6 +10,20 @@ export const FLAG_OVERDUE = 0x100
 
 type CardFilter = (c: TrelloCard) => boolean
 type TaskFilter = (t: Task) => boolean
+
+ /**
+  * Returns a filtering function to check if a task is not in a collection (or collections) of tasks.
+  */
+const isNotIn = (...args: Task[][]): TaskFilter => {
+  return (task: Task) => {
+    for (const tasks of args) {
+      if (tasks.some(t => t.id === task.id)) {
+        return false
+      }
+    }
+    return true
+  }
+}
 
 /**
  * Returns a filtering function to only include cards that:
@@ -23,17 +37,36 @@ const isUserCard = (userId: string): CardFilter => {
 }
 
 /**
- * Returns a filtering function to check if a task is not in a collection (or collections) of tasks.
+ * Chooses tasks until a size threshold is met.
  */
-const isNotIn = (...args: Task[][]): TaskFilter => {
-  return (task: Task) => {
-    for (const tasks of args) {
-      if (tasks.some(t => t.id === task.id)) {
-        return false
+interface PickTasksOptions {
+  pluginId?: string
+  sizeUnit?: string
+}
+const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOptions): Promise<Task[]> => {
+  let amountRemaining = sizeLimit
+  let selectedTasks: Task[] = []
+  for (let i = 0; amountRemaining > 0 && i < tasks.length; i++) {
+    const allPluginData = await getCardPluginData(tasks[i].id)
+    const pluginData = allPluginData.find(data => data.idPlugin === opts.pluginId)
+    if (pluginData) {
+      const data = JSON.parse(pluginData.value) as CardSizePluginValue
+      if (data.size) {
+        const cardAmountLeft = data.size - data.spent
+        tasks[i].size = cardAmountLeft
+        tasks[i].sizeReadable = `${cardAmountLeft}${opts.sizeUnit}`
+        selectedTasks.push(tasks[i])
+        amountRemaining -= cardAmountLeft
+      } else {
+        // Size field is missing, which shouldn't happen. Include the task as an unspecified amount.
+        selectedTasks.push(tasks[i])
       }
+    } else {
+      // No card size data. Include the task as an unspecified amount.
+      selectedTasks.push(tasks[i])
     }
-    return true
   }
+  return selectedTasks
 }
 
 export const main = async (): Promise<void> => {
@@ -62,45 +95,38 @@ export const main = async (): Promise<void> => {
     0: [],
     [FLAG_URGENT]: [],
     [FLAG_IMPORTANT]: [],
-    [FLAG_URGENT | FLAG_IMPORTANT]: [],
-    [FLAG_OVERDUE | FLAG_IMPORTANT]: [],
     [FLAG_OVERDUE]: []
   }
-  const now = new Date()
   tasks.forEach(task => {
-    let flags = 0
-    if (task.important) {
-      flags |= FLAG_IMPORTANT
-    }
     if (task.urgent) {
-      flags |= FLAG_URGENT
+      buckets[FLAG_URGENT].push(task)
+    } else if (task.important) {
+      buckets[FLAG_IMPORTANT].push(task)
+    } else {
+      buckets[0].push(task)
     }
-    buckets[flags].push(task)
-    if (task.dateDue.valueOf() <= now.valueOf()) {
-      buckets[FLAG_OVERDUE | (task.important ? FLAG_IMPORTANT : 0)].push(task)
+
+    if (task.overdue) {
+      buckets[FLAG_OVERDUE].push(task)
     }
   })
-  buckets[FLAG_URGENT | FLAG_IMPORTANT].sort(compareTasks)
+  buckets[FLAG_OVERDUE].sort(compareTasks)
   buckets[FLAG_URGENT].sort(compareTasks)
   buckets[FLAG_IMPORTANT].sort(compareTasks)
   buckets[0].sort(compareTasks)
-  log('main', 'Urgent + Important:', buckets[FLAG_URGENT | FLAG_IMPORTANT].length, 'tasks')
   log('main', 'Urgent:', buckets[FLAG_URGENT].length, 'tasks')
   log('main', 'Important:', buckets[FLAG_IMPORTANT].length, 'tasks')
   log('main', 'Neither:', buckets[0].length, 'tasks')
-  log('main', 'Overdue + Important:', buckets[FLAG_OVERDUE | FLAG_IMPORTANT].length, 'tasks')
   log('main', 'Overdue:', buckets[FLAG_OVERDUE].length, 'tasks')
 
-  // Send an email with the top tasks.
-  const urgent: Task[] = []
-  const important: Task[] = []
-  const overdue: Task[] = []
-  urgent.push(...buckets[FLAG_URGENT | FLAG_IMPORTANT].slice(0, config.todos.numUrgentImportant))
-  urgent.push(...buckets[FLAG_URGENT].slice(0, config.todos.numUrgent))
-  important.push(...buckets[FLAG_IMPORTANT].slice(0, config.todos.numImportant))
-  important.push(...buckets[0].slice(0, config.todos.numNotImportant))
-  overdue.push(...buckets[FLAG_OVERDUE | FLAG_IMPORTANT].filter(isNotIn(urgent, important)))
-  overdue.push(...buckets[FLAG_OVERDUE].filter(isNotIn(urgent, important)))
+  // Send an email with the selected tasks.
+  const pickOpts: PickTasksOptions = {
+    pluginId: config.trello.cardSizePluginId,
+    sizeUnit: config.trello.cardSizeUnit
+  }
+  const urgent: Task[] = await pickTasks(buckets[FLAG_URGENT], config.todos.urgentAmount || 4, pickOpts)
+  const important: Task[] = await pickTasks(buckets[FLAG_IMPORTANT], config.todos.importantAmount || 4, pickOpts)
+  const overdue: Task[] = buckets[FLAG_OVERDUE].filter(isNotIn(urgent, important))
   const result = await sendEmail(
     urgent,
     important,

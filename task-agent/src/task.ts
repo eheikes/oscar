@@ -29,6 +29,9 @@ export class Task {
   rank: number
   urgent: boolean
   important: boolean
+  overdue: boolean
+  size?: number
+  sizeReadable?: string
 
   constructor (card: TrelloCard, opts: TaskOptions = defaultOpts) {
     this.id = card.id
@@ -44,6 +47,7 @@ export class Task {
     this.url = card.shortUrl
     this.important = this.labels.includes(opts.importantLabel)
     this.urgent = Boolean(this.dateDue.valueOf() < Date.now() + opts.urgentTime * 1000)
+    this.overdue = this.dateDue.valueOf() < Date.now()
     this.rank = this.calculateRank()
   }
 
