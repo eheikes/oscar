@@ -12,6 +12,7 @@ module.exports = {
     'standard-with-typescript'
   ],
   rules: {
-    '@typescript-eslint/strict-boolean-expressions': [2, { allowNullable: true, allowSafe: true }]
+    '@typescript-eslint/restrict-template-expressions': [2, { allowNumber: true }],
+    '@typescript-eslint/strict-boolean-expressions': [0]
   }
 }

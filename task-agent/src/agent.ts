@@ -11,7 +11,7 @@ export const FLAG_OVERDUE = 0x100
 type CardFilter = (c: TrelloCard) => boolean
 type TaskFilter = (t: Task) => boolean
 
- /**
+/**
   * Returns a filtering function to check if a task is not in a collection (or collections) of tasks.
   */
 const isNotIn = (...args: Task[][]): TaskFilter => {
@@ -45,17 +45,17 @@ interface PickTasksOptions {
 }
 const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOptions): Promise<Task[]> => {
   let amountRemaining = sizeLimit
-  let selectedTasks: Task[] = []
+  const selectedTasks: Task[] = []
   for (let i = 0; amountRemaining > 0 && i < tasks.length; i++) {
     const allPluginData = await getCardPluginData(tasks[i].id)
     const pluginData = allPluginData.find(data => data.idPlugin === opts.pluginId)
     if (pluginData) {
       const data = JSON.parse(pluginData.value) as CardSizePluginValue
-      if (data.size) {
+      if (typeof data.size !== 'undefined') {
         const cardAmountLeft = data.size - data.spent
         const amountToDo = Math.min(cardAmountLeft, amountRemaining) // either finish the card, or use up remaining time
         tasks[i].size = amountToDo
-        tasks[i].sizeReadable = `${amountToDo}${opts.sizeUnit}`
+        tasks[i].sizeReadable = `${amountToDo}${opts.sizeUnit ?? 'hr'}`
         selectedTasks.push(tasks[i])
         amountRemaining -= amountToDo
       } else {

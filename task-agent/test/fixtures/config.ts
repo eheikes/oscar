@@ -40,5 +40,5 @@ export const yamlConfig: YamlConfig = {
     urgentTime: 604800,
     urgentAmount: 3,
     importantAmount: 2
-    }
+  }
 }
