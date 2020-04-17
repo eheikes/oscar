@@ -7,7 +7,7 @@ export const pluginData: TrelloPluginData[] = [{
   idModel: '65e82aea7d9f49a184b14ba7',
   value: JSON.stringify({
     size: 5,
-    spent: 2
+    spent: 1
   }),
   access: 'foo'
 }]

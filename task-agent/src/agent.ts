@@ -53,10 +53,11 @@ const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOption
       const data = JSON.parse(pluginData.value) as CardSizePluginValue
       if (data.size) {
         const cardAmountLeft = data.size - data.spent
-        tasks[i].size = cardAmountLeft
-        tasks[i].sizeReadable = `${cardAmountLeft}${opts.sizeUnit}`
+        const amountToDo = Math.min(cardAmountLeft, amountRemaining) // either finish the card, or use up remaining time
+        tasks[i].size = amountToDo
+        tasks[i].sizeReadable = `${amountToDo}${opts.sizeUnit}`
         selectedTasks.push(tasks[i])
-        amountRemaining -= cardAmountLeft
+        amountRemaining -= amountToDo
       } else {
         // Size field is missing, which shouldn't happen. Include the task as an unspecified amount.
         selectedTasks.push(tasks[i])
