@@ -31,6 +31,7 @@ const cardFields = [
 export interface TrelloCard {
   id: string
   dateLastActivity: string // date
+  desc: string
   due: string | null // date
   idBoard: string
   idLabels: string[]
@@ -43,6 +44,12 @@ export interface TrelloCard {
   shortLink: string
   shortUrl: string
   url: string
+}
+
+export interface NewTrelloCard {
+  desc?: string
+  idList: string
+  name: string
 }
 
 export interface TrelloPluginData {
@@ -72,6 +79,38 @@ const getAuthParams = async (): Promise<string> => {
 
 const sanitizeUrl = (url: string): string => {
   return url.replace(/(key=)\w+/g, '$1XXX').replace(/(token=)\w+/g, '$1XXX')
+}
+
+export const addCard = async (card: NewTrelloCard): Promise<TrelloCard> => {
+  const auth = await getAuthParams()
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/cards?${auth}`
+  try {
+    log('addCard', `Creating card ${sanitizeUrl(url)}`)
+    const now = new Date()
+    const newCard = await got.post(url, {
+      json: {
+        name: card.name,
+        desc: card.desc,
+        pos: 'bottom',
+        due: (new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          0,
+          0
+        )).toISOString(),
+        idList: card.idList
+      }
+    }).json<TrelloCard>()
+    // Trello doesn't support updating plugin data through its REST API, so we can't set a card size.
+    // See https://developer.atlassian.com/cloud/trello/power-ups/client-library/getting-and-setting-data/#rest-api-access
+    return newCard
+  } catch (err) {
+    log('addCard', 'ERROR!', err)
+    throw err
+  }
 }
 
 export const getCardPluginData = async (cardId: string): Promise<TrelloPluginData[]> => {

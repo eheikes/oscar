@@ -4,6 +4,7 @@ This project contains the task agent for the OSCAR assistant.
 
 ## Requirements
 
+* [Node.js+npm](https://nodejs.org) 10+
 * A [Trello](https://trello.com) account.
 * A Trello API key and token. You can get your key and token from [trello.com/app-key](https://trello.com/app-key).
 * An email server or email account with SMTP.
@@ -25,6 +26,12 @@ This project contains the task agent for the OSCAR assistant.
 1. Add a due date.
 1. Add a time estimate using the Card Size power-up (optional).
 
-### Generating a Task List
+### Emailing a Task List
 
-1. Run `yarn start` every time you want to build and email a task list.
+1. Run `yarn install`
+1. Run `yarn start email` every time you want to build and email a task list.
+
+### Creating the Recurring Todos
+
+1. Run `yarn install`
+1. Run `yarn start create` to create Trello cards of the recurring tasks for the current day.

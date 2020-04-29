@@ -1,8 +1,9 @@
-import { getConfig } from './config'
+import { basename } from 'path'
+import { Config, getConfig, RecurringConfig } from './config'
 import { sendEmail } from './email'
 import { log } from './log'
 import { compareTasks, Task } from './task'
-import { CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
+import { addCard, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
 export const FLAG_IMPORTANT = 0x010
@@ -34,6 +35,31 @@ const isUserCard = (userId: string): CardFilter => {
   return (card: TrelloCard) =>
     card.idMembers.length === 0 ||
     card.idMembers.includes(userId)
+}
+
+/**
+ * Returns true if the configured todo should occur today.
+ */
+const shouldOccur = (todo: RecurringConfig): boolean => {
+  const now = new Date()
+  if (todo.type === 'dow') {
+    if (todo.value === '*') { return true }
+    return now.getDay() === Number(todo.value)
+  } else if (todo.type === 'date') {
+    if (typeof todo.value === 'number') {
+      return now.getDate() === todo.value
+    } else if (todo.value === '*') {
+      return true
+    } else if (todo.value === 'even') {
+      return now.getDate() % 2 === 0
+    } else if (todo.value === 'odd') {
+      return now.getDate() % 2 === 1
+    } else {
+      throw new Error(`Unrecognized value "${todo.value}" for recurring "date" type`)
+    }
+  } else {
+    throw new Error(`Unsupported recurring type of "${todo.type}`)
+  }
 }
 
 /**
@@ -70,13 +96,34 @@ const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOption
   return selectedTasks
 }
 
-export const main = async (): Promise<void> => {
-  log('main', 'Loading configuration')
-  const config = await getConfig()
+/**
+ * Creates recurring tasks for the current day in Trello.
+ */
+export const create = async (config: Config): Promise<void> => {
+  if (!config.todos.recurring) {
+    log('create', 'No recurring todos are configured')
+    return
+  }
+  log('create', 'Found', config.todos.recurring.length, 'recurring todos')
+  for (const recurringTodo of config.todos.recurring) {
+    if (shouldOccur(recurringTodo)) {
+      log('create', `Creating Trello card for "${recurringTodo.name}"`)
+      await addCard({
+        name: recurringTodo.name,
+        desc: recurringTodo.description,
+        idList: recurringTodo.list
+      })
+    }
+  }
+}
 
+/**
+ * Sends an email of the to-do list.
+ */
+export const email = async (config: Config): Promise<void> => {
   // Retrieve the user info from Trello.
   const { id: userId } = await getCurrentUser()
-  log('main', 'Current user is', userId)
+  log('email', 'Current user is', userId)
 
   // Retrieve all the cards from Trello.
   const cards = await getListCards(config.trello.lists, {
@@ -89,7 +136,7 @@ export const main = async (): Promise<void> => {
     unimportantLabel: config.trello.labels.unimportant,
     urgentTime: config.todos.urgentTime
   }))
-  log('main', tasks.length, 'cards retrieved')
+  log('email', tasks.length, 'cards retrieved')
 
   // Sort the tasks into buckets.
   const buckets: {[key: number]: Task[]} = {
@@ -115,10 +162,10 @@ export const main = async (): Promise<void> => {
   buckets[FLAG_URGENT].sort(compareTasks)
   buckets[FLAG_IMPORTANT].sort(compareTasks)
   buckets[0].sort(compareTasks)
-  log('main', 'Urgent:', buckets[FLAG_URGENT].length, 'tasks')
-  log('main', 'Important:', buckets[FLAG_IMPORTANT].length, 'tasks')
-  log('main', 'Neither:', buckets[0].length, 'tasks')
-  log('main', 'Overdue:', buckets[FLAG_OVERDUE].length, 'tasks')
+  log('email', 'Urgent:', buckets[FLAG_URGENT].length, 'tasks')
+  log('email', 'Important:', buckets[FLAG_IMPORTANT].length, 'tasks')
+  log('email', 'Neither:', buckets[0].length, 'tasks')
+  log('email', 'Overdue:', buckets[FLAG_OVERDUE].length, 'tasks')
 
   // Send an email with the selected tasks.
   const pickOpts: PickTasksOptions = {
@@ -133,7 +180,33 @@ export const main = async (): Promise<void> => {
     important,
     overdue
   )
-  log('main', `Email ${result.messageId} sent`)
+  log('email', `Email ${result.messageId} sent`)
+}
+
+export const usage = (): void => {
+  process.stdout.write(`Usage: ${basename(process.argv[1])} {email | create}
+`)
+}
+
+export const main = async (): Promise<void> => {
+  log('main', 'Loading configuration')
+  const config = await getConfig()
+
+  const argv = process.argv
+  if (
+    argv.length < 3 ||
+    (argv[2] !== 'email' && argv[2] !== 'create')
+  ) {
+    usage()
+    return
+  }
+
+  if (argv[2] === 'create') {
+    await create(config)
+  }
+  if (argv[2] === 'email') {
+    await email(config)
+  }
 }
 
 if (require.main === module) {

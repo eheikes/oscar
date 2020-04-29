@@ -1,5 +1,5 @@
 import { Config, getConfig } from '../../src/config'
-import { getCurrentUser, getListCards } from '../../src/trello'
+import { addCard, getCurrentUser, getListCards, NewTrelloCard } from '../../src/trello'
 import { user as exampleUser } from '../fixtures/user'
 
 jest.mock('../../src/config')
@@ -10,6 +10,20 @@ describe('trello', () => {
 
   beforeEach(async () => {
     config = await getConfig()
+  })
+
+  describe('addCard()', () => {
+    it('should POST the card data to Trello', async () => {
+      const card: NewTrelloCard = {
+        name: 'New Card',
+        desc: 'Description',
+        idList: 'list-id'
+      }
+      const newCard = await addCard(card)
+      expect(newCard.name).toBe(card.name)
+      expect(newCard.desc).toBe(card.desc)
+      expect(newCard.idList).toBe(card.idList)
+    })
   })
 
   describe('getCurrentUser()', () => {

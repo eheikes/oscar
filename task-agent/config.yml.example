@@ -29,3 +29,16 @@ todos:
   urgentTime: 604800
   urgentAmount: 3
   importantAmount: 2
+  recurring:
+    - type: dow
+      value: 1
+      name: Do this on Mondays
+      list: 5b09f72444ad9962f28f6d7f
+    - type: date
+      value: odd
+      name: Do this on odd days
+      list: 5b09f72444ad9962f28f6d7f
+    - type: date
+      value: even
+      name: Do this on even days
+      list: 5b09f72444ad9962f28f6d7f

@@ -1,8 +1,8 @@
 import { cards } from '../test/fixtures/card'
 import { user } from '../test/fixtures/user'
 
-const got: any = (url: string) => {
-  if (url.includes('/cards')) {
+const got: any = (url: string, opts?: any) => {
+  if (url.includes('/cards') && !opts) {
     let i = 0
     return {
       json: async (): Promise<any> => {
@@ -11,6 +11,14 @@ const got: any = (url: string) => {
           url
         }])
       }
+    }
+  } else if (url.includes('/cards') && opts && opts.json) {
+    const card = cards[0]
+    card.name = opts.json.name
+    card.desc = opts.json.desc || ''
+    card.idList = opts.json.idList
+    return {
+      json: async () => Promise.resolve(card)
     }
   } else if (url.includes('/members/me')) {
     return {
@@ -21,4 +29,5 @@ const got: any = (url: string) => {
   }
 }
 
+got.post = got
 export default got

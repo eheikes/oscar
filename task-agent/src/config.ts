@@ -29,9 +29,21 @@ export interface EmailTemplateConfig {
   plain: string
 }
 
+export interface RecurringConfig {
+  description?: string
+  every?: number // TODO
+  labels?: string[] // TODO
+  list: string
+  name: string
+  // size?: number
+  type: 'date' | 'dow' | 'month' | 'year'
+  value: number | string
+}
+
 export interface TodoConfig {
   defaultDue: number
   importantAmount: number
+  recurring?: RecurringConfig[]
   urgentAmount: number
   urgentTime: number
 }

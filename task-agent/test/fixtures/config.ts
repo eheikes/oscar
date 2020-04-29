@@ -39,6 +39,22 @@ export const yamlConfig: YamlConfig = {
     defaultDue: 1209600,
     urgentTime: 604800,
     urgentAmount: 3,
-    importantAmount: 2
+    importantAmount: 2,
+    recurring: [{
+      type: 'dow',
+      value: '*',
+      name: 'Recurring 1',
+      list: '5b09f72444ad9962f28f6d7f'
+    }, {
+      type: 'date',
+      value: '*',
+      name: 'Recurring 2',
+      list: '5b09f72444ad9962f28f6d7f'
+    }, {
+      type: 'date',
+      value: '*',
+      name: 'Recurring 3',
+      list: '5b09f72444ad9962f28f6d7f'
+    }]
   }
 }

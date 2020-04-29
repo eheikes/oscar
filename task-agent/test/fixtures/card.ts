@@ -3,6 +3,7 @@ import { TrelloCard } from '../../src/trello'
 export const cards: TrelloCard[] = [{
   id: 'foo',
   dateLastActivity: '2020-01-01',
+  desc: '',
   due: '2020-01-02',
   idBoard: 'board1',
   idLabels: [],
@@ -23,6 +24,7 @@ export const cards: TrelloCard[] = [{
 }, {
   id: 'bar',
   dateLastActivity: '2020-01-01',
+  desc: '',
   due: '2020-01-02',
   idBoard: 'board2',
   idLabels: [],
@@ -38,6 +40,7 @@ export const cards: TrelloCard[] = [{
 }, {
   id: 'baz',
   dateLastActivity: '2020-01-01',
+  desc: '',
   due: '2020-01-03',
   idBoard: 'board3',
   idLabels: [],
@@ -53,6 +56,7 @@ export const cards: TrelloCard[] = [{
 }, {
   id: 'assigned',
   dateLastActivity: '2020-01-01',
+  desc: '',
   due: '2020-01-03',
   idBoard: 'board3',
   idLabels: [],
