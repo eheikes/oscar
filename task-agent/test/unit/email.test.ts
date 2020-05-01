@@ -15,6 +15,7 @@ describe('sendEmail()', () => {
     new Task({
       id: 'ui1',
       dateLastActivity: (new Date()).toISOString(),
+      desc: 'Urgent Important 1',
       due: (new Date()).toISOString(),
       idBoard: 'board1',
       idLabels: ['label1'],
@@ -36,6 +37,7 @@ describe('sendEmail()', () => {
     new Task({
       id: 'u1',
       dateLastActivity: (new Date()).toISOString(),
+      desc: 'Urgent 1',
       due: (new Date()).toISOString(),
       idBoard: 'board1',
       idLabels: ['label1'],
@@ -59,6 +61,7 @@ describe('sendEmail()', () => {
     new Task({
       id: 'i1',
       dateLastActivity: (new Date()).toISOString(),
+      desc: 'Important 1',
       due: (new Date()).toISOString(),
       idBoard: 'board1',
       idLabels: ['label1'],
@@ -82,6 +85,7 @@ describe('sendEmail()', () => {
     new Task({
       id: 'odi1',
       dateLastActivity: (new Date()).toISOString(),
+      desc: 'Overdue Important 1',
       due: (new Date(2020, 0, 2, 12, 0, 0)).toISOString(),
       idBoard: 'board1',
       idLabels: ['label1'],
@@ -103,6 +107,7 @@ describe('sendEmail()', () => {
     new Task({
       id: 'od1',
       dateLastActivity: (new Date()).toISOString(),
+      desc: 'Overdue 1',
       due: (new Date(2020, 0, 2, 12, 0, 0)).toISOString(),
       idBoard: 'board1',
       idLabels: ['label1'],

@@ -5,6 +5,7 @@ describe('Task', () => {
   const card: TrelloCard = {
     id: '4d5ea62fd76aa1136000000c', // Fri, 18 Feb 2011 17:02:39 GMT
     dateLastActivity: '2017-02-01T15:00:00.000Z',
+    desc: 'Test Card',
     due: '2017-12-12T17:00:00.000Z',
     idBoard: '560bf4298b3dda300c18d09c',
     idLabels: ['560bf42919ad3a5dc29f33c50'],
