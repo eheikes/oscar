@@ -2,7 +2,7 @@ import { basename } from 'path'
 import { Config, getConfig, RecurringConfig } from './config'
 import { sendEmail } from './email'
 import { log } from './log'
-import { compareTasks, Task } from './task'
+import { Task } from './task'
 import { addCard, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
@@ -162,10 +162,10 @@ export const email = async (config: Config): Promise<void> => {
       buckets[FLAG_OVERDUE].push(task)
     }
   })
-  buckets[FLAG_OVERDUE].sort(compareTasks)
-  buckets[FLAG_URGENT].sort(compareTasks)
-  buckets[FLAG_IMPORTANT].sort(compareTasks)
-  buckets[0].sort(compareTasks)
+  buckets[FLAG_OVERDUE].sort(Task.compare)
+  buckets[FLAG_URGENT].sort(Task.compare)
+  buckets[FLAG_IMPORTANT].sort(Task.compare)
+  buckets[0].sort(Task.compare)
   log('email', 'Urgent:', buckets[FLAG_URGENT].length, 'tasks')
   log('email', 'Important:', buckets[FLAG_IMPORTANT].length, 'tasks')
   log('email', 'Neither:', buckets[0].length, 'tasks')

@@ -1,7 +1,9 @@
 import { TrelloCard } from './trello'
 
-const ONE_DAY = 1000 * 60 * 60 * 24
-const ONE_YEAR = ONE_DAY * 365
+enum Importance {
+  Important = 'important',
+  NotImportant = 'not important'
+}
 
 interface TaskOptions {
   defaultTimeDue: number // in seconds
@@ -12,9 +14,19 @@ interface TaskOptions {
 
 const defaultOpts: TaskOptions = {
   defaultTimeDue: 1209600,
-  importantLabel: 'important',
-  unimportantLabel: 'not important',
+  importantLabel: Importance.Important,
+  unimportantLabel: Importance.NotImportant,
   urgentTime: 604800
+}
+
+const ageOf = (task: Task): number => {
+  return Date.now() - task.dateCreated.valueOf()
+}
+
+const importanceOf = (task: Task): number => {
+  if (task.labels.includes(Importance.Important)) { return 10 }
+  if (task.labels.includes(Importance.NotImportant)) { return 2 }
+  return 5
 }
 
 export class Task {
@@ -26,7 +38,6 @@ export class Task {
   name: string
   position: number
   url: string
-  rank: number
   urgent: boolean
   important: boolean
   overdue: boolean
@@ -48,77 +59,25 @@ export class Task {
     this.important = this.labels.includes(opts.importantLabel)
     this.urgent = Boolean(this.dateDue.valueOf() < Date.now() + opts.urgentTime * 1000)
     this.overdue = this.dateDue.valueOf() < Date.now()
-    this.rank = this.calculateRank()
   }
 
-  // Factor values are 0-1.
-  /* istanbul ignore next */
-  calculateRank (): number {
-    // const maxWeight = 10
-    const factors: {[key: string]: {weight: number, func: Function}} = {
-      age: {
-        weight: 2,
-        func: (): number => {
-          return (Date.now() - this.dateCreated.valueOf()) / (this.dateDue.valueOf() - this.dateCreated.valueOf())
-        }
-      },
-      // dateLastActivity: { // TODO
-      //   weight: 5
-      // },
-      dateDue: {
-        weight: 10,
-        func: (): number => {
-          // TODO make this non-linear, i.e. more weight as the date nears or goes past
-          if (this.dateDue.valueOf() < Date.now()) { // overdue
-            return 1
-          } else {
-            // TODO what if due date comes before creation date?
-            // TODO what if due date comes before Date.now()?
-            // Assume a maximum lifespan of 1 year.
-            const maxLife = ONE_YEAR
-            const timeUntilMax = maxLife - (this.dateDue.valueOf() - Date.now())
-            return timeUntilMax / maxLife
-            // const accelerant = 1000
-            // score += (accelerant ** distance - 1) / (accelerant - 1)
-            // score += distance ** 2 * factors.dateDue.weight
-          }
-        }
-      }
-      // importance: {
-      //   weight: 5,
-      //   func: (): number => {
-      //     if (this.labels.includes('important')) {
-      //       return 1
-      //     } else if (this.labels.includes('not important')) {
-      //       return 0.2
-      //     } else {
-      //       return 0.5
-      //     }
-      //   }
-      // },
-      // size: {// TODO
-      //   weight: 5
-      // }
+  static compare (a: Task, b: Task): number {
+    // A function call is used to make testing easier (lazy evaluation).
+    const comparators: Array<() => [number, number]> = [
+      // In order from most significant factor to least.
+      // If a smaller number should rank higher, put "a" first.
+      // If a larger number should rank higher, put "b" first.
+      () => [a.dateDue.valueOf(), b.dateDue.valueOf()],
+      () => [importanceOf(b), importanceOf(a)],
+      () => [b.size ?? 0, a.size ?? 0],
+      () => [ageOf(b), ageOf(a)],
+      () => [a.dateLastActivity.valueOf(), b.dateLastActivity.valueOf()],
+      () => [a.position, b.position]
+    ]
+    for (const comparator of comparators) {
+      const [x, y] = comparator()
+      if (x !== y) { return x - y }
     }
-
-    // The rank is the average of the scores.
-    const total = Object.keys(factors).reduce((soFar: number, key: string): number => {
-      const factor = factors[key]
-      const val = factor.func()
-      return soFar + val * factor.weight
-    }, 0)
-    return total// / Object.keys(factors).length / maxWeight
-  }
-}
-
-export const compareTasks = (a: Task, b: Task): number => {
-  if (a.dateDue === b.dateDue) {
-    // TODO tiebreakers
-    // age
-    // dateLastActivity
-    // dateCreated
-    // position
     return 0
   }
-  return a.dateDue.valueOf() - b.dateDue.valueOf()
 }

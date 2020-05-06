@@ -1,4 +1,4 @@
-import { compareTasks, Task } from '../../src/task'
+import { Task } from '../../src/task'
 import { TrelloCard } from '../../src/trello'
 
 describe('Task', () => {
@@ -86,16 +86,12 @@ describe('Task', () => {
       task = new Task(testCard)
       expect(task.overdue).toBe(true)
     })
-
-    it('should calculate a rank', () => {
-      expect(task.rank).toEqual(expect.any(Number))
-    })
   })
 })
 
-describe('compareTasks()', () => {
+describe('Task.compare()', () => {
   it('should return <0 if task A has an earlier due date', () => {
-    expect(compareTasks(
+    expect(Task.compare(
       /* eslint-disable @typescript-eslint/consistent-type-assertions */
       { dateDue: new Date(2009, 1, 1) } as Task,
       { dateDue: new Date(2010, 1, 1) } as Task
@@ -104,7 +100,7 @@ describe('compareTasks()', () => {
   })
 
   it('should return >0 if task A has a later due date', () => {
-    expect(compareTasks(
+    expect(Task.compare(
       /* eslint-disable @typescript-eslint/consistent-type-assertions */
       { dateDue: new Date(2011, 1, 1) } as Task,
       { dateDue: new Date(2010, 1, 1) } as Task
@@ -112,12 +108,12 @@ describe('compareTasks()', () => {
     )).toBeGreaterThan(0)
   })
 
-  it('should return 0 if due dates are the same', () => {
-    expect(compareTasks(
+  it('should check importance if due dates are the same', () => {
+    expect(Task.compare(
       /* eslint-disable @typescript-eslint/consistent-type-assertions */
-      { dateDue: new Date(2010, 1, 1) } as Task,
-      { dateDue: new Date(2010, 1, 1) } as Task
+      { dateDue: new Date(2010, 1, 1), labels: ['important'] } as Task,
+      { dateDue: new Date(2010, 1, 1), labels: ['not important'] } as Task
       /* eslint-enable @typescript-eslint/consistent-type-assertions */
-    )).toBe(0)
+    )).toBeLessThan(0)
   })
 })
