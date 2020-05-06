@@ -78,7 +78,11 @@ const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOption
     if (pluginData) {
       const data = JSON.parse(pluginData.value) as CardSizePluginValue
       if (typeof data.size !== 'undefined') {
-        const cardAmountLeft = data.size - data.spent
+        let cardAmountLeft = data.size - data.spent
+        if (cardAmountLeft < 0) {
+          log('pickTasks', `Warning: The size of task "${tasks[i].name}" is less than the amount of time spent on it`)
+          cardAmountLeft = 0
+        }
         const amountToDo = Math.min(cardAmountLeft, amountRemaining) // either finish the card, or use up remaining time
         tasks[i].size = amountToDo
         tasks[i].sizeReadable = `${amountToDo}${opts.sizeUnit ?? 'hr'}`
