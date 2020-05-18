@@ -48,6 +48,7 @@ export interface TrelloCard {
 
 export interface NewTrelloCard {
   desc?: string
+  due: Date
   idList: string
   name: string
 }
@@ -87,20 +88,12 @@ export const addCard = async (card: NewTrelloCard): Promise<TrelloCard> => {
   const url = `${baseUrl}/cards?${auth}`
   try {
     log('addCard', `Creating card ${sanitizeUrl(url)}`)
-    const now = new Date()
     const newCard = await got.post(url, {
       json: {
         name: card.name,
         desc: card.desc,
         pos: 'bottom',
-        due: (new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-          23,
-          0,
-          0
-        )).toISOString(),
+        due: card.due.toISOString(),
         idList: card.idList
       }
     }).json<TrelloCard>()
@@ -109,6 +102,19 @@ export const addCard = async (card: NewTrelloCard): Promise<TrelloCard> => {
     return newCard
   } catch (err) {
     log('addCard', 'ERROR!', err)
+    throw err
+  }
+}
+
+export const archiveAllInList = async (listId: string): Promise<void> => {
+  const auth = await getAuthParams()
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/lists/${listId}/archiveAllCards?${auth}`
+  try {
+    log('archiveAllInList', `Archiving cards ${sanitizeUrl(url)}`)
+    await got.post(url)
+  } catch (err) {
+    log('archiveAllInList', 'ERROR!', err)
     throw err
   }
 }

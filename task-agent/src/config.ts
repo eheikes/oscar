@@ -36,6 +36,7 @@ export interface RecurringConfig {
   list: string
   name: string
   // size?: number
+  due?: string // HH:MM
   type: 'date' | 'dow' | 'month' | 'year'
   value: number | string
 }
@@ -44,6 +45,7 @@ export interface TodoConfig {
   defaultDue: number
   importantAmount: number
   recurring?: RecurringConfig[]
+  recurringArchive?: string[]
   urgentAmount: number
   urgentTime: number
 }

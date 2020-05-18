@@ -29,6 +29,8 @@ todos:
   urgentTime: 604800
   urgentAmount: 3
   importantAmount: 2
+  recurringArchive: # Careful! This will archive all cards in the specified lists
+    - 5b09f72444ad9962f28f6d7f
   recurring:
     - type: dow
       value: 1
@@ -41,4 +43,9 @@ todos:
     - type: date
       value: even
       name: Do this on even days
+      list: 5b09f72444ad9962f28f6d7f
+    - type: dow
+      value: '*'
+      due: '11:00' # due at 11am; note that quotes are needed
+      name: Do this every day
       list: 5b09f72444ad9962f28f6d7f

@@ -17,7 +17,8 @@ describe('trello', () => {
       const card: NewTrelloCard = {
         name: 'New Card',
         desc: 'Description',
-        idList: 'list-id'
+        idList: 'list-id',
+        due: new Date()
       }
       const newCard = await addCard(card)
       expect(newCard.name).toBe(card.name)

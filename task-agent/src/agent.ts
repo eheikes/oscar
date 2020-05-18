@@ -3,7 +3,7 @@ import { Config, getConfig, RecurringConfig } from './config'
 import { sendEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
-import { addCard, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
+import { addCard, archiveAllInList, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
 export const FLAG_IMPORTANT = 0x010
@@ -104,18 +104,37 @@ const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOption
  * Creates recurring tasks for the current day in Trello.
  */
 export const create = async (config: Config): Promise<void> => {
+  if (config.todos.recurringArchive) {
+    for (const listId of config.todos.recurringArchive) {
+      log('create', `Archiving all cards in list ${listId}`)
+      await archiveAllInList(listId)
+    }
+  }
   if (!config.todos.recurring) {
     log('create', 'No recurring todos are configured')
     return
   }
   log('create', 'Found', config.todos.recurring.length, 'recurring todos')
+  const now = new Date()
   for (const recurringTodo of config.todos.recurring) {
     if (shouldOccur(recurringTodo)) {
       log('create', `Creating Trello card for "${recurringTodo.name}"`)
+      const timeParts = (recurringTodo.due ?? '23:59').split(':')
+      const hour = parseInt(timeParts[0], 10)
+      const minute = parseInt(timeParts[1], 10)
+      const dueDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hour,
+        minute,
+        0
+      )
       await addCard({
         name: recurringTodo.name,
         desc: recurringTodo.description,
-        idList: recurringTodo.list
+        idList: recurringTodo.list,
+        due: dueDate
       })
     }
   }
