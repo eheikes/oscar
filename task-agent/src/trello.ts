@@ -46,6 +46,14 @@ export interface TrelloCard {
   url: string
 }
 
+export interface TrelloList {
+  closed: boolean
+  id: string
+  idBoard: string
+  name: string
+  pos: number
+}
+
 export interface NewTrelloCard {
   desc?: string
   due: Date
@@ -72,6 +80,8 @@ export interface CardSizePluginValue {
 export interface TrelloMember {
   id: string
 }
+
+export type CardFilter = (c: TrelloCard) => boolean
 
 const getAuthParams = async (): Promise<string> => {
   const { trello: { apiKey, apiToken } } = await getConfig()
@@ -106,6 +116,22 @@ export const addCard = async (card: NewTrelloCard): Promise<TrelloCard> => {
   }
 }
 
+export const updateCard = async (cardId: string, changes: Partial<TrelloCard>): Promise<TrelloCard> => {
+  const auth = await getAuthParams()
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/cards/${cardId}?${auth}`
+  try {
+    log('updateCard', `Updating card ${sanitizeUrl(url)}`)
+    const updatedCard = await got.put(url, {
+      json: changes
+    }).json<TrelloCard>()
+    return updatedCard
+  } catch (err) {
+    log('updateCard', 'ERROR!', err)
+    throw err
+  }
+}
+
 export const archiveAllInList = async (listId: string): Promise<void> => {
   const auth = await getAuthParams()
   const { trello: { url: baseUrl } } = await getConfig()
@@ -117,6 +143,15 @@ export const archiveAllInList = async (listId: string): Promise<void> => {
     log('archiveAllInList', 'ERROR!', err)
     throw err
   }
+}
+
+/**
+ * See https://support.atlassian.com/trello/docs/getting-the-time-a-card-or-board-was-created/
+ */
+export const getCardCreationTime = (card: TrelloCard): Date => {
+  const timestampHex = card.id.substring(0, 8)
+  const timestamp = parseInt(timestampHex, 16) * 1000
+  return new Date(timestamp)
 }
 
 export const getCardPluginData = async (cardId: string): Promise<TrelloPluginData[]> => {
@@ -139,6 +174,16 @@ export const getCurrentUser = async (): Promise<TrelloMember> => {
   // "me" user is not well-documented: https://stackoverflow.com/a/54444336
   const url = `${baseUrl}/members/me?${auth}&fields=id`
   return got(url).json<TrelloMember>()
+}
+
+export const getList = async (id: string): Promise<TrelloList> => {
+  log('getList', 'Retrieving list', id)
+  const auth = await getAuthParams()
+  log('getList', 'auth is', auth)
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/lists/${id}?${auth}`
+  log('getList', `Calling ${sanitizeUrl(url)}`)
+  return await got(url).json<TrelloList>()
 }
 
 export const getListCards = async (listIds: string | string[], opts: TrelloOptions = {}): Promise<TrelloCard[]> => {
@@ -171,4 +216,35 @@ export const getListCards = async (listIds: string | string[], opts: TrelloOptio
     throw err
   }
   return cards
+}
+
+/**
+ * Returns a filtering function to only include cards that:
+ *   1) have no one assigned to them, or
+ *   2) have the specified user assigned to them
+ */
+export const isUserCard = (userId: string): CardFilter => {
+  return (card: TrelloCard) =>
+    card.idMembers.length === 0 ||
+    card.idMembers.includes(userId)
+}
+
+export const moveCardToList = async (cardId: string, boardId: string, listId: string): Promise<void> => {
+  log('moveCardToList', `Moving card ${cardId} to board ${boardId}, list ${listId}`)
+  const auth = await getAuthParams()
+  log('moveCardToList', 'auth is', auth)
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/cards/${cardId}?${auth}`
+  try {
+    log('moveCardToList', `Updating card ${sanitizeUrl(url)}`)
+    await got.put(url, {
+      json: {
+        idBoard: boardId,
+        idList: listId
+      }
+    })
+  } catch (err) {
+    log('moveCardToList', 'ERROR!', err)
+    throw err
+  }
 }

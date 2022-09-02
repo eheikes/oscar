@@ -1,8 +1,8 @@
 import { TrelloCard } from './trello'
 
-enum Importance {
+export enum Importance {
   Important = 'important',
-  NotImportant = 'not important'
+  NotImportant = 'unimportant'
 }
 
 interface TaskOptions {

@@ -24,6 +24,43 @@ email:
     to: a@example.com, b@example.com
     subject: Your Daily Tasks
 
+chooser:
+  sources:
+    - 5fcdd1ab903bec878aba847e
+    - 5f2ece418e385049108e600d
+  destination:
+    board: 4edbfd087e75c00000247583
+    list: 62f336bff84c3700b5c6ceef
+  budgets:
+    mon:
+      important: 2
+      unimportant: 5
+    tue:
+      important: 2
+      unimportant: 5
+    wed:
+      important: 2
+      unimportant: 5
+    thu:
+      important: 2
+      unimportant: 5
+    fri:
+      important: 2
+      unimportant: 5
+    sat:
+      important: 2
+      unimportant: 5
+    sun:
+      important: 2
+      unimportant: 5
+  labels:
+    important: Important
+    unimportant: Not Important
+  defaults:
+    label: unimportant # or "ignore"
+    size: ignore # or number
+    deadline: 1209600 # 14 days # or "ignore"
+
 todos:
   defaultDue: 1209600
   urgentTime: 604800

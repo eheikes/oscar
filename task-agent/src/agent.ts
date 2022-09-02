@@ -1,5 +1,6 @@
 import { basename } from 'path'
 import { Config, getConfig, RecurringConfig } from './config'
+import { choose } from './chooser'
 import { sendEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
@@ -207,7 +208,7 @@ export const email = async (config: Config): Promise<void> => {
 }
 
 export const usage = (): void => {
-  process.stdout.write(`Usage: ${basename(process.argv[1])} {email | create}
+  process.stdout.write(`Usage: ${basename(process.argv[1])} {choose | create | email | sort}
 `)
 }
 
@@ -218,12 +219,15 @@ export const main = async (): Promise<void> => {
   const argv = process.argv
   if (
     argv.length < 3 ||
-    (argv[2] !== 'email' && argv[2] !== 'create')
+    (argv[2] !== 'choose' && argv[2] !== 'create' && argv[2] !== 'email' && argv[2] !== 'sort')
   ) {
     usage()
     return
   }
 
+  if (argv[2] === 'choose') {
+    await choose(config)
+  }
   if (argv[2] === 'create') {
     await create(config)
   }

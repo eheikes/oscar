@@ -3,6 +3,46 @@ import { readFile } from 'fs'
 import { safeLoad } from 'js-yaml'
 import { join } from 'path'
 import { promisify } from 'util'
+import { Importance } from './task'
+
+export interface ChooserBudgetConfig {
+  important?: number
+  unimportant?: number
+}
+
+export interface ChooserBudgetsConfig {
+  mon?: ChooserBudgetConfig
+  tue?: ChooserBudgetConfig
+  wed?: ChooserBudgetConfig
+  thu?: ChooserBudgetConfig
+  fri?: ChooserBudgetConfig
+  sat?: ChooserBudgetConfig
+  sun?: ChooserBudgetConfig
+}
+
+export interface ChooserDefaultsConfig {
+  deadline?: number | 'ignore'
+  label?: Importance | 'ignore'
+  size?: number | 'ignore'
+}
+
+export interface ChooserDestinationConfig {
+  board?: string
+  list?: string
+}
+
+export interface ChooserLabelsConfig {
+  important?: string
+  unimportant?: string
+}
+
+export interface ChooserConfig {
+  budgets?: ChooserBudgetsConfig
+  defaults?: ChooserDefaultsConfig
+  destination?: ChooserDestinationConfig
+  labels?: ChooserLabelsConfig
+  sources?: string[]
+}
 
 export interface EmailConfig {
   message: EmailMessageConfig
@@ -67,6 +107,7 @@ export interface TrelloLabelsConfig {
 }
 
 export interface Config {
+  chooser?: ChooserConfig
   email: EmailConfig
   todos: TodoConfig
   trello: TrelloConfig
