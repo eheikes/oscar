@@ -179,7 +179,6 @@ export const getCurrentUser = async (): Promise<TrelloMember> => {
 export const getList = async (id: string): Promise<TrelloList> => {
   log('getList', 'Retrieving list', id)
   const auth = await getAuthParams()
-  log('getList', 'auth is', auth)
   const { trello: { url: baseUrl } } = await getConfig()
   const url = `${baseUrl}/lists/${id}?${auth}`
   log('getList', `Calling ${sanitizeUrl(url)}`)
@@ -198,7 +197,6 @@ export const getListCards = async (listIds: string | string[], opts: TrelloOptio
 
   const cards: TrelloCard[] = []
   const auth = await getAuthParams()
-  log('getListCards', 'auth is', auth)
   try {
     for (const id of listIds) {
       const { trello: { url: baseUrl } } = await getConfig()
@@ -232,7 +230,6 @@ export const isUserCard = (userId: string): CardFilter => {
 export const moveCardToList = async (cardId: string, boardId: string, listId: string): Promise<void> => {
   log('moveCardToList', `Moving card ${cardId} to board ${boardId}, list ${listId}`)
   const auth = await getAuthParams()
-  log('moveCardToList', 'auth is', auth)
   const { trello: { url: baseUrl } } = await getConfig()
   const url = `${baseUrl}/cards/${cardId}?${auth}`
   try {
