@@ -26,6 +26,7 @@ export interface ChooserOptions {
   dryRun?: boolean
 }
 
+const DAY_IN_MS = 60 * 60 * 24 * 1000 // num of millisecs in 24 hrs
 const cardSizeRegExp = /\(([0-9.]+)\)(\s*)$/
 
 /**
@@ -163,12 +164,21 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
     const creationTime = getCardCreationTime(card)
     const cardSize = getCardSize(card) || defaultSize
     const oversized = cardSize > maxSize
+    const sizeForNow = oversized ? maxSize : cardSize // amount to work on in current slice
+    const effectiveCardSize = Math.max(cardSize, maxSize) // round up small sizes to a time slice size
+    const effectiveSizeForNow = Math.max(sizeForNow, maxSize) // round up small sizes to a time slice size
+    const effectiveDayOffset = (effectiveCardSize / effectiveSizeForNow - 1)
+    const deadline = new Date(card.due || (creationTime.valueOf() + defaultDeadline))
+    const shiftedDeadline = new Date(deadline.valueOf() - effectiveDayOffset * DAY_IN_MS) // shift large tasks to be earlier
+    if (shiftedDeadline.valueOf() !== deadline.valueOf()) {
+      log('choose', `Card "${card.name} is large, making the effective deadline ${shiftedDeadline}`)
+    }
     return {
       id: card.id,
-      due: new Date(card.due || (creationTime.valueOf() + defaultDeadline)),
+      due: shiftedDeadline,
       labels: card.labels,
       name: card.name,
-      size: oversized ? maxSize : cardSize,
+      size: sizeForNow,
       totalSize: cardSize
     }
   })
