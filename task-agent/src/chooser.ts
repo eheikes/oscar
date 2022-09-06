@@ -174,8 +174,10 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
   })
   cardPool.sort(sortByDueDate) // models the priority
   log('choose', cardPool.length, 'card candidates found')
+  log('choose', 'All tasks:\n' + getFormattedTasks(cardPool))
 
   // Choose tasks for the upcoming week using a bin-packing algorithm.
+  log('choose', 'Important capacity is', importantCapacity)
   const importantTasks = firstFit(
     cardPool.filter(card =>
       hasLabelName(card, importantLabelName)
@@ -184,6 +186,8 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
     (card) => card.size,
     importantCapacity
   ).bins
+  log('choose', 'Important tasks: \n' + getFormattedTasks(importantTasks))
+  log('choose', 'Unimportant capacity is', unimportantCapacity)
   const unimportantTasks = firstFit(
     cardPool.filter(card =>
       hasLabelName(card, unimportantLabelName)
@@ -192,6 +196,7 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
     (card) => card.size,
     unimportantCapacity
   ).bins
+  log('choose', 'Unimportant tasks: \n' + getFormattedTasks(unimportantTasks))
 
   const todaysImportantTasks = importantTasks[0]
   const todaysUnimportantTasks = unimportantTasks[0]
