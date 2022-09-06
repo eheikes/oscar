@@ -8,6 +8,7 @@ import {
   getListCards,
   isUserCard,
   moveCardToList,
+  renameCard,
   TrelloCard
 } from './trello'
 
@@ -15,12 +16,17 @@ export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
 export interface CardCandidate extends Pick<TrelloCard, 'id' | 'labels' | 'name'> {
   due: Date
+  /** Size for this slice of time */
   size: number
+  /** Overall size of the task */
+  totalSize: number
 }
 
 export interface ChooserOptions {
   dryRun?: boolean
 }
+
+const cardSizeRegExp = /\(([0-9.]+)\)(\s*)$/
 
 /**
  * for debugging
@@ -64,7 +70,7 @@ const getCapacity = (config: Config, type: Importance): number => {
 }
 
 const getCardSize = (card: TrelloCard): number | null => {
-  const matches = card.name.match(/\(([0-9.]+)\)\s*$/)
+  const matches = card.name.match(cardSizeRegExp)
   return matches ? parseFloat(matches[1]) : null
 }
 
@@ -163,6 +169,7 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
       labels: card.labels,
       name: card.name,
       size: oversized ? maxSize : cardSize,
+      totalSize: cardSize
     }
   })
   cardPool.sort(sortByDueDate) // models the priority
@@ -198,6 +205,10 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
   }
   for (const card of [ ...todaysImportantTasks, ...todaysUnimportantTasks ]) {
     log('choose', `Selecting card "${card.name}"`)
+    if (card.size !== card.totalSize) {
+      const newName = card.name.replace(cardSizeRegExp, `($1, today do ${card.size})$2`)
+      await renameCard(card.id, newName)
+    }
     await moveCardToList(card.id, destinationBoardId, destinationListId)
   }
 }

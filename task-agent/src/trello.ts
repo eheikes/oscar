@@ -245,3 +245,21 @@ export const moveCardToList = async (cardId: string, boardId: string, listId: st
     throw err
   }
 }
+
+export const renameCard = async (cardId: string, newName: string): Promise<void> => {
+  log('renameCard', `Renaming card ${cardId} to "${newName}`)
+  const auth = await getAuthParams()
+  const { trello: { url: baseUrl } } = await getConfig()
+  const url = `${baseUrl}/cards/${cardId}?${auth}`
+  try {
+    log('renameCard', `Updating card ${sanitizeUrl(url)}`)
+    await got.put(url, {
+      json: {
+        name: newName
+      }
+    })
+  } catch (err) {
+    log('renameCard', 'ERROR!', err)
+    throw err
+  }
+}
