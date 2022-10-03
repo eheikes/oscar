@@ -208,8 +208,10 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
   ).bins
   log('choose', 'Unimportant tasks: \n' + getFormattedTasks(unimportantTasks))
 
-  const todaysImportantTasks = importantTasks[0]
-  const todaysUnimportantTasks = unimportantTasks[0]
+  const [ todaysImportantTasks, ...futureImportantTasks ] = importantTasks
+  const [ todaysUnimportantTasks, ...futureUnimportantTasks ] = unimportantTasks
+
+  // Move today's cards into the destination list.
   const destinationBoardId = config?.chooser?.destination?.board
   const destinationListId = config?.chooser?.destination?.list
   if (!destinationBoardId) {
@@ -225,5 +227,15 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
       await renameCard(card.id, newName)
     }
     await moveCardToList(card.id, destinationBoardId, destinationListId)
+  }
+
+  // Warn about cards that won't meet the deadline.
+  for (const cardBuckets of [ ...futureImportantTasks, ...futureUnimportantTasks ]) {
+    for (const card of cardBuckets) {
+      const dueTime = new Date(card.due)
+      if (dueTime.valueOf() < Date.now()) {
+        log('choose', `Warning: ${card.name} will not be completed by due date!`)
+      }
+    }
   }
 }
