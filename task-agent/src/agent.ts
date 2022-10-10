@@ -1,3 +1,4 @@
+import * as minimist from 'minimist'
 import { basename } from 'path'
 import { Config, getConfig, RecurringConfig } from './config'
 import { choose } from './chooser'
@@ -216,23 +217,16 @@ export const main = async (): Promise<void> => {
   log('main', 'Loading configuration')
   const config = await getConfig()
 
-  const argv = process.argv
-  if (
-    argv.length < 3 ||
-    (argv[2] !== 'choose' && argv[2] !== 'create' && argv[2] !== 'email' && argv[2] !== 'sort')
-  ) {
+  const argv = minimist(process.argv.slice(2))
+  if (argv._[0] === 'choose') {
+    await choose(config)
+  } else if (argv._[0] === 'create') {
+    await create(config)
+  } else if (argv._[0] === 'email') {
+    await email(config)
+  } else {
     usage()
     return
-  }
-
-  if (argv[2] === 'choose') {
-    await choose(config)
-  }
-  if (argv[2] === 'create') {
-    await create(config)
-  }
-  if (argv[2] === 'email') {
-    await email(config)
   }
 }
 
