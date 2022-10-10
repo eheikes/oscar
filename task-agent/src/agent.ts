@@ -1,7 +1,7 @@
 import * as minimist from 'minimist'
 import { basename } from 'path'
 import { Config, getConfig, RecurringConfig } from './config'
-import { choose } from './chooser'
+import { choose, ChooserOptions } from './chooser'
 import { sendEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
@@ -209,7 +209,7 @@ export const email = async (config: Config): Promise<void> => {
 }
 
 export const usage = (): void => {
-  process.stdout.write(`Usage: ${basename(process.argv[1])} {choose | create | email | sort}
+  process.stdout.write(`Usage: ${basename(process.argv[1])} {choose | create | email | sort} [--dry-run]
 `)
 }
 
@@ -217,9 +217,11 @@ export const main = async (): Promise<void> => {
   log('main', 'Loading configuration')
   const config = await getConfig()
 
-  const argv = minimist(process.argv.slice(2))
+  const argv = minimist<ChooserOptions>(process.argv.slice(2), {
+    boolean: ['dry-run']
+  })
   if (argv._[0] === 'choose') {
-    await choose(config)
+    await choose(config, argv)
   } else if (argv._[0] === 'create') {
     await create(config)
   } else if (argv._[0] === 'email') {

@@ -23,7 +23,7 @@ export interface CardCandidate extends Pick<TrelloCard, 'id' | 'labels' | 'name'
 }
 
 export interface ChooserOptions {
-  dryRun?: boolean
+  'dry-run'?: boolean
 }
 
 const DAY_IN_MS = 60 * 60 * 24 * 1000 // num of millisecs in 24 hrs
@@ -117,6 +117,11 @@ const sortByDueDate = (a: CardCandidate, b: CardCandidate): -1 | 0 | 1 => {
 }
 
 export const choose = async (config: Config, opts: ChooserOptions = {}) => {
+  const dryRun = opts['dry-run'] || false
+  if (dryRun) {
+    log('choose', '------------------ DRY RUN ------------------')
+  }
+
   const importantLabelName = getImportantLabel(config)
   const unimportantLabelName = getUnimportantLabel(config)
   const importantCapacity = getCapacity(config, Importance.Important)
@@ -224,9 +229,13 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
     log('choose', `Selecting card "${card.name}"`)
     if (card.size !== card.totalSize) {
       const newName = card.name.replace(cardSizeRegExp, `($1, today do ${card.size})$2`)
-      await renameCard(card.id, newName)
+      if (!dryRun) {
+        await renameCard(card.id, newName)
+      }
     }
-    await moveCardToList(card.id, destinationBoardId, destinationListId)
+    if (!dryRun) {
+      await moveCardToList(card.id, destinationBoardId, destinationListId)
+    }
   }
 
   // Warn about cards that won't meet the deadline.
