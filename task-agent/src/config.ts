@@ -47,13 +47,11 @@ export interface ChooserConfig {
 export interface EmailConfig {
   message: EmailMessageConfig
   server: EmailServerConfig
-  template: EmailTemplateConfig
 }
 
 export interface EmailMessageConfig {
   from: string
   to: string
-  subject: string
 }
 
 export interface EmailServerConfig {
@@ -64,10 +62,6 @@ export interface EmailServerConfig {
   password: string
 }
 
-export interface EmailTemplateConfig {
-  html: string
-  plain: string
-}
 
 export interface RecurringConfig {
   description?: string

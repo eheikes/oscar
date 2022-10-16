@@ -10,6 +10,11 @@ export interface EmailResult {
   messageId: string
 }
 
+interface TemplateFiles {
+  htmlTemplate: string
+  plainTextTemplate: string
+}
+
 const buildEmail = (templateFilename: string, data: any): string => {
   const template = readFileSync(templateFilename, 'utf8')
   const compiled = compile(template)
@@ -23,32 +28,26 @@ const toDateString = (x: any): string => {
   return x
 }
 
-export const sendEmail = async (
-  urgent: Task[],
-  important: Task[],
-  overdue: Task[]
-): Promise<EmailResult> => {
+export const sendEmail = async (subject: string, templates: TemplateFiles, data: any): Promise<EmailResult> => {
   const { email } = await getConfig()
+
   /* eslint-disable-next-line @typescript-eslint/no-var-requires */
   const pkg = require(join(__dirname, '..', 'package.json'))
 
   registerHelper('date', toDateString)
 
-  const htmlTemplateFilename = join(__dirname, '..', email.template.html)
-  const plainTextTemplateFilename = join(__dirname, '..', email.template.plain)
+  const htmlTemplateFilename = join(__dirname, '..', 'templates', templates.htmlTemplate)
+  const plainTextTemplateFilename = join(__dirname, '..', 'templates', templates.plainTextTemplate)
 
-  const data = {
-    urgent,
-    important,
-    overdue,
-    title: email.message.subject,
+  const combinedData = {
+    ...data,
     app: {
       name: pkg.displayName,
       url: pkg.homepage
     }
   }
-  const html = juice(buildEmail(htmlTemplateFilename, data))
-  const plainText = buildEmail(plainTextTemplateFilename, data)
+  const html = juice(buildEmail(templates.htmlTemplate, combinedData))
+  const plainText = buildEmail(templates.plainTextTemplate, combinedData)
 
   const transporter = createTransport({
     host: email.server.host,
@@ -63,7 +62,7 @@ export const sendEmail = async (
   const info = await transporter.sendMail({
     from: email.message.from,
     to: email.message.to,
-    subject: email.message.subject,
+    subject,
     text: plainText,
     html: html
   })
@@ -71,4 +70,24 @@ export const sendEmail = async (
   return {
     messageId: info.messageId
   }
+}
+
+export const sendTodoEmail = async (
+  urgent: Task[],
+  important: Task[],
+  overdue: Task[]
+): Promise<EmailResult> => {
+  return sendEmail(
+    'Your Daily Tasks',
+    {
+      htmlTemplate: 'todo-email.html',
+      plainTextTemplate: 'todo-email.txt'
+    },
+    {
+      urgent,
+      important,
+      overdue,
+      title: 'Your Daily Tasks'
+    }
+  )
 }

@@ -2,7 +2,7 @@ import * as minimist from 'minimist'
 import { basename } from 'path'
 import { Config, getConfig, RecurringConfig } from './config'
 import { choose, ChooserOptions } from './chooser'
-import { sendEmail } from './email'
+import { sendTodoEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
 import { addCard, archiveAllInList, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
@@ -200,7 +200,7 @@ export const email = async (config: Config): Promise<void> => {
   const urgent: Task[] = await pickTasks(buckets[FLAG_URGENT], config.todos.urgentAmount || 4, pickOpts)
   const important: Task[] = await pickTasks(buckets[FLAG_IMPORTANT], config.todos.importantAmount || 4, pickOpts)
   const overdue: Task[] = buckets[FLAG_OVERDUE].filter(isNotIn(urgent, important))
-  const result = await sendEmail(
+  const result = await sendTodoEmail(
     urgent,
     important,
     overdue
