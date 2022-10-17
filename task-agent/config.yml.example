@@ -21,6 +21,7 @@ email:
     to: a@example.com, b@example.com
 
 chooser:
+  sendOverdueEmail: true
   sources:
     - 5fcdd1ab903bec878aba847e
     - 5f2ece418e385049108e600d

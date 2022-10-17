@@ -2,6 +2,7 @@ import { readFileSync } from 'fs'
 import { compile, registerHelper } from 'handlebars'
 import { createTransport } from 'nodemailer'
 import { join } from 'path'
+import { CardCandidate } from './chooser'
 import { getConfig } from './config'
 import { Task } from './task'
 import juice = require('juice')
@@ -46,8 +47,8 @@ export const sendEmail = async (subject: string, templates: TemplateFiles, data:
       url: pkg.homepage
     }
   }
-  const html = juice(buildEmail(templates.htmlTemplate, combinedData))
-  const plainText = buildEmail(templates.plainTextTemplate, combinedData)
+  const html = juice(buildEmail(htmlTemplateFilename, combinedData))
+  const plainText = buildEmail(plainTextTemplateFilename, combinedData)
 
   const transporter = createTransport({
     host: email.server.host,
@@ -70,6 +71,22 @@ export const sendEmail = async (subject: string, templates: TemplateFiles, data:
   return {
     messageId: info.messageId
   }
+}
+
+export const sendOverdueEmail = async (
+  overdueCards: CardCandidate[]
+): Promise<EmailResult> => {
+  return sendEmail(
+    'Warning: Tasks Will Not Be Completed by Due Date',
+    {
+      htmlTemplate: 'overdue-email.html',
+      plainTextTemplate: 'overdue-email.txt'
+    },
+    {
+      overdueCards,
+      title: 'Overdue Tasks'
+    }
+  )
 }
 
 export const sendTodoEmail = async (

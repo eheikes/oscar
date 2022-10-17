@@ -1,5 +1,6 @@
 import { firstFit }  from 'bin-packer'
 import { Config } from './config'
+import { sendOverdueEmail } from './email'
 import { log } from './log'
 import { Importance } from './task'
 import {
@@ -14,7 +15,7 @@ import {
 
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
-export interface CardCandidate extends Pick<TrelloCard, 'id' | 'labels' | 'name'> {
+export interface CardCandidate extends Pick<TrelloCard, 'id' | 'labels' | 'name' | 'url'> {
   due: Date
   /** Size for this slice of time */
   size: number
@@ -184,7 +185,8 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
       labels: card.labels,
       name: card.name,
       size: sizeForNow,
-      totalSize: cardSize
+      totalSize: cardSize,
+      url: card.url
     }
   })
   cardPool.sort(sortByDueDate) // models the priority
@@ -239,12 +241,16 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
   }
 
   // Warn about cards that won't meet the deadline.
-  for (const cardBuckets of [ ...futureImportantTasks, ...futureUnimportantTasks ]) {
-    for (const card of cardBuckets) {
-      const dueTime = new Date(card.due)
-      if (dueTime.valueOf() < Date.now()) {
-        log('choose', `Warning: ${card.name} will not be completed by due date!`)
-      }
+  const overdueCards = [ ...futureImportantTasks, ...futureUnimportantTasks ].flat().filter(card => {
+    return new Date(card.due).valueOf() < Date.now()
+  })
+  for (const card of overdueCards) {
+    log('choose', `Warning: ${card.name} will not be completed by due date!`)
+  }
+  if (config.chooser.sendOverdueEmail) {
+    log('choose', 'Sending email of overdue tasks')
+    if (!dryRun) {
+      sendOverdueEmail(overdueCards)
     }
   }
 }

@@ -41,6 +41,7 @@ export interface ChooserConfig {
   defaults?: ChooserDefaultsConfig
   destination?: ChooserDestinationConfig
   labels?: ChooserLabelsConfig
+  sendOverdueEmail?: boolean
   sources?: string[]
 }
 
