@@ -16,6 +16,10 @@ interface TemplateFiles {
   plainTextTemplate: string
 }
 
+interface OverdueEmailOptions {
+  wasRescheduled?: boolean
+}
+
 const buildEmail = (templateFilename: string, data: any): string => {
   const template = readFileSync(templateFilename, 'utf8')
   const compiled = compile(template)
@@ -74,7 +78,8 @@ export const sendEmail = async (subject: string, templates: TemplateFiles, data:
 }
 
 export const sendOverdueEmail = async (
-  overdueCards: CardCandidate[]
+  overdueCards: CardCandidate[],
+  options: OverdueEmailOptions
 ): Promise<EmailResult> => {
   return sendEmail(
     'Warning: Tasks Will Not Be Completed by Due Date',
@@ -84,7 +89,8 @@ export const sendOverdueEmail = async (
     },
     {
       overdueCards,
-      title: 'Overdue Tasks'
+      title: 'Overdue Tasks',
+      wasRescheduled: options.wasRescheduled
     }
   )
 }

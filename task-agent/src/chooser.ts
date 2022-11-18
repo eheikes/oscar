@@ -10,7 +10,8 @@ import {
   isUserCard,
   moveCardToList,
   renameCard,
-  TrelloCard
+  TrelloCard,
+  updateCard
 } from './trello'
 
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
@@ -107,6 +108,10 @@ const getUnimportantLabel = (config: Config): string => {
 
 const hasLabelName = (card: TrelloCard | CardCandidate, name: string): boolean => {
   return card.labels.some(labelInfo => labelInfo.name === name)
+}
+
+const isOverdue = (card: CardCandidate) => {
+  return new Date(card.due).valueOf() < Date.now()
 }
 
 /**
@@ -240,17 +245,41 @@ export const choose = async (config: Config, opts: ChooserOptions = {}) => {
     }
   }
 
+  const overdueImportantTasks = futureImportantTasks.map(tasks => tasks.filter(isOverdue))
+  const overdueUnimportantTasks = futureUnimportantTasks.map(tasks => tasks.filter(isOverdue))
+  const overdueCards = [ ...overdueImportantTasks, ...overdueUnimportantTasks ].flat()
   // Warn about cards that won't meet the deadline.
-  const overdueCards = [ ...futureImportantTasks, ...futureUnimportantTasks ].flat().filter(card => {
-    return new Date(card.due).valueOf() < Date.now()
-  })
   for (const card of overdueCards) {
     log('choose', `Warning: ${card.name} will not be completed by due date!`)
   }
+  // Reschedule overdue tasks.
+  const rescheduleCard = async (card: CardCandidate, dayOffset: number) => {
+    const oldDueDate = card.due
+    card.due = new Date(Date.now() + dayOffset * DAY_IN_MS)
+    log('choose', `Rescheduling due date of "${card.name}" from ${oldDueDate} to ${card.due}`)
+    if (!dryRun) {
+      await updateCard(card.id, { due: card.due.toISOString() })
+    }
+  }
+  if (config.chooser.rescheduleOverdueTasks) {
+    for (const [index, cards] of overdueImportantTasks.entries()) {
+      for (const card of cards) {
+        await rescheduleCard(card, index + 1)
+      }
+    }
+    for (const [index, cards] of overdueUnimportantTasks.entries()) {
+      for (const card of cards) {
+        await rescheduleCard(card, index + 1)
+      }
+    }
+  }
+  // Send an email about the overdue tasks.
   if (config.chooser.sendOverdueEmail) {
     log('choose', 'Sending email of overdue tasks')
     if (!dryRun) {
-      sendOverdueEmail(overdueCards)
+      sendOverdueEmail(overdueCards, {
+        wasRescheduled: config.chooser.rescheduleOverdueTasks
+      })
     }
   }
 }
