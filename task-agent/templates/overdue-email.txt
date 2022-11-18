@@ -1,0 +1,10 @@
+Overdue Cards
+=============
+
+{{#if wasRescheduled}}
+These cards were rescheduled automatically; the new due date is shown below.
+{{/if}}
+
+{{#each overdueCards}}
+* {{this.name}} ({{this.url}}) (due {{date this.due}})
+{{/each}}
