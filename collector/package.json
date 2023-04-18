@@ -36,7 +36,6 @@
     "pkg-dir": "^2.0.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
-    "sqlite3": "^3.1.13",
     "uuid": "^3.1.0",
     "yargs": "^10.0.3"
   },
