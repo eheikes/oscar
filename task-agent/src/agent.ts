@@ -5,7 +5,7 @@ import { choose, ChooserOptions } from './chooser'
 import { sendTodoEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
-import { addCard, archiveAllInList, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
+import { addCard, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
 export const FLAG_IMPORTANT = 0x010
@@ -106,12 +106,6 @@ const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOption
  * Creates recurring tasks for the current day in Trello.
  */
 export const create = async (config: Config): Promise<void> => {
-  if (config.todos.recurringArchive) {
-    for (const listId of config.todos.recurringArchive) {
-      log('create', `Archiving all cards in list ${listId}`)
-      await archiveAllInList(listId)
-    }
-  }
   if (!config.todos.recurring) {
     log('create', 'No recurring todos are configured')
     return
