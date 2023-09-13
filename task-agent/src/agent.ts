@@ -5,7 +5,8 @@ import { choose, ChooserOptions } from './chooser'
 import { sendTodoEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
-import { addCard, CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
+import { addTask } from './teamgantt'
+import { CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
 export const FLAG_IMPORTANT = 0x010
@@ -114,7 +115,7 @@ export const create = async (config: Config): Promise<void> => {
   const now = new Date()
   for (const recurringTodo of config.todos.recurring) {
     if (shouldOccur(recurringTodo)) {
-      log('create', `Creating Trello card for "${recurringTodo.name}"`)
+      log('create', `Creating task for "${recurringTodo.name}"`)
       const timeParts = (recurringTodo.due ?? '23:59').split(':')
       const hour = parseInt(timeParts[0], 10)
       const minute = parseInt(timeParts[1], 10)
@@ -126,11 +127,12 @@ export const create = async (config: Config): Promise<void> => {
         minute,
         0
       )
-      await addCard({
+      await addTask({
         name: recurringTodo.name,
         desc: recurringTodo.description,
-        idList: recurringTodo.list,
-        due: dueDate
+        due: dueDate,
+        projectId: recurringTodo.projectId,
+        groupId: recurringTodo.groupId
       })
     }
   }

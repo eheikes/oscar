@@ -73,8 +73,19 @@ export interface RecurringConfig {
   name: string
   // size?: number
   due?: string // HH:MM
+  projectId: number
+  groupId?: number
   type: 'date' | 'dow' | 'month' | 'year'
   value: number | string
+}
+
+export interface TeamGanttConfig {
+  apiUrl: string
+  authUrl: string
+  clientId: string
+  clientSecret: string
+  username: string
+  password: string
 }
 
 export interface TodoConfig {
@@ -105,6 +116,7 @@ export interface TrelloLabelsConfig {
 export interface Config {
   chooser?: ChooserConfig
   email: EmailConfig
+  teamgantt: TeamGanttConfig
   todos: TodoConfig
   trello: TrelloConfig
 }
@@ -112,10 +124,15 @@ export interface Config {
 export interface EnvConfig {
   TRELLO_KEY?: string
   TRELLO_TOKEN?: string
+  TEAMGANTT_CLIENT_ID?: string
+  TEAMGANTT_CLIENT_SECRET?: string
+  TEAMGANTT_PASSWORD?: string
+  TEAMGANTT_USERNAME?: string
 }
 
 export interface YamlConfig {
   email: EmailConfig
+  teamgantt: Omit<TeamGanttConfig, 'clientId' | 'clientSecret' | 'password' | 'username'>
   todos: TodoConfig
   trello: Omit<TrelloConfig, 'apiKey' | 'apiToken'>
 }
@@ -130,6 +147,10 @@ export const getConfig = async (): Promise<Config> => {
 
   const env = dotenv.config()
   if (env.parsed) {
+    config.teamgantt.clientId = env.parsed.TEAMGANTT_CLIENT_ID
+    config.teamgantt.clientSecret = env.parsed.TEAMGANTT_CLIENT_SECRET
+    config.teamgantt.username = env.parsed.TEAMGANTT_USERNAME
+    config.teamgantt.password = env.parsed.TEAMGANTT_PASSWORD
     config.trello.apiKey = env.parsed.TRELLO_KEY
     config.trello.apiToken = env.parsed.TRELLO_TOKEN
   }
