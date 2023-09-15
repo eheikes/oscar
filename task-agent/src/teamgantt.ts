@@ -12,6 +12,21 @@ export interface OAuthTokens {
   refresh_token: string
 }
 
+export interface Comment {
+  added_by: {} // TODO
+  added_date: string
+  app: string
+  attached_documents: [] // TODO
+  id: number
+  message: string
+  project_id: number
+  target: string
+  target_id: string
+  target_name: string
+  type: string
+  users_emailed: string[]
+}
+
 export interface Group {
   children: Task[]
   comment_info: {
@@ -127,7 +142,37 @@ const getAuthTokens = async (): Promise<OAuthTokens> => {
   return authTokens
 }
 
-// TODO: allow description field
+/**
+ * Adds a note to the specified task.
+ */
+export const addNote = async (taskId: number, note: string): Promise<Comment> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks/${taskId}/comments`
+  try {
+    log('addNote', `Creating note on task ${taskId} ${url}`)
+    const newNote = await got.post(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      },
+      json: {
+        type: 'note',
+        message: note
+      }
+    }).json<Comment>()
+    return newNote
+  } catch (err: any) {
+    log('addNote', 'ERROR!')
+    if (err.response) {
+      log('addNote', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('addNote', err)
+    }
+    throw err
+  }
+}
+
 export const addTask = async (task: NewTask): Promise<Task> => {
   const { id_token: idToken } = await getAuthTokens()
   const { teamgantt: { apiUrl } } = await getConfig()
@@ -150,6 +195,9 @@ export const addTask = async (task: NewTask): Promise<Task> => {
         end_date: dueYmd
       }
     }).json<Task>()
+    if (task.desc) {
+      await addNote(newTask.id, task.desc)
+    }
     return newTask
   } catch (err: any) {
     log('addTask', 'ERROR!')
