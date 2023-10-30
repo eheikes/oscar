@@ -75,6 +75,7 @@ export interface RecurringConfig {
   due?: string // HH:MM
   projectId: number
   groupId?: number
+  assignee?: number
   type: 'date' | 'dow' | 'month' | 'year'
   value: number | string
 }
