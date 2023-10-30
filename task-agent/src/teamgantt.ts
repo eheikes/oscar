@@ -305,3 +305,27 @@ export const getCurrentUser = async (): Promise<User> => {
     throw err
   }
 }
+
+export const getTodaysTasks = async (): Promise<Task[]> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks?status=inprogress&hide_completed=true&include_overdue=true&unscheduled=false`
+  try {
+    log('getTodaysTasks', `Getting in progress tasks ${url}`)
+    const tasks = await got.get(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    }).json<Task[]>()
+    return tasks
+  } catch (err: any) {
+    log('getTodaysTasks', 'ERROR!', err)
+    if (err.response) {
+      log('getTodaysTasks', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('getTodaysTasks', err)
+    }
+    throw err
+  }
+}
