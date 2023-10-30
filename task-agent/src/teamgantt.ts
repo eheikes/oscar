@@ -60,6 +60,21 @@ export interface NewTask {
   projectId: number
 }
 
+export interface Resource {
+  color: string | null
+  hours_per_day: number
+  id: number
+  is_disabled: boolean
+  name: string
+  pic: string
+  project_id: number
+  task_id: number
+  total_hours: number
+  type: 'company' | 'project' | 'user'
+  type_id: number
+
+}
+
 export interface Task {
   allow_scheduling_on_holidays: null // TODO
   checklist_info: {
@@ -106,6 +121,10 @@ export interface Task {
   start_date: string
   wbs: string
   work_days_left: number
+}
+
+export interface User {
+  // TODO
 }
 
 let authTokens: OAuthTokens | null = null
@@ -211,6 +230,34 @@ export const addTask = async (task: NewTask): Promise<Task> => {
   }
 }
 
+export const assignPerson = async (taskId: number, userId: number): Promise<Resource> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks/${taskId}/resources`
+  try {
+    log('assignPerson', `Assigning person to task ${url}`)
+    const resource = await got.post(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      },
+      json: {
+        type: 'user',
+        type_id: userId
+      }
+    }).json<Resource>()
+    return resource
+  } catch (err: any) {
+    log('assignPerson', 'ERROR!')
+    if (err.response) {
+      log('assignPerson', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('assignPerson', err)
+    }
+    throw err
+  }
+}
+
 export const getProjectGroups = async (projectId: number): Promise<Group[]> => {
   const { id_token: idToken } = await getAuthTokens()
   const { teamgantt: { apiUrl } } = await getConfig()
@@ -230,6 +277,30 @@ export const getProjectGroups = async (projectId: number): Promise<Group[]> => {
     }
     if (err instanceof Error) {
       log('getProjectGroups', err)
+    }
+    throw err
+  }
+}
+
+export const getCurrentUser = async (): Promise<User> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/current_user`
+  try {
+    log('getCurrentUser', `Getting logged-in user info ${url}`)
+    const user = await got.get(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    }).json<User>()
+    return user
+  } catch (err: any) {
+    log('getCurrentUser', 'ERROR!', err)
+    if (err.response) {
+      log('getCurrentUser', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('getCurrentUser', err)
     }
     throw err
   }

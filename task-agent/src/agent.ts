@@ -5,7 +5,7 @@ import { choose, ChooserOptions } from './chooser'
 import { sendTodoEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
-import { addTask } from './teamgantt'
+import { addTask, assignPerson, getCurrentUser as getTeamGanttUser, getTodaysTasks } from './teamgantt'
 import { CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
@@ -104,7 +104,7 @@ const pickTasks = async (tasks: Task[], sizeLimit: number, opts: PickTasksOption
 }
 
 /**
- * Creates recurring tasks for the current day in Trello.
+ * Creates recurring tasks for the current day in TeamGantt.
  */
 export const create = async (config: Config): Promise<void> => {
   if (!config.todos.recurring) {
@@ -127,13 +127,16 @@ export const create = async (config: Config): Promise<void> => {
         minute,
         0
       )
-      await addTask({
+      const task = await addTask({
         name: recurringTodo.name,
         desc: recurringTodo.description,
         due: dueDate,
         projectId: recurringTodo.projectId,
         groupId: recurringTodo.groupId
       })
+      if (recurringTodo.assignee) {
+        await assignPerson(task.id, recurringTodo.assignee)
+      }
     }
   }
 }
