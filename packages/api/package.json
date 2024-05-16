@@ -1,0 +1,44 @@
+{
+  "name": "@eheikes/oscar-api",
+  "version": "0.1.0",
+  "description": "OSCAR assistant API",
+  "type": "module",
+  "files": [
+    "lib/*",
+    "LICENSE.txt",
+    "tts.js",
+    "yarn.lock"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "standard --env jasmine --fix --verbose",
+    "report-coverage": "codecov",
+    "test": "cross-env AWS_SHARED_CREDENTIALS_FILE=~/.aws/foobar JASMINE_CONFIG_PATH=test/jasmine.json nyc jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eheikes/oscar.git"
+  },
+  "keywords": [
+    "api",
+    "assistant",
+    "productivity"
+  ],
+  "author": "Eric Heikes <eheikes@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/eheikes/oscar/issues"
+  },
+  "homepage": "https://github.com/eheikes/oscar/tree/master/packages/api#readme",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.137",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.12",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "aws-lambda": "^1.0.7",
+    "express": "^4.19.2",
+    "serverless-http": "^3.2.0"
+  }
+}
