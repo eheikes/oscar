@@ -4,10 +4,8 @@
   "description": "OSCAR assistant API",
   "type": "module",
   "files": [
-    "lib/*",
-    "LICENSE.txt",
-    "tts.js",
-    "yarn.lock"
+    "dist/*",
+    "LICENSE.txt"
   ],
   "scripts": {
     "prebuild": "del dist",
