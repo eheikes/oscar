@@ -1,0 +1,19 @@
+{
+  "spec_dir": "test",
+  "spec_files": [
+    "e2e/**/*.spec.ts"
+  ],
+  "reporters": [
+    {
+      "name": "jasmine-spec-reporter#SpecReporter",
+      "options": {
+        "spec": {
+          "displayPending": true,
+          "displayStacktrace": "all"
+        }
+      }
+    }
+  ],
+  "stopSpecOnExpectationFailure": false,
+  "random": false
+}
