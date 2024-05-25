@@ -13,6 +13,7 @@
     "dist": "bin/build-dist.sh",
     "lint": "ts-standard --fix --verbose",
     "report-coverage": "codecov",
+    "release": "aws lambda update-function-code --function-name $ARN --zip-file fileb://dist/oscar-api.zip",
     "test": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.all.json c8 jasmine",
     "test:e2e": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.e2e.json jasmine \"test/e2e/**/*.spec.ts\"",
     "test:unit": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.unit.json c8 jasmine \"test/unit/**/*.spec.ts\"",
