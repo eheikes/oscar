@@ -10,6 +10,7 @@
   "scripts": {
     "prebuild": "del dist",
     "build": "tsc",
+    "dist": "bin/build-dist.sh",
     "lint": "ts-standard --fix --verbose",
     "report-coverage": "codecov",
     "test": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.all.json c8 jasmine",
