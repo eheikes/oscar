@@ -203,5 +203,25 @@ describe('items', () => {
       await getItems({ count: '7' })
       expect(limitSpy).toHaveBeenCalledWith(7)
     })
+
+    it('should set a default limit', async () => {
+      const { getItems } = await esmock('../../src/items.js', {
+        '../../src/database.js': {
+          getDatabaseConnection: getDatabaseConnectionSpy
+        }
+      })
+      await getItems({})
+      expect(limitSpy).toHaveBeenCalledWith(jasmine.any(Number))
+    })
+
+    it('should set a maximum limit', async () => {
+      const { getItems } = await esmock('../../src/items.js', {
+        '../../src/database.js': {
+          getDatabaseConnection: getDatabaseConnectionSpy
+        }
+      })
+      await getItems({ count: '9999999' })
+      expect(limitSpy).toHaveBeenCalledWith(100)
+    })
   })
 })

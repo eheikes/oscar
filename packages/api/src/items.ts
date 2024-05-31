@@ -47,7 +47,7 @@ export interface Item {
 }
 
 const getItemsRequestSchema = z.object({
-  count: z.coerce.number().optional(),
+  count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
   maximumRank: z.coerce.number().optional(),
   minimumRank: z.coerce.number().optional(),
@@ -95,9 +95,7 @@ export const getItems = async (params: ParsedQs): Promise<Item[]> => {
   if (typeof parsedParams.offset !== 'undefined') {
     query = query.offset(parsedParams.offset)
   }
-  if (typeof parsedParams.count !== 'undefined') {
-    query = query.limit(parsedParams.count)
-  }
+  query = query.limit(Math.min(parsedParams.count, 100))
   const result = await query
   return result.map(row => ({
     author: row.author,
