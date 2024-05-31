@@ -1,6 +1,6 @@
 import esmock from 'esmock'
 import { setEnvVars } from '../helpers/env.js'
-// import { Item } from '../../src/items.js'
+import { ClientError } from '../../src/error.js'
 
 describe('items', () => {
   let getDatabaseConnectionSpy: jasmine.Spy
@@ -10,6 +10,7 @@ describe('items', () => {
   let whereNullSpy: jasmine.Spy
   let andWhereSpy: jasmine.Spy
   let orWhereSpy: jasmine.Spy
+  let orderBySpy: jasmine.Spy
   let orderByRawSpy: jasmine.Spy
   let offsetSpy: jasmine.Spy
   let limitSpy: jasmine.Spy
@@ -45,6 +46,7 @@ describe('items', () => {
       return mockKnex
     })
     orWhereSpy = jasmine.createSpy('orWhere').and.returnValue(mockKnex)
+    orderBySpy = jasmine.createSpy('orderBy').and.returnValue(mockKnex)
     orderByRawSpy = jasmine.createSpy('orderByRaw').and.returnValue(mockKnex)
     offsetSpy = jasmine.createSpy('offset').and.returnValue(mockKnex)
     limitSpy = jasmine.createSpy('limit').and.returnValue(mockKnex)
@@ -55,6 +57,7 @@ describe('items', () => {
     mockKnex.whereILike = whereILikeSpy
     mockKnex.whereNull = whereNullSpy
     mockKnex.orWhere = orWhereSpy
+    mockKnex.orderBy = orderBySpy
     mockKnex.orderByRaw = orderByRawSpy
     mockKnex.offset = offsetSpy
     mockKnex.limit = limitSpy
@@ -174,14 +177,43 @@ describe('items', () => {
       expect(whereILikeSpy).toHaveBeenCalledWith('title', '%baz%')
     })
 
-    it('should randomly sort when "random" is set', async () => {
+    it('should sort using the "orderBy" and "orderDir" params', async () => {
       const { getItems } = await esmock('../../src/items.js', {
         '../../src/database.js': {
           getDatabaseConnection: getDatabaseConnectionSpy
         }
       })
-      await getItems({ random: '1' })
+      await getItems({ orderBy: 'type', orderDir: 'asc' })
+      expect(orderBySpy).toHaveBeenCalledWith('type_id', 'asc')
+    })
+
+    it('should default to sorting by creation date', async () => {
+      const { getItems } = await esmock('../../src/items.js', {
+        '../../src/database.js': {
+          getDatabaseConnection: getDatabaseConnectionSpy
+        }
+      })
+      await getItems({})
+      expect(orderBySpy).toHaveBeenCalledWith('created_at', 'desc')
+    })
+
+    it('should randomly sort when "orderBy" is "random"', async () => {
+      const { getItems } = await esmock('../../src/items.js', {
+        '../../src/database.js': {
+          getDatabaseConnection: getDatabaseConnectionSpy
+        }
+      })
+      await getItems({ orderBy: 'random' })
       expect(orderByRawSpy).toHaveBeenCalledWith('random()')
+    })
+
+    it('should throw an error if "orderBy" param is invalid', async () => {
+      const { getItems } = await esmock('../../src/items.js', {
+        '../../src/database.js': {
+          getDatabaseConnection: getDatabaseConnectionSpy
+        }
+      })
+      await expectAsync(getItems({ orderBy: 'foobar' })).toBeRejectedWithError(ClientError)
     })
 
     it('should set offset when "offset" is set', async () => {

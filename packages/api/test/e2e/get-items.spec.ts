@@ -9,25 +9,22 @@ describe('GET /items', () => {
     title: 'Item 1',
     uri: 'http://example.com',
     type_id: 'read',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    created_at: '2024-05-31T06:28:47.753Z',
+    updated_at: '2024-05-31T06:28:47.753Z'
   }
   const testItem2 = {
     id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
     title: 'Item 2',
     uri: 'http://example.com/foo',
     type_id: 'watch',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    created_at: '2024-05-31T06:28:34.356Z',
+    updated_at: '2024-05-31T06:28:34.356Z'
   }
 
   beforeAll(async () => {
+    await db('items').delete()
     await db('items').insert(testItem1)
     await db('items').insert(testItem2)
-  })
-
-  afterAll(async () => {
-    await db('items').delete()
   })
 
   it('should return the items', async () => {

@@ -1,27 +1,28 @@
 import { type ParsedQs } from 'qs'
 import { z } from 'zod'
 import { getDatabaseConnection } from './database.js'
+import { ClientError } from './error.js'
+
+export interface DatabaseItem {
+  author: string | null
+  created_at: string
+  deleted_at: string | null
+  due: string | null
+  expected_rank: number | null
+  id: string
+  image_uri: string | null
+  language: string | null
+  length: number | null
+  rank: number | null
+  rating: number | null
+  summary: string | null
+  title: string
+  type_id: string
+  updated_at: string
+  uri: string
+}
 
 declare module 'knex/types/tables.js' {
-  export interface DatabaseItem {
-    author: string | null
-    created_at: string
-    deleted_at: string | null
-    due: string | null
-    expected_rank: number | null
-    id: string
-    image_uri: string | null
-    language: string | null
-    length: number | null
-    rank: number | null
-    rating: number | null
-    summary: string | null
-    title: string
-    type_id: string
-    updated_at: string
-    uri: string
-  }
-
   interface Tables {
     items: DatabaseItem
   }
@@ -46,12 +47,37 @@ export interface Item {
   uri: string
 }
 
+const itemFieldMapping: Record<keyof Item, keyof DatabaseItem> = {
+  author: 'author',
+  createdAt: 'created_at',
+  deletedAt: 'deleted_at',
+  due: 'due',
+  expectedRank: 'expected_rank',
+  id: 'id',
+  imageUri: 'image_uri',
+  language: 'language',
+  length: 'length',
+  rank: 'rank',
+  rating: 'rating',
+  summary: 'summary',
+  title: 'title',
+  type: 'type_id',
+  updatedAt: 'updated_at',
+  uri: 'uri'
+}
+
+function isItemField(name: string): name is keyof Item {
+  return Object.keys(itemFieldMapping).includes(name)
+}
+
 const getItemsRequestSchema = z.object({
   count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
   maximumRank: z.coerce.number().optional(),
   minimumRank: z.coerce.number().optional(),
   offset: z.coerce.number().optional(),
+  orderBy: z.string().default('createdAt'),
+  orderDir: z.enum(['asc', 'desc']).default('desc'),
   random: z.coerce.boolean().default(false),
   search: z.string().optional(),
   since: z.string().datetime().optional(),
@@ -89,8 +115,12 @@ export const getItems = async (params: ParsedQs): Promise<Item[]> => {
       query = query.whereILike('title', `%${term}%`)
     }
   }
-  if (parsedParams.random) {
+  if (parsedParams.orderBy === 'random') {
     query = query.orderByRaw('random()')
+  } else if (isItemField(parsedParams.orderBy)) {
+    query = query.orderBy(itemFieldMapping[parsedParams.orderBy], parsedParams.orderDir)
+  } else {
+    throw new ClientError(`"${parsedParams.orderBy}" is not a valid field`)
   }
   if (typeof parsedParams.offset !== 'undefined') {
     query = query.offset(parsedParams.offset)
