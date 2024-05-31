@@ -23,6 +23,7 @@ Coming soon
 Scripts for local development:
 
 * Run a local server: `npm start`.
+* Lint the files: `npm run lint`.
 * Build the app: `npm run build`. Run `npm run build:release` to minify the files.
 * Upload & publish to AWS Lambda: `ARN=<LAMBDA ARN> npm run release`
     * Replace `<LAMBDA ARN>` with your Lambda function's ARN.
