@@ -1,5 +1,7 @@
 # OSCAR Assistant (in progress)
 
+> OSCAR: Organize, Schedule, Coordinate, and ARrange
+
 This project is a monorepo. OSCAR consists of the following parts:
 
 * [REST API](api)
