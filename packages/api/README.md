@@ -29,9 +29,9 @@ Scripts for local development:
 
 For running automated tests:
 
-* To run all tests: `npm test`. This needs to be set up for both unit and E2E tests as described below.
-* To run unit tests: `npm test:unit`.
+* To run all tests: `npm run test`. This needs to be set up for both unit and E2E tests as described below.
+* To run unit tests: `npm run test:unit`.
 * To run end-to-end tests:
     1. Start a local Postgres server. You can run a temporary server with Docker using something like `docker run -e POSTGRES_PASSWORD=test -d -p 5432:5432 postgres`.
     1. Update `.env.test` to match the database credentials.
-    1. Run `npm test:e2e`.
+    1. Run `npm run test:e2e`.
