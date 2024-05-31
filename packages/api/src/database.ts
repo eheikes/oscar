@@ -8,8 +8,8 @@ const getCert = (filename: string): string => {
   return readFileSync(filename).toString()
 }
 
-export const getDatabaseConnection = () => {
-  if (!connection) {
+export const getDatabaseConnection = (): Knex => {
+  if (connection === null) {
     connection = knex({
       client: 'pg',
       connection: {
@@ -18,11 +18,13 @@ export const getDatabaseConnection = () => {
         user: config.DB_USER,
         password: config.DB_PASSWORD,
         database: config.DB_NAME,
-        ssl: config.DB_SSL ? {
-          rejectUnauthorized: true,
-          ca: getCert('./rds-ca-bundle.pem'),
-        } : false
-      },
+        ssl: config.DB_SSL
+          ? {
+              rejectUnauthorized: true,
+              ca: getCert('./rds-ca-bundle.pem')
+            }
+          : false
+      }
     })
   }
   return connection

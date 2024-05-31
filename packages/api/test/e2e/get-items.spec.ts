@@ -29,7 +29,7 @@ describe('GET /items', () => {
 
   it('should return the items', async () => {
     await request(app)
-      .get(`/items`)
+      .get('/items')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
@@ -40,7 +40,7 @@ describe('GET /items', () => {
 
   it('should filter by text search', async () => {
     await request(app)
-      .get(`/items?search=item%202`)
+      .get('/items?search=item%202')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -50,7 +50,7 @@ describe('GET /items', () => {
 
   it('should filter by type (string)', async () => {
     await request(app)
-      .get(`/items?type=read`)
+      .get('/items?type=read')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -60,7 +60,7 @@ describe('GET /items', () => {
 
   it('should filter by type (array)', async () => {
     await request(app)
-      .get(`/items?type[]=read&type[]=watch`)
+      .get('/items?type[]=read&type[]=watch')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)

@@ -1,4 +1,4 @@
-export const setEnvVars = () => {
+export const setEnvVars = (): void => {
   // Set app env vars.
   process.env.DB_HOST = 'localhost'
   process.env.DB_PORT = '5432'

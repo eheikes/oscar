@@ -66,7 +66,7 @@ const itemFieldMapping: Record<keyof Item, keyof DatabaseItem> = {
   uri: 'uri'
 }
 
-function isItemField(name: string): name is keyof Item {
+const isItemField = (name: string): name is keyof Item => {
   return Object.keys(itemFieldMapping).includes(name)
 }
 
@@ -105,6 +105,7 @@ export const getItems = async (params: ParsedQs): Promise<Item[]> => {
       const typeParam = parsedParams.type as string | string[]
       const types = Array.isArray(typeParam) ? typeParam : [typeParam]
       for (const type of types) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         builder.orWhere('type_id', type)
       }
     })
@@ -130,8 +131,8 @@ export const getItems = async (params: ParsedQs): Promise<Item[]> => {
   return result.map(row => ({
     author: row.author,
     createdAt: new Date(row.created_at),
-    deletedAt: row.deleted_at ? new Date(row.deleted_at) : /* c8 ignore next */ null,
-    due: row.due ? new Date(row.due) : /* c8 ignore next */ null,
+    deletedAt: row.deleted_at === null ? /* c8 ignore next */ null : new Date(row.deleted_at),
+    due: row.due === null ? /* c8 ignore next */ null : new Date(row.due),
     expectedRank: row.expected_rank,
     id: row.id,
     imageUri: row.image_uri,
