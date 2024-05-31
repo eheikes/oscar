@@ -15,9 +15,9 @@
     "lint": "ts-standard --fix --verbose",
     "report-coverage": "codecov",
     "release": "bin/release.sh",
-    "test": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.all.json c8 jasmine",
-    "test:e2e": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.e2e.json jasmine \"test/e2e/**/*.spec.ts\"",
-    "test:unit": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.unit.json c8 jasmine \"test/unit/**/*.spec.ts\"",
+    "test": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.all.json dotenvx run --env-file=.env.test --  c8 jasmine",
+    "test:e2e": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.e2e.json dotenvx run --env-file=.env.test -- jasmine \"test/e2e/**/*.spec.ts\"",
+    "test:unit": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.unit.json dotenvx run --env-file=.env.test -- c8 jasmine \"test/unit/**/*.spec.ts\"",
     "start": "node --loader ts-node/esm ./src/server.ts"
   },
   "repository": {
@@ -52,8 +52,13 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@dotenvx/dotenvx": "^0.44.1",
     "express": "^4.19.2",
-    "serverless-http": "^3.2.0"
+    "knex": "^3.1.0",
+    "pg": "^8.11.5",
+    "serverless-http": "^3.2.0",
+    "znv": "^0.4.0",
+    "zod": "^3.23.8"
   },
   "standard": {
     "env": {
