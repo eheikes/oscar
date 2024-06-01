@@ -15,7 +15,7 @@
     "lint": "ts-standard --fix --verbose",
     "report-coverage": "codecov",
     "release": "bin/release.sh",
-    "test": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.all.json dotenvx run --env-file=.env.test --  c8 jasmine",
+    "test": "run-s test:*",
     "test:e2e": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.e2e.json dotenvx run --env-file=.env.test -- jasmine \"test/e2e/**/*.spec.ts\"",
     "test:unit": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.unit.json dotenvx run --env-file=.env.test -- c8 jasmine \"test/unit/**/*.spec.ts\"",
     "start": "node --loader ts-node/esm ./src/server.ts"
@@ -46,6 +46,7 @@
     "esmock": "^2.6.5",
     "jasmine": "^5.1.0",
     "jasmine-spec-reporter": "^7.0.0",
+    "npm-run-all": "^4.1.5",
     "supertest": "^7.0.0",
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
