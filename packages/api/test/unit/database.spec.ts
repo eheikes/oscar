@@ -3,7 +3,7 @@ import { Config } from '../../src/config.js'
 
 describe('database', () => {
   let knexSpy: jasmine.Spy
-  let config: Config = {
+  const config: Config = {
     DB_HOST: 'localhost',
     DB_NAME: 'test',
     DB_PORT: 5432,
