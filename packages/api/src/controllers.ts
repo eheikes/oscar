@@ -1,7 +1,9 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { getItems } from './items.js'
 
-export const getItemsController = async (req: Request, res: Response) => {
+export type Controller = (req: Request, res: Response, next: NextFunction) => Promise<void>
+
+export const getItemsController: Controller = async (req, res) => {
   const result = await getItems(req.query)
   res.json(result)
 }
