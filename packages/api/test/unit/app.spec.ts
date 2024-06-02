@@ -2,7 +2,6 @@ import esmock from 'esmock'
 import { app as originalApp } from '../../src/app.js'
 import { getItemsController } from '../../src/controllers.js'
 import { errorHandler } from '../../src/error.js'
-import { setEnvVars } from '../helpers/env.js'
 
 describe('app', () => {
   let app: typeof originalApp
@@ -12,7 +11,6 @@ describe('app', () => {
   let mockExpress: any
 
   beforeEach(async () => {
-    setEnvVars()
     expressGetSpy = jasmine.createSpy('express.get')
     expressSetSpy = jasmine.createSpy('express.set')
     expressUseSpy = jasmine.createSpy('express.use')

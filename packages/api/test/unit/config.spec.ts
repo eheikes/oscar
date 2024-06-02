@@ -1,18 +1,13 @@
 import esmock from 'esmock'
-import { setEnvVars } from '../helpers/env.js'
 
 describe('getConfig()', () => {
-  beforeEach(() => {
-    setEnvVars()
-  })
-
   it('should return the config', async () => {
     const { getConfig } = await esmock('../../src/config.js')
     const config = getConfig()
     expect(config).toEqual(jasmine.any(Object))
     expect(config.DB_HOST).toBe('localhost')
     expect(config.DB_PORT).toBe(5432)
-    expect(config.DB_SSL).toBe(true)
+    expect(config.DB_SSL).toBe(false)
   })
 
   it('should throw an error if an env var is missing', async () => {
