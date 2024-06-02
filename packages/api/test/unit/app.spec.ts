@@ -1,5 +1,6 @@
 import esmock from 'esmock'
 import { app as originalApp } from '../../src/app.js'
+import { getItemsController } from '../../src/controllers.js'
 import { errorHandler } from '../../src/error.js'
 import { setEnvVars } from '../helpers/env.js'
 
@@ -34,7 +35,7 @@ describe('app', () => {
   })
 
   it('should create the routes', () => {
-    expect(expressGetSpy).toHaveBeenCalledWith('/items', jasmine.any(Function))
+    expect(expressGetSpy).toHaveBeenCalledWith('/items', getItemsController)
   })
 
   it('should use the error handler', () => {
