@@ -1,5 +1,4 @@
 import esmock from 'esmock'
-import { setEnvVars } from '../helpers/env.js'
 import { ClientError } from '../../src/error.js'
 
 describe('items', () => {
@@ -17,7 +16,6 @@ describe('items', () => {
   let mockResult: any
 
   beforeEach(() => {
-    setEnvVars()
     mockResult = [{
       author: null,
       created_at: new Date(),
