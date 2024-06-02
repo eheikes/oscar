@@ -1,4 +1,5 @@
 import esmock from 'esmock'
+import { Config } from '../../src/config.js'
 import { setEnvVars } from '../helpers/env.js'
 
 describe('database', () => {
@@ -40,6 +41,26 @@ describe('database', () => {
       getDatabaseConnection()
       const arg = knexSpy.calls.mostRecent().args[0]
       expect(arg.connection.ssl.ca).toMatch('-----BEGIN CERTIFICATE-----')
+    })
+
+    it('should allow SSL to be disabled', async () => {
+      const config: Config = {
+        DB_HOST: 'localhost',
+        DB_NAME: 'test',
+        DB_PORT: 5432,
+        DB_USER: 'username',
+        DB_PASSWORD: 'password',
+        DB_SSL: false
+      }
+      const { getDatabaseConnection } = await esmock('../../src/database.js', {
+        knex: knexSpy,
+        '../../src/config.js': {
+          getConfig: () => config
+        }
+      })
+      getDatabaseConnection()
+      const arg = knexSpy.calls.mostRecent().args[0]
+      expect(arg.connection.ssl).toBe(false)
     })
   })
 })
