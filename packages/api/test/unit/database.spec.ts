@@ -30,6 +30,7 @@ describe('database', () => {
       expect(arg.connection.host).toBe(process.env.DB_HOST)
       expect(arg.connection.user).toBe(process.env.DB_USER)
       expect(arg.connection.database).toBe(process.env.DB_NAME)
+      expect(arg.connection.ssl.rejectUnauthorized).toBe(true)
     })
 
     it('should pull in the RDS CA cert', async () => {

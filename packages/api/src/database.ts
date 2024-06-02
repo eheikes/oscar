@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import knex, { Knex } from 'knex'
-import { config } from './config.js'
+import { getConfig } from './config.js'
 
 let connection: Knex | null = null
 
@@ -10,6 +10,7 @@ const getCert = (filename: string): string => {
 
 export const getDatabaseConnection = (): Knex => {
   if (connection === null) {
+    const config = getConfig()
     connection = knex({
       client: 'pg',
       connection: {

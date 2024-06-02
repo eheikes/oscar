@@ -1,13 +1,14 @@
 import esmock from 'esmock'
 import { setEnvVars } from '../helpers/env.js'
 
-describe('config', () => {
+describe('getConfig()', () => {
   beforeEach(() => {
     setEnvVars()
   })
 
   it('should return the config', async () => {
-    const { config } = await esmock('../../src/config.js')
+    const { getConfig } = await esmock('../../src/config.js')
+    const config = getConfig()
     expect(config).toEqual(jasmine.any(Object))
     expect(config.DB_HOST).toBe('localhost')
     expect(config.DB_PORT).toBe(5432)
@@ -17,7 +18,8 @@ describe('config', () => {
   it('should throw an error if an env var is missing', async () => {
     delete process.env.DB_HOST
     try {
-      await esmock('../../src/config.js')
+      const { getConfig } = await esmock('../../src/config.js')
+      getConfig()
       throw new Error('Should have thrown ZodError')
     } catch (err: unknown) {
       expect(err).toEqual(jasmine.any(Error))
