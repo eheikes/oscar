@@ -68,4 +68,13 @@ describe('GET /items', () => {
         expect(response.body[1].id).toBe(testItem2.id)
       })
   })
+
+  it('should return 400 when given invalid params', async () => {
+    await request(app)
+      .get('/items?orderDir=foo')
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toEqual(jasmine.any(String))
+      })
+  })
 })

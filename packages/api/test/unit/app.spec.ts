@@ -1,20 +1,24 @@
 import esmock from 'esmock'
 import { app as originalApp } from '../../src/app.js'
+import { errorHandler } from '../../src/error.js'
 import { setEnvVars } from '../helpers/env.js'
 
 describe('app', () => {
   let app: typeof originalApp
   let expressGetSpy: jasmine.Spy
   let expressSetSpy: jasmine.Spy
+  let expressUseSpy: jasmine.Spy
   let mockExpress: any
 
   beforeEach(async () => {
     setEnvVars()
     expressGetSpy = jasmine.createSpy('express.get')
     expressSetSpy = jasmine.createSpy('express.set')
+    expressUseSpy = jasmine.createSpy('express.use')
     mockExpress = {
       get: expressGetSpy,
-      set: expressSetSpy
+      set: expressSetSpy,
+      use: expressUseSpy
     }
     ;({ app } = await esmock('../../src/app.js', {
       express: () => mockExpress
@@ -31,5 +35,9 @@ describe('app', () => {
 
   it('should create the routes', () => {
     expect(expressGetSpy).toHaveBeenCalledWith('/items', jasmine.any(Function))
+  })
+
+  it('should use the error handler', () => {
+    expect(expressUseSpy).toHaveBeenCalledWith(errorHandler)
   })
 })
