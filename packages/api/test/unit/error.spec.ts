@@ -57,9 +57,11 @@ describe('error', () => {
   })
 
   describe('throw404()', () => {
+    const req: Request = { method: 'GET', url: '/foo' } as any
+
     it('should throw a MissingRouteError', () => {
       try {
-        throw404({ method: 'GET', url: '/foo'} as Request)
+        throw404(req)
         throw new Error('Should have thrown MissingRouteError')
       } catch (err) {
         expect(err).toEqual(jasmine.any(MissingRouteError))
@@ -68,7 +70,7 @@ describe('error', () => {
 
     it('should include the method and path in the message', () => {
       try {
-        throw404({ method: 'GET', url: '/foo'} as Request)
+        throw404(req)
         throw new Error('Should have thrown MissingRouteError')
       } catch (err) {
         expect((err as MissingRouteError).message).toContain('GET')
