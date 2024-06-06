@@ -20,7 +20,7 @@
     "test": "run-s test:*",
     "test:e2e": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.e2e.json dotenvx run --env-file=.env.test -- jasmine \"test/e2e/**/*.spec.ts\"",
     "test:unit": "NODE_OPTIONS='--loader=ts-node/esm --loader=esmock --no-warnings=ExperimentalWarning' TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_FILES=true NODE_PATH=./ JASMINE_CONFIG_PATH=./test/jasmine.unit.json dotenvx run --env-file=.env.test -- c8 jasmine \"test/unit/**/*.spec.ts\"",
-    "start": "node --loader ts-node/esm ./src/server.ts"
+    "start": "TS_NODE_FILES=true NODE_PATH=./ dotenvx run --env-file=.env -- node --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/server.ts"
   },
   "repository": {
     "type": "git",

@@ -2,13 +2,21 @@ import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { fromZodError } from 'zod-validation-error'
 
-export class ClientError extends Error {
-}
+export class ClientError extends Error {}
+
+export class MissingRouteError extends Error {}
 
 export const errorHandler = (err: Error, _req: Request, res: Response, next: NextFunction): void => {
   // Delegate to the default Express handler if headers have been sent.
   if (res.headersSent) {
     return next(err)
+  }
+
+  // Invalid route should return a 404.
+  if (err instanceof MissingRouteError) {
+    res.status(404)
+    res.send({ error: err.message })
+    return
   }
 
   // Client errors should return a 4xx.
@@ -27,4 +35,8 @@ export const errorHandler = (err: Error, _req: Request, res: Response, next: Nex
   // All other errors can be a 500.
   res.status(500)
   res.send({ error: err.message })
+}
+
+export const throw404 = (req: Request): never => {
+  throw new MissingRouteError(`No matching route for ${req.method} ${req.url}`)
 }

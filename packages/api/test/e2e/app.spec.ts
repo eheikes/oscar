@@ -7,4 +7,10 @@ describe('app', () => {
       .get('/')
     expect(response.headers['x-powered-by']).toBeUndefined()
   })
+
+  it('should return a 404 for invalid routes', async () => {
+    await request(app)
+      .get('/foo')
+      .expect(404)
+  })
 })

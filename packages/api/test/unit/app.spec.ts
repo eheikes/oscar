@@ -1,24 +1,15 @@
+import { Application } from 'express'
 import esmock from 'esmock'
 import { app as originalApp } from '../../src/app.js'
 import { getItemsController } from '../../src/controllers.js'
-import { errorHandler } from '../../src/error.js'
+import { errorHandler, throw404 } from '../../src/error.js'
 
 describe('app', () => {
   let app: typeof originalApp
-  let expressGetSpy: jasmine.Spy
-  let expressSetSpy: jasmine.Spy
-  let expressUseSpy: jasmine.Spy
-  let mockExpress: any
+  let mockExpress: jasmine.SpyObj<Application>
 
   beforeEach(async () => {
-    expressGetSpy = jasmine.createSpy('express.get')
-    expressSetSpy = jasmine.createSpy('express.set')
-    expressUseSpy = jasmine.createSpy('express.use')
-    mockExpress = {
-      get: expressGetSpy,
-      set: expressSetSpy,
-      use: expressUseSpy
-    }
+    mockExpress = jasmine.createSpyObj('app', ['all', 'get', 'set', 'use'])
     ;({ app } = await esmock('../../src/app.js', {
       express: () => mockExpress
     }))
@@ -29,14 +20,18 @@ describe('app', () => {
   })
 
   it('should turn off the X-Powered-By header', () => {
-    expect(expressSetSpy).toHaveBeenCalledWith('x-powered-by', false)
+    expect(mockExpress.set).toHaveBeenCalledWith('x-powered-by', false)
   })
 
   it('should create the routes', () => {
-    expect(expressGetSpy).toHaveBeenCalledWith('/items', getItemsController)
+    expect(mockExpress.get as any).toHaveBeenCalledWith('/items', getItemsController)
+  })
+
+  it('should throw an error if the request does not match any routes', () => {
+    expect(mockExpress.all as any).toHaveBeenCalledWith('(.*)', throw404)
   })
 
   it('should use the error handler', () => {
-    expect(expressUseSpy).toHaveBeenCalledWith(errorHandler)
+    expect(mockExpress.use as any).toHaveBeenCalledWith(errorHandler)
   })
 })
