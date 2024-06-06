@@ -9,7 +9,7 @@ describe('app', () => {
   })
 
   it('should return a 404 for invalid routes', async () => {
-    const response = await request(app)
+    await request(app)
       .get('/foo')
       .expect(404)
   })
