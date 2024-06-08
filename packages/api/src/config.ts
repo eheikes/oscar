@@ -1,4 +1,4 @@
-import { config as loadEnvFile } from '@dotenvx/dotenvx'
+import { config as loadEnvFile } from 'dotenv'
 import { parseEnv } from 'znv'
 import { z } from 'zod'
 

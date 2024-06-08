@@ -11,6 +11,7 @@ This project contains the API server for the OSCAR assistant. It is written for 
     * Set the required environment variables under `Configuration -> Environment variables`. See [`.env.test`](.env.test) for the list of variables and examples.
     * Set up an API gateway as the trigger.
 1. Download the [AWS RDS certificate bundle for your region](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates) and replace the `rds-ca-bundle.pem` file in this `api` folder.
+1. Rename `.env.example` to `.env` and update it with your configuration, _or_ set those variables in your environment.
 1. Run `npm install && npm run build:release && ARN=YOUR_ARN npm run release`.
     * Replace `YOUR_ARN` with the ARN of your Lambda instance.
 
@@ -19,6 +20,8 @@ This project contains the API server for the OSCAR assistant. It is written for 
 Coming soon
 
 ## Development
+
+Remember to set your environment variables (using `.env` or other method) to configure the app.
 
 Scripts for local development:
 
