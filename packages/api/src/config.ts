@@ -1,6 +1,9 @@
 import { config as loadEnvFile } from 'dotenv'
-import { parseEnv } from 'znv'
+import { parseEnv, Schemas } from 'znv'
 import { z } from 'zod'
+
+// znv doesn't export DeepReadonlyObject, so infer it ourselves.
+type DeepReadonlyObject<T extends Schemas> = ReturnType<typeof parseEnv<T>>
 
 const fields = {
   DB_HOST: z.string(),
@@ -10,14 +13,20 @@ const fields = {
   DB_NAME: z.string(),
   DB_SSL: z.coerce.boolean().default(true)
 }
-const schema = z.object(fields)
-export type Config = z.infer<typeof schema>
+export type Config = DeepReadonlyObject<typeof fields>
 
-loadEnvFile()
-
-const config = parseEnv(process.env, fields)
+let config: Config | null = null
 
 // Helper function to allow mocking in tests
-export const getConfig = (): typeof config => {
+export const getConfig = (): Config => {
+  if (config == null) {
+    loadEnvFile()
+    config = parseEnv(process.env, fields)
+  }
   return config
+}
+
+// Helper function for tests
+export const clearConfig = (): void => {
+  config = null
 }
