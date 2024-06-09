@@ -1,1 +1,0 @@
-declare module '@dotenvx/dotenvx'

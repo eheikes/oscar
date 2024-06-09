@@ -1,8 +1,19 @@
 import esmock from 'esmock'
+import { clearConfig } from '../../src/config.js'
 
 describe('getConfig()', () => {
   it('should return the config', async () => {
-    const { getConfig } = await esmock('../../src/config.js')
+    process.env.DB_HOST = 'localhost'
+    process.env.DB_PORT = '5432'
+    process.env.DB_SSL = '0'
+    process.env.DB_NAME = 'postgres'
+    process.env.DB_USER = 'postgres'
+    process.env.DB_PASSWORD = 'test'
+    const { getConfig } = await esmock('../../src/config.js', {
+      dotenv: {
+        config: () => {}
+      }
+    })
     const config = getConfig()
     expect(config).toEqual(jasmine.any(Object))
     expect(config.DB_HOST).toBe('localhost')
@@ -12,8 +23,13 @@ describe('getConfig()', () => {
 
   it('should throw an error if an env var is missing', async () => {
     delete process.env.DB_HOST
+    clearConfig()
     try {
-      const { getConfig } = await esmock('../../src/config.js')
+      const { getConfig } = await esmock('../../src/config.js', {
+        dotenv: {
+          config: () => {}
+        }
+      })
       getConfig()
       throw new Error('Should have thrown ZodError')
     } catch (err: unknown) {
