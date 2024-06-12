@@ -1,5 +1,7 @@
 import request from 'supertest'
 import { app } from '../../src/app.js'
+import { mockSession, sessionName } from '../../src/auth.js'
+import { getConfig } from '../../src/config.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('GET /items', () => {
@@ -27,9 +29,19 @@ describe('GET /items', () => {
     await db('items').insert(testItem2)
   })
 
+  it('should require authentication', async () => {
+    const config = getConfig()
+    await request(app)
+      .get('/items')
+      .expect(302)
+      .expect('set-cookie', /.*/)
+      .expect('location', new RegExp(config.OPENID_URL))
+  })
+
   it('should return the items', async () => {
     await request(app)
       .get('/items')
+      .set('cookie', `${sessionName}=${mockSession}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
@@ -41,6 +53,7 @@ describe('GET /items', () => {
   it('should filter by text search', async () => {
     await request(app)
       .get('/items?search=item%202')
+      .set('cookie', `${sessionName}=${mockSession}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -51,6 +64,7 @@ describe('GET /items', () => {
   it('should filter by type (string)', async () => {
     await request(app)
       .get('/items?type=read')
+      .set('cookie', `${sessionName}=${mockSession}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -61,6 +75,7 @@ describe('GET /items', () => {
   it('should filter by type (array)', async () => {
     await request(app)
       .get('/items?type[]=read&type[]=watch')
+      .set('cookie', `${sessionName}=${mockSession}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
@@ -72,6 +87,7 @@ describe('GET /items', () => {
   it('should return 400 when given invalid params', async () => {
     await request(app)
       .get('/items?orderDir=foo')
+      .set('cookie', `${sessionName}=${mockSession}`)
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(jasmine.any(String))

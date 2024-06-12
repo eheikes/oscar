@@ -21,7 +21,7 @@ Coming soon
 
 ## Development
 
-Remember to set your environment variables (using `.env` or other method) to configure the app.
+Remember to set your environment variables (using `.env` or other method) to configure the app. Set a `NODE_ENV` environment variable to `development` for debugging.
 
 Scripts for local development:
 

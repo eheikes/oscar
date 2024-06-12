@@ -1,9 +1,19 @@
 import esmock from 'esmock'
 import { Config } from '../../src/config.js'
 
+const baseConfig = {
+  APP_URL: 'http://localhost',
+  NODE_ENV: 'development',
+  ENCRYPTION_KEY: 'abcde',
+  OPENID_CLIENT_ID: 'OIDC ID',
+  OPENID_CLIENT_SECRET: 'OIDC secret',
+  OPENID_URL: 'https://localhost'
+}
+
 describe('database', () => {
   let knexSpy: jasmine.Spy
   const config: Config = {
+    ...baseConfig,
     DB_HOST: 'localhost',
     DB_NAME: 'test',
     DB_PORT: 5432,
@@ -45,6 +55,7 @@ describe('database', () => {
 
     it('should pull in the RDS CA cert when SSL is enabled', async () => {
       const config: Config = {
+        ...baseConfig,
         DB_HOST: 'localhost',
         DB_NAME: 'test',
         DB_PORT: 5432,
