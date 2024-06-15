@@ -23,7 +23,7 @@ export const configureAuth = auth(authConfig)
 export const checkAuthn = (req: Request, res: Response, next: NextFunction): void => {
   /* c8 ignore start -- not for production use */
   if (isDevelopment() && req.cookies[sessionName] === mockSession) {
-    req.oidc = JSON.parse(typeof req.cookies.oidc === 'object' ? req.cookies.oidc : '{}')
+    req.oidc = JSON.parse(typeof req.cookies.oidc === 'string' ? req.cookies.oidc : '{}')
     return next()
   }
   /* c8 ignore stop */
