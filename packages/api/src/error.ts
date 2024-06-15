@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { fromZodError } from 'zod-validation-error'
+import { isDevelopment } from './config.js'
 
 export class AuthorizationError extends Error {}
 
@@ -40,6 +41,9 @@ export const errorHandler = (err: Error, _req: Request, res: Response, next: Nex
   }
 
   // All other errors can be a 500.
+  if (isDevelopment()) {
+    console.log('Error!', err)
+  }
   res.status(500)
   res.send({ error: err.message })
 }
