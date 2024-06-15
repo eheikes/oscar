@@ -21,7 +21,7 @@ Coming soon
 
 ## Development
 
-Remember to set your environment variables (using `.env` or other method) to configure the app.
+Remember to set your environment variables (using `.env` or other method) to configure the app. Set a `NODE_ENV` environment variable to `development` for debugging.
 
 Scripts for local development:
 
@@ -39,3 +39,24 @@ For running automated tests:
     1. Start a local Postgres server. You can run a temporary server with Docker using something like `docker run -v ./test/mocks/postgres:/docker-entrypoint-initdb.d -e POSTGRES_PASSWORD=test -d -p 5432:5432 postgres`.
     1. Update `.env.test` to match the database credentials.
     1. Run `npm run test:e2e`.
+
+### Dev Troubleshooting
+
+#### `npm start` crashes with uncaught exception
+
+If you see:
+
+```
+node:internal/process/esm_loader:46
+      internalBinding('errors').triggerUncaughtException(
+                                ^
+[Object: null prototype] {
+  [Symbol(nodejs.util.inspect.custom)]: [Function: [nodejs.util.inspect.custom]]
+}
+```
+
+It's probably a problem with the types. Run `npm run build` to see the error.
+
+#### DB query isn't working
+
+Add `DEBUG=knex:query` to your command to print out the Knex SQL queries.

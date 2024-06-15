@@ -1,5 +1,7 @@
 import request from 'supertest'
 import { app } from '../../src/app.js'
+import { mockSession, sessionName } from '../../src/auth.js'
+import { getConfig } from '../../src/config.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('GET /items', () => {
@@ -20,16 +22,51 @@ describe('GET /items', () => {
     created_at: '2024-05-31T06:28:34.356Z',
     updated_at: '2024-05-31T06:28:34.356Z'
   }
+  const testUser = {
+    sub: 'test|user',
+    name: 'Test User',
+    nickname: 'test'
+  }
+  const mockOidc = JSON.stringify({
+    user: testUser
+  })
 
   beforeAll(async () => {
     await db('items').delete()
     await db('items').insert(testItem1)
     await db('items').insert(testItem2)
+    await db('users').insert({
+      id: testUser.sub,
+      name: testUser.name,
+      nickname: testUser.nickname,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+  })
+
+  it('should require authentication', async () => {
+    const config = getConfig()
+    await request(app)
+      .get('/items')
+      .expect(302)
+      .expect('set-cookie', /.*/)
+      .expect('location', new RegExp(config.OPENID_URL))
+  })
+
+  it('should require authorization', async () => {
+    await request(app)
+      .get('/items')
+      .set('cookie', `${sessionName}=${mockSession}`)
+      .expect(403)
+      .then(response => {
+        expect(response.body.error).toBe('Unauthorized')
+      })
   })
 
   it('should return the items', async () => {
     await request(app)
       .get('/items')
+      .set('cookie', `${sessionName}=${mockSession};oidc=${mockOidc}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
@@ -41,6 +78,7 @@ describe('GET /items', () => {
   it('should filter by text search', async () => {
     await request(app)
       .get('/items?search=item%202')
+      .set('cookie', `${sessionName}=${mockSession};oidc=${mockOidc}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -51,6 +89,7 @@ describe('GET /items', () => {
   it('should filter by type (string)', async () => {
     await request(app)
       .get('/items?type=read')
+      .set('cookie', `${sessionName}=${mockSession};oidc=${mockOidc}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -61,6 +100,7 @@ describe('GET /items', () => {
   it('should filter by type (array)', async () => {
     await request(app)
       .get('/items?type[]=read&type[]=watch')
+      .set('cookie', `${sessionName}=${mockSession};oidc=${mockOidc}`)
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
@@ -72,6 +112,7 @@ describe('GET /items', () => {
   it('should return 400 when given invalid params', async () => {
     await request(app)
       .get('/items?orderDir=foo')
+      .set('cookie', `${sessionName}=${mockSession};oidc=${mockOidc}`)
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(jasmine.any(String))

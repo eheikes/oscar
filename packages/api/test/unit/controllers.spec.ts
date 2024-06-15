@@ -7,7 +7,7 @@ describe('controllers', () => {
 
   beforeEach(() => {
     req = {}
-    resSpy = jasmine.createSpyObj('response', ['json', 'send', 'status'])
+    resSpy = jasmine.createSpyObj('response', ['json', 'send', 'set', 'status'])
   })
 
   describe('getItemsController', () => {
@@ -33,6 +33,44 @@ describe('controllers', () => {
       })
       await getItemsController(req, resSpy)
       expect(resSpy.json).toHaveBeenCalledWith(items)
+    })
+  })
+
+  describe('getProfileController', () => {
+    it('should return the logged-in user info', async () => {
+      const user = { foo: 1 }
+      const { getProfileController } = await esmock('../../src/controllers.js')
+      req = { oidc: { user } }
+      await getProfileController(req, resSpy)
+      expect(resSpy.json).toHaveBeenCalledWith(user)
+    })
+  })
+
+  describe('getWebpageController', () => {
+    it('should set an HTML content-type', async () => {
+      const user = { foo: 1 }
+      const { getWebpageController } = await esmock('../../src/controllers.js')
+      req = {
+        oidc: {
+          isAuthenticated: () => true,
+          user
+        }
+      }
+      await getWebpageController(req, resSpy)
+      expect(resSpy.set).toHaveBeenCalledWith('content-type', 'text/html')
+    })
+
+    it('should send the HTML', async () => {
+      const user = { foo: 1 }
+      const { getWebpageController } = await esmock('../../src/controllers.js')
+      req = {
+        oidc: {
+          isAuthenticated: () => true,
+          user
+        }
+      }
+      await getWebpageController(req, resSpy)
+      expect(resSpy.send.calls.mostRecent().args[0]).toContain('<h1>OSCAR</h1>')
     })
   })
 })
