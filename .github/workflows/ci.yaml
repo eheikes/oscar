@@ -35,7 +35,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Setup database
-        run: psql -h localhost -U postgres -d postgres -f ./packages/api/test/mocks/postgres/items.sql
+        run: |
+          psql -h localhost -U postgres -d postgres -f ./packages/api/test/mocks/postgres/items.sql
+          psql -h localhost -U postgres -d postgres -f ./packages/api/test/mocks/postgres/users.sql
         env:
           PGPASSWORD: test
       - name: Install dependencies
