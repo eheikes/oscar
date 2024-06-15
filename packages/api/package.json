@@ -10,6 +10,7 @@
     "LICENSE.txt",
     "rds-ca-bundle.pem"
   ],
+  "main": "dist/index.js",
   "scripts": {
     "prepare": "husky",
     "prebuild": "del dist",
