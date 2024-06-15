@@ -12,6 +12,7 @@ This project contains the API server for the OSCAR assistant. It is written for 
     * Set up an API gateway as the trigger.
 1. Download the [AWS RDS certificate bundle for your region](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates) and replace the `rds-ca-bundle.pem` file in this `api` folder.
 1. Rename `.env.example` to `.env` and update it with your configuration, _or_ set those variables in your environment.
+    * Make sure `NODE_ENV` is _not_ set to `development`.
 1. Run `npm install && npm run build:release && ARN=YOUR_ARN npm run release`.
     * Replace `YOUR_ARN` with the ARN of your Lambda instance.
 
