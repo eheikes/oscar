@@ -4,8 +4,11 @@
   "description": "OSCAR assistant API",
   "type": "module",
   "files": [
+    "bin/*",
     "dist/*",
-    "LICENSE.txt"
+    ".env.example",
+    "LICENSE.txt",
+    "rds-ca-bundle.pem"
   ],
   "scripts": {
     "prepare": "husky",
