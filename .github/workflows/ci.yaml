@@ -34,6 +34,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Setup environment
+        run: |
+          cp ./packages/api/.env.example ./packages/api/.env
+          echo "OPENID_URL=https://dev-xsabpsprsxx67nah.us.auth0.com" >>./packages/api/.env
       - name: Setup database
         run: |
           psql -h localhost -U postgres -d postgres -f ./packages/api/test/mocks/postgres/items.sql
@@ -45,8 +49,6 @@ jobs:
       - name: Run linter
         run: npm run lint
       - name: Run tests
-        run: |
-          cp ./packages/api/.env.example ./packages/api/.env
-          npm run test
+        run: npm run test
       - name: Upload coverage report
         uses: codecov/codecov-action@v2
