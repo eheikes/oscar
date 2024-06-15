@@ -40,8 +40,18 @@ describe('app', () => {
 
   it('should create the routes', () => {
     expect(mockExpress.get as any).toHaveBeenCalledWith('/', getWebpageController)
-    expect(mockExpress.get as any).toHaveBeenCalledWith('/items', jasmine.any(Function), getItemsController)
-    expect(mockExpress.get as any).toHaveBeenCalledWith('/profile', jasmine.any(Function), getProfileController)
+    expect(mockExpress.get as any).toHaveBeenCalledWith(
+      '/items',
+      jasmine.any(Function),
+      jasmine.any(Function),
+      getItemsController
+    )
+    expect(mockExpress.get as any).toHaveBeenCalledWith(
+      '/profile',
+      jasmine.any(Function),
+      jasmine.any(Function),
+      getProfileController
+    )
   })
 
   it('should throw an error if the request does not match any routes', () => {

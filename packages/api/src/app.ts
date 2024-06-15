@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser'
 import express from 'express'
-import { checkAuthn, configureAuth } from './auth.js'
+import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
 import { getItemsController, getProfileController, getWebpageController } from './controllers.js'
 import { errorHandler, throw404 } from './error.js'
@@ -16,8 +16,8 @@ app.use(configureAuth) // adds /login, /logout, and /callback routes
 if (isDevelopment()) {
   app.get('/', getWebpageController)
 }
-app.get('/items', checkAuthn, getItemsController)
-app.get('/profile', checkAuthn, getProfileController)
+app.get('/items', checkAuthn, checkAuthz, getItemsController)
+app.get('/profile', checkAuthn, checkAuthz, getProfileController)
 /* eslint-enable @typescript-eslint/no-misused-promises */
 
 app.all('(.*)', throw404)

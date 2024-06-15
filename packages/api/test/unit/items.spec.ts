@@ -18,7 +18,7 @@ describe('items', () => {
   beforeEach(() => {
     mockResult = [{
       author: null,
-      created_at: new Date(),
+      created_at: '2024-06-14T06:26:57.549Z',
       deleted_at: null,
       due: new Date(),
       expected_rank: null,
@@ -31,7 +31,7 @@ describe('items', () => {
       summary: null,
       title: 'Test Item',
       type_id: 'read',
-      updated_at: new Date(),
+      updated_at: '2024-06-14T06:26:57.549Z',
       uri: 'http://example.com'
     }]
     const mockKnex: any = Promise.resolve(mockResult)

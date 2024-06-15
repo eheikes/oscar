@@ -2,6 +2,7 @@ import esmock from 'esmock'
 import { Request, Response } from 'express'
 import { configureAuth, mockSession, sessionName } from '../../src/auth.js'
 import { getConfig } from '../../src/config.js'
+import { AuthorizationError } from '../../src/error.js'
 
 describe('auth', () => {
   describe('configureAuth()', () => {
@@ -46,6 +47,56 @@ describe('auth', () => {
       checkAuthn(req, res, nextSpy)
       expect(nextSpy).toHaveBeenCalled()
       expect(openidConnectSpy.requiresAuth).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('checkAuthz()', () => {
+    it('should query the user from the database using the OIDC subscriber ID', async () => {
+      const getUserByIdSpy = jasmine.createSpy('getUserById').and.resolveTo({})
+      const req: Request = {
+        oidc: {
+          user: { sub: '12345' }
+        }
+      } as any
+      const res: Response = {} as any
+      const { checkAuthz } = await esmock('../../src/auth.js', {
+        '../../src/users.js': {
+          getUserById: getUserByIdSpy
+        }
+      })
+      await checkAuthz(req, res, () => {})
+      expect(getUserByIdSpy).toHaveBeenCalledWith('12345')
+    })
+
+    it('should continue to the next middleware if authorized', async () => {
+      const getUserByIdSpy = jasmine.createSpy('getUserById').and.resolveTo({})
+      const req: Request = {} as any
+      const res: Response = {} as any
+      const nextSpy = jasmine.createSpy('next')
+      const { checkAuthz } = await esmock('../../src/auth.js', {
+        '../../src/users.js': {
+          getUserById: getUserByIdSpy
+        }
+      })
+      await checkAuthz(req, res, nextSpy)
+      expect(nextSpy).toHaveBeenCalled()
+    })
+
+    it('should throw an error if not authorized', async () => {
+      const getUserByIdSpy = jasmine.createSpy('getUserById').and.resolveTo(null)
+      const req: Request = {} as any
+      const res: Response = {} as any
+      const { checkAuthz } = await esmock('../../src/auth.js', {
+        '../../src/users.js': {
+          getUserById: getUserByIdSpy
+        }
+      })
+      try {
+        await checkAuthz(req, res, () => {})
+        throw new Error('Should have thrown AuthorizationError')
+      } catch (err) {
+        expect(err).toEqual(jasmine.any(AuthorizationError))
+      }
     })
   })
 })

@@ -1,6 +1,12 @@
 import { Request, Response } from 'express'
 import { ZodError } from 'zod'
-import { ClientError, errorHandler, MissingRouteError, throw404 } from '../../src/error.js'
+import {
+  AuthorizationError,
+  ClientError,
+  errorHandler,
+  MissingRouteError,
+  throw404
+} from '../../src/error.js'
 
 describe('error', () => {
   let nextSpy: jasmine.Spy
@@ -39,6 +45,13 @@ describe('error', () => {
       errorHandler(err, req, resSpy, nextSpy)
       expect(resSpy.status).toHaveBeenCalledWith(400)
       expect(resSpy.send).toHaveBeenCalledWith({ error: jasmine.any(String) })
+    })
+
+    it('should return a 403 for authorization errors', () => {
+      const err = new AuthorizationError('test')
+      errorHandler(err, req, resSpy, nextSpy)
+      expect(resSpy.status).toHaveBeenCalledWith(403)
+      expect(resSpy.send).toHaveBeenCalledWith({ error: 'Unauthorized' })
     })
 
     it('should return a 404 for routing errors', () => {
