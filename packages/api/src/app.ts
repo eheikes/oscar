@@ -1,4 +1,5 @@
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express from 'express'
 import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
@@ -9,6 +10,9 @@ export const app = express()
 
 app.set('x-powered-by', false)
 
+app.use(cors({
+  origin: '*'
+}))
 app.use(cookieParser())
 app.use(configureAuth) // adds /login, /logout, and /callback routes
 

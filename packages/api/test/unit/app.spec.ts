@@ -9,12 +9,15 @@ describe('app', () => {
   let app: typeof originalApp
   let mockExpress: jasmine.SpyObj<Express>
   let cookieParserSpy: jasmine.Spy
+  let corsSpy: jasmine.Spy
 
   beforeEach(async () => {
     mockExpress = jasmine.createSpyObj('app', ['all', 'get', 'set', 'use'])
     cookieParserSpy = jasmine.createSpy('cookie-parser')
+    corsSpy = jasmine.createSpy('cors')
     ;({ app } = await esmock('../../src/app.js', {
       'cookie-parser': cookieParserSpy,
+      cors: corsSpy,
       express: () => mockExpress,
       '../../src/config.js': {
         isDevelopment: () => true
@@ -32,6 +35,10 @@ describe('app', () => {
 
   it('should add cookie parsing middleware', () => {
     expect(cookieParserSpy).toHaveBeenCalled()
+  })
+
+  it('should configure CORS', () => {
+    expect(corsSpy).toHaveBeenCalledWith({ origin: '*' })
   })
 
   it('should configure the authentication middleware', () => {
