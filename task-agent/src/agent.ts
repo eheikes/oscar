@@ -1,11 +1,24 @@
+import { promises as fs } from 'fs'
+import { compile, registerHelper } from 'handlebars'
 import * as minimist from 'minimist'
-import { basename } from 'path'
+import { basename, join } from 'path'
 import { Config, getConfig, RecurringConfig } from './config'
 import { choose, ChooserOptions } from './chooser'
 import { sendTodoEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
-import { addTask, assignPerson, getCurrentUser as getTeamGanttUser, getTodaysTasks } from './teamgantt'
+import {
+  addTask,
+  assignPerson,
+  deleteTask,
+  getCurrentUser as getTeamGanttUser,
+  getOldTasks,
+  getProjectGroups,
+  getProjects,
+  getTodaysTasks,
+  getUnassignedTasks,
+  Task as TeamGanttTask
+} from './teamgantt'
 import { CardSizePluginValue, TrelloCard, getCardPluginData, getCurrentUser, getListCards } from './trello'
 
 export const FLAG_URGENT = 0x001
@@ -65,6 +78,8 @@ const shouldOccur = (todo: RecurringConfig): boolean => {
   }
 }
 
+const sleep = (millisecs: number) => new Promise((resolve) => setTimeout(resolve, millisecs))
+
 /**
  * Chooses tasks until a size threshold is met.
  */
@@ -111,9 +126,9 @@ export const create = async (config: Config): Promise<void> => {
     log('create', 'No recurring todos are configured')
     return
   }
-  log('create', 'Found', config.todos.recurring.length, 'recurring todos')
+  log('create', 'Found', (config.todos.recurring || []).length, 'recurring todos')
   const now = new Date()
-  for (const recurringTodo of config.todos.recurring) {
+  for (const recurringTodo of (config.todos.recurring || [])) {
     if (shouldOccur(recurringTodo)) {
       log('create', `Creating task for "${recurringTodo.name}"`)
       const timeParts = (recurringTodo.due ?? '23:59').split(':')
@@ -138,6 +153,34 @@ export const create = async (config: Config): Promise<void> => {
         await assignPerson(task.id, recurringTodo.assignee)
       }
     }
+  }
+}
+
+export const list = async (config: Config): Promise<void> => {
+  let tasks = await getUnassignedTasks()
+  tasks = tasks.filter(task => task.start_date)
+  console.log('tasks:', tasks)
+  const sortedTasks: {[key: string]: TeamGanttTask[]} = {}
+  for (const task of tasks) {
+    if (!(task.parent_group_name in sortedTasks)) {
+      sortedTasks[task.parent_group_name] = []
+    }
+    sortedTasks[task.parent_group_name].push(task)
+    sortedTasks[task.parent_group_name].sort((a, b) => { return b.sort - a.sort })
+  }
+  for (const group of Object.keys(sortedTasks)) {
+    console.log(`${group}:`, sortedTasks[group].map(task => task.name).join(', '))
+    // console.log(`${group} oldest:`, sortedTasks[group].slice(0, 3).map(task => task.name).join(', '))
+    // console.log(`${group} newest:`, sortedTasks[group].slice(-3).map(task => task.name).join(', '))
+  }
+}
+
+export const purge = async (config: Config): Promise<void> => {
+  let tasks = await getOldTasks()
+  for (const task of tasks) {
+    console.log(`Deleting task ${task.id}: ${task.name} (${task.start_date} to ${task.end_date})`)
+    await deleteTask(task.id)
+    // await sleep(200) // slow enough that no waiting is necessary
   }
 }
 
@@ -207,6 +250,89 @@ export const email = async (config: Config): Promise<void> => {
   log('email', `Email ${result.messageId} sent`)
 }
 
+/**
+ * Creates a webpage of the to-do list.
+ */
+export const html = async (config: Config): Promise<void> => {
+  // Retrieve the tasks from TeamGantt.
+  const tasks = await getTodaysTasks()
+  // const tasks = cards.filter(isUserCard(userId)).map(card => new Task(card, {
+  //   defaultTimeDue: config.todos.defaultDue,
+  //   importantLabel: config.trello.labels.important,
+  //   unimportantLabel: config.trello.labels.unimportant,
+  //   urgentTime: config.todos.urgentTime
+  // }))
+  log('html', tasks.length, 'tasks retrieved')
+
+  // Filter and modify the tasks.
+  const excludedProjects = config.html.excludeProjects || []
+  const modifiedTasks = tasks.filter((task) => {
+    // Omit any tasks that are in a project marked for exclusion.
+    return !excludedProjects.includes(task.project_id)
+  }).map((task) => {
+    return {
+      ...task,
+      is_overdue: task.work_days_left < 0
+    }
+  })
+  log('html', modifiedTasks.length, 'tasks to do')
+
+  // Sort the tasks into buckets.
+  // const buckets: {[key: number]: Task[]} = {
+  //   0: [],
+  //   [FLAG_URGENT]: [],
+  //   [FLAG_IMPORTANT]: [],
+  //   [FLAG_OVERDUE]: []
+  // }
+  // tasks.forEach(task => {
+  //   if (task.urgent) {
+  //     buckets[FLAG_URGENT].push(task)
+  //   } else if (task.important) {
+  //     buckets[FLAG_IMPORTANT].push(task)
+  //   } else {
+  //     buckets[0].push(task)
+  //   }
+
+  //   if (task.overdue) {
+  //     buckets[FLAG_OVERDUE].push(task)
+  //   }
+  // })
+  // buckets[FLAG_OVERDUE].sort(Task.compare)
+  // buckets[FLAG_URGENT].sort(Task.compare)
+  // buckets[FLAG_IMPORTANT].sort(Task.compare)
+  // buckets[0].sort(Task.compare)
+  // log('email', 'Urgent:', buckets[FLAG_URGENT].length, 'tasks')
+  // log('email', 'Important:', buckets[FLAG_IMPORTANT].length, 'tasks')
+  // log('email', 'Neither:', buckets[0].length, 'tasks')
+  // log('email', 'Overdue:', buckets[FLAG_OVERDUE].length, 'tasks')
+
+  // Send an email with the selected tasks.
+  // const pickOpts: PickTasksOptions = {
+  //   pluginId: config.trello.cardSizePluginId,
+  //   sizeUnit: config.trello.cardSizeUnit
+  // }
+  // const urgent: Task[] = await pickTasks(buckets[FLAG_URGENT], config.todos.urgentAmount || 4, pickOpts)
+  // const important: Task[] = await pickTasks(buckets[FLAG_IMPORTANT], config.todos.importantAmount || 4, pickOpts)
+  // const overdue: Task[] = buckets[FLAG_OVERDUE].filter(isNotIn(urgent, important))
+  // const result = await sendTodoEmail(
+  //   urgent,
+  //   important,
+  //   overdue
+  // )
+  // log('email', `Email ${result.messageId} sent`)
+
+  // Build the HTML.
+  // registerHelper('date', toDateString)
+  const templateFilename = join(__dirname, '..', 'templates', 'todo.html')
+  const template = await fs.readFile(templateFilename, 'utf-8')
+  const compiled = compile(template)
+  const html = compiled({ tasks: modifiedTasks })
+
+  // Write the file.
+  await fs.writeFile(config.html.outputFile, html, 'utf-8')
+  log('html', `Wrote HTML to ${config.html.outputFile}`)
+}
+
 export const usage = (): void => {
   process.stdout.write(`Usage: ${basename(process.argv[1])} {choose | create | email | sort} [--dry-run]
 `)
@@ -225,6 +351,12 @@ export const main = async (): Promise<void> => {
     await create(config)
   } else if (argv._[0] === 'email') {
     await email(config)
+  } else if (argv._[0] === 'purge') {
+    await purge(config)
+  } else if (argv._[0] === 'html') {
+    await html(config)
+  } else if (argv._[0] === 'list') {
+    await list(config)
   } else {
     usage()
     return

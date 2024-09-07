@@ -64,6 +64,10 @@ export interface EmailServerConfig {
   password: string
 }
 
+export interface HtmlConfig {
+  excludeProjects?: number[]
+  outputFile: string
+}
 
 export interface RecurringConfig {
   description?: string
@@ -117,6 +121,7 @@ export interface TrelloLabelsConfig {
 export interface Config {
   chooser?: ChooserConfig
   email: EmailConfig
+  html: HtmlConfig
   teamgantt: TeamGanttConfig
   todos: TodoConfig
   trello: TrelloConfig
