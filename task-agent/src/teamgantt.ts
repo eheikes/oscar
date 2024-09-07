@@ -60,6 +60,17 @@ export interface NewTask {
   projectId: number
 }
 
+/**
+ * Not a complete list
+ */
+export interface Project {
+  company_id: number
+  id: number
+  project_id: number
+  project_status: 'active' | 'on hold' | 'complete'
+  user_id: number
+}
+
 export interface Resource {
   color: string | null
   hours_per_day: number
@@ -126,6 +137,33 @@ export interface Task {
 export interface User {
   // TODO
 }
+
+const ONE_DAY = 60 * 60 * 24 * 1000
+
+const personalDailiesGroup = 29857733
+const dailyChoresGroup = 29838997
+const excludedGroups = [
+  30211106, // game dev - i spy
+  29857649, // health - appts
+  29857657, // health - research
+  30088708, // house - energy efficiency
+  29850847, // house - misc repairs
+  30088221, // ollie - education
+  30795110, // ollie - misc
+  29868670, // personal - gallery
+  30021667, // personal - fun
+  30022689, // personal - productivity
+  29858693, // personal - TeamGantt
+  30329336, // software - tts
+  30213629, // software - server hosting
+  30264753, // software - ericheikes.com
+  30265014, // software - mheikes.com
+  30265018, // sofware - mixtapes
+  30265024, // software - links.php
+  30265028, // software - ttrss
+  30265049, // software - wiki
+  30265050, // software - the week
+]
 
 let authTokens: OAuthTokens | null = null
 
@@ -258,6 +296,29 @@ export const assignPerson = async (taskId: number, userId: number): Promise<Reso
   }
 }
 
+export const deleteTask = async (id: number): Promise<void> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks/${id}`
+  try {
+    log('deleteTask', `Deleting task ${url}`)
+    await got.delete(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    })
+  } catch (err: any) {
+    log('deleteTask', 'ERROR!', err)
+    if (err.response) {
+      log('deleteTask', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('deleteTask', err)
+    }
+    throw err
+  }
+}
+
 export const getProjectGroups = async (projectId: number): Promise<Group[]> => {
   const { id_token: idToken } = await getAuthTokens()
   const { teamgantt: { apiUrl } } = await getConfig()
@@ -306,6 +367,66 @@ export const getCurrentUser = async (): Promise<User> => {
   }
 }
 
+export const getProjects = async (): Promise<Project[]> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/projects/all`
+  try {
+    log('getProjects', `Getting projects ${url}`)
+    const projects = await got.get(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    }).json<Project[]>()
+    return projects
+  } catch (err: any) {
+    log('getProjects', 'ERROR!', err)
+    if (err.response) {
+      log('getProjects', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('getProjects', err)
+    }
+    throw err
+  }
+}
+
+export const getOldTasks = async (): Promise<Task[]> => {
+  const oldDatetime = Date.now() - ONE_DAY * 30 * 6 // approx 6 months
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks?hide_completed=false&include_overdue=true`
+  try {
+    log('getOldTasks', `Getting all tasks ${url}`)
+    const tasks = await got.get(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    }).json<Task[]>()
+    return tasks.filter(task => {
+      // Only include completed tasks
+      if (task.percent_complete < 100) { return false }
+      // Only include daily recurring tasks (for now)
+      // if (task.parent_group_id !== dailyChoresGroup && task.parent_group_id !== personalDailiesGroup) { return false }
+      // Exclude certain groups (TODO: Change this to parent categories probably)
+      if (excludedGroups.includes(task.parent_group_id)) { return false }
+      // Check if the task is old
+      if (task.end_date && (Date.parse(task.end_date) < oldDatetime)) { return true }
+      if (task.start_date && (Date.parse(task.start_date) < oldDatetime)) { return true }
+      return false
+    })
+  } catch (err: any) {
+    log('getOldTasks', 'ERROR!', err)
+    if (err.response) {
+      log('getOldTasks', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('getOldTasks', err)
+    }
+    throw err
+  }
+}
+
 export const getTodaysTasks = async (): Promise<Task[]> => {
   const { id_token: idToken } = await getAuthTokens()
   const { teamgantt: { apiUrl } } = await getConfig()
@@ -325,6 +446,30 @@ export const getTodaysTasks = async (): Promise<Task[]> => {
     }
     if (err instanceof Error) {
       log('getTodaysTasks', err)
+    }
+    throw err
+  }
+}
+
+export const getUnassignedTasks = async (): Promise<Task[]> => {
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks?hide_completed=true&unscheduled=false&unassigned=true`
+  try {
+    log('getUnassignedTasks', `Getting unassigned tasks ${url}`)
+    const tasks = await got.get(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    }).json<Task[]>()
+    return tasks
+  } catch (err: any) {
+    log('getUnassignedTasks', 'ERROR!', err)
+    if (err.response) {
+      log('getUnassignedTasks', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('getUnassignedTasks', err)
     }
     throw err
   }
