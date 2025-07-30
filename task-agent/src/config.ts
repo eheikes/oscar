@@ -72,7 +72,7 @@ export interface HtmlConfig {
 export interface RecurringConfig {
   description?: string
   every?: number // TODO
-  labels?: string[] // TODO
+  labels?: string[]
   list: string
   name: string
   // size?: number
@@ -94,6 +94,7 @@ export interface TeamGanttConfig {
 }
 
 export interface TodoConfig {
+  companyId: number
   defaultDue: number
   importantAmount: number
   recurring?: RecurringConfig[]

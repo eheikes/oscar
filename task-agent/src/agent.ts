@@ -8,6 +8,7 @@ import { sendTodoEmail } from './email'
 import { log } from './log'
 import { Task } from './task'
 import {
+  addLabel,
   addTask,
   assignPerson,
   deleteTask,
@@ -151,6 +152,9 @@ export const create = async (config: Config): Promise<void> => {
       })
       if (recurringTodo.assignee) {
         await assignPerson(task.id, recurringTodo.assignee)
+      }
+      for (const label of recurringTodo.labels || []) {
+        await addLabel(task.id, label)
       }
     }
   }

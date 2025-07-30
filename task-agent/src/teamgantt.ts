@@ -73,6 +73,8 @@ export interface Project {
 
 export interface Resource {
   color: string | null
+  company_id: number
+  created_at: string
   hours_per_day: number
   id: number
   is_disabled: boolean
@@ -83,8 +85,9 @@ export interface Resource {
   total_hours: number
   type: 'company' | 'project' | 'user'
   type_id: number
-
 }
+
+export type ShortResource = Pick<Resource, 'company_id' | 'created_at' | 'id' | 'name'>
 
 export interface Task {
   allow_scheduling_on_holidays: null // TODO
@@ -197,6 +200,77 @@ const getAuthTokens = async (): Promise<OAuthTokens> => {
     }
   }
   return authTokens
+}
+
+/**
+ * Gets all the company resources and caches it.
+ */
+let companyResourcesCache: ShortResource[] | null = null
+export const getCompanyResources = async (): Promise<ShortResource[]> => {
+  if (companyResourcesCache) {
+    return companyResourcesCache
+  }
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl }, todos: { companyId } } = await getConfig()
+  const url = `${apiUrl}/companies/${companyId}/resources/company`
+  try {
+    log('getCompanyResources', `Getting resources for company ${companyId} ${url}`)
+    const resources = await got.get(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    }).json<ShortResource[]>()
+    companyResourcesCache = resources
+    return resources
+  } catch (err: any) {
+    log('getCompanyResources', 'ERROR!')
+    if (err.response) {
+      log('getCompanyResources', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('getCompanyResources', err)
+    }
+    throw err
+  }
+}
+
+/**
+ * Adds a label to the specified task.
+ */
+export const addLabel = async (taskId: number, labelName: string): Promise<Resource | null> => {
+  const resources = await getCompanyResources()
+  const typeId = resources.find(r => r.name === labelName)?.id
+  if (!typeId) {
+    log('addLabel', `Could not find label with name "${labelName}", ignoring`)
+    return null
+  }
+
+  const { id_token: idToken } = await getAuthTokens()
+  const { teamgantt: { apiUrl } } = await getConfig()
+  const url = `${apiUrl}/tasks/${taskId}/resources`
+  try {
+    log('addLabel', `Creating label on task ${taskId} ${url}`)
+    const newLabel = await got.post(url, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      },
+      json: {
+        task_id: taskId,
+        type: 'company',
+        type_id: typeId
+      }
+    }).json<Resource>()
+    return newLabel
+  } catch (err: any) {
+    log('addLabel', 'ERROR!')
+    if (err.response) {
+      log('addLabel', err.response.statusCode, err.response.body)
+    }
+    if (err instanceof Error) {
+      log('addLabel', err)
+    }
+    throw err
+  }
 }
 
 /**

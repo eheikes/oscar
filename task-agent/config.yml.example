@@ -63,6 +63,7 @@ todos:
   urgentTime: 604800
   urgentAmount: 3
   importantAmount: 2
+  companyId: 123456
   recurring:
     - type: dow
       value: 1
