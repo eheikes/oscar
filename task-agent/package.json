@@ -61,5 +61,8 @@
     "jest": "^25.1.0",
     "ts-jest": "^25.2.0",
     "typescript": "^5.2.2"
+  },
+  "resolutions": {
+    "**/request/**/form-data": "^2.5.4"
   }
 }
