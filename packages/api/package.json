@@ -22,7 +22,7 @@
     "report-coverage": "codecov",
     "release": "bin/release.sh",
     "test": "run-s test:e2e",
-    "test:e2e": "NODE_ENV=test vitest run test/e2e",
+    "test:e2e": "NODE_ENV=test NODE_OPTIONS='--import tsx' vitest run test/e2e",
     "start": "TS_NODE_FILES=true NODE_PATH=./ node --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/server.ts"
   },
   "repository": {
@@ -55,6 +55,7 @@
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
+    "tsx": "^4.22.1",
     "typescript": "^5.4.5",
     "vitest": "^4.1.6"
   },
