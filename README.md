@@ -1,6 +1,6 @@
 # OSCAR Assistant (in progress)
 
-> OSCAR: Organize, Schedule, Coordinate, and ARrange
+> OSCAR: Organize and Save Content for Action and Review
 
 This project is a monorepo. OSCAR consists of the following parts:
 
