@@ -4,7 +4,10 @@ import express from 'express'
 import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
 import { getItemsController, getProfileController, getWebpageController } from './controllers.js'
+import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
+
+await migrateDatabase()
 
 export const app = express()
 

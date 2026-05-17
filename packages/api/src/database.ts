@@ -30,3 +30,10 @@ export const getDatabaseConnection = (): Knex => {
   }
   return connection
 }
+
+export const migrateDatabase = async (): Promise<void> => {
+  const db = getDatabaseConnection()
+  await db.migrate.latest({
+    directory: './src/migrations'
+  })
+}
