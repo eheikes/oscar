@@ -1,4 +1,0 @@
-CREATE TABLE types (
-  id        VARCHAR(16) PRIMARY KEY,
-  readable  VARCHAR(256) DEFAULT NULL
-);
