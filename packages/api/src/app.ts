@@ -3,7 +3,7 @@ import cors from 'cors'
 import express from 'express'
 import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
-import { getItemsController, getProfileController, getWebpageController } from './controllers.js'
+import { getItemsController, getProfileController, getTypesController, getWebpageController } from './controllers.js'
 import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
 
@@ -24,6 +24,7 @@ if (isDevelopment()) {
   app.get('/', getWebpageController)
 }
 app.get('/items', checkAuthn, checkAuthz, getItemsController)
+app.get('/types', getTypesController)
 app.get('/profile', checkAuthn, checkAuthz, getProfileController)
 /* eslint-enable @typescript-eslint/no-misused-promises */
 

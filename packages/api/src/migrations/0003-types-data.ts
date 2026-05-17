@@ -9,7 +9,8 @@ const upSql = `INSERT INTO types (id, readable) VALUES
 ('read', NULL),
 ('task', 'do'),
 ('watch', NULL),
-('watch-passive', 'passively watch');
+('watch-passive', 'passively watch')
+ON CONFLICT (id) DO NOTHING;
 `
 
 const downSql = 'DELETE * FROM types;'
