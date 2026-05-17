@@ -26,7 +26,10 @@ let config: Config | null = null
 // Helper function to allow mocking in tests
 export const getConfig = (): Config => {
   if (config == null) {
-    loadEnvFile()
+    loadEnvFile({
+      path: [`.env.${process.env.NODE_ENV ?? 'local'}`, '.env'],
+      override: true
+    })
     config = parseEnv(process.env, fields)
   }
   return config

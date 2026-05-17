@@ -24,5 +24,5 @@ app.get('/items', checkAuthn, checkAuthz, getItemsController)
 app.get('/profile', checkAuthn, checkAuthz, getProfileController)
 /* eslint-enable @typescript-eslint/no-misused-promises */
 
-app.all('(.*)', throw404)
+app.all('/*any', throw404)
 app.use(errorHandler)
