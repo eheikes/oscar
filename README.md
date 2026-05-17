@@ -2,6 +2,8 @@
 
 > OSCAR: Organize and Save Content for Action and Review
 
+The underlying idea is to remove the executive decision-making from task apps. You enter the things you need to do with as little friction as possible, and the app tells you what you should work on next.
+
 This project is a monorepo. OSCAR consists of the following parts:
 
 * [REST API](api)
