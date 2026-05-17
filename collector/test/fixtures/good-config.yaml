@@ -1,6 +1,0 @@
-database:
-  type: exampleType
-  host: exampleHost
-  user: exampleUser
-  password: examplePassword
-  name: exampleName
