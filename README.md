@@ -6,9 +6,8 @@ The underlying idea is to remove the executive decision-making from task apps. Y
 
 This project is a monorepo. OSCAR consists of the following parts:
 
-* [REST API](api)
-* [client UI](client)
-* [collector agent](collector)
+* [REST API](packages/api)
+* [web client UI](packages/web)
 
 ## Configuration
 
