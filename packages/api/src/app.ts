@@ -3,7 +3,13 @@ import cors from 'cors'
 import express from 'express'
 import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
-import { getItemsController, getProfileController, getTypesController, getWebpageController } from './controllers.js'
+import {
+  getItemsController,
+  getNextItemController,
+  getProfileController,
+  getTypesController,
+  getWebpageController
+} from './controllers.js'
 import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
 
@@ -23,6 +29,7 @@ app.use(configureAuth) // adds /login, /logout, and /callback routes
 if (isDevelopment()) {
   app.get('/', getWebpageController)
 }
+app.get('/items/next', getNextItemController)
 app.get('/items', checkAuthn, checkAuthz, getItemsController)
 app.get('/types', getTypesController)
 app.get('/profile', checkAuthn, checkAuthz, getProfileController)

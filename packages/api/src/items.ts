@@ -1,7 +1,7 @@
 import { type ParsedQs } from 'qs'
 import { z } from 'zod'
 import { getDatabaseConnection } from './database.js'
-import { ClientError } from './error.js'
+import { ClientError, NotFoundError } from './error.js'
 
 export interface DatabaseItem {
   author: string | null
@@ -70,6 +70,27 @@ const isItemField = (name: string): name is keyof Item => {
   return Object.keys(itemFieldMapping).includes(name)
 }
 
+const mapItemFromDatabase = (row: DatabaseItem): Item => {
+  return {
+    author: row.author,
+    createdAt: new Date(row.created_at),
+    deletedAt: row.deleted_at === null ? /* c8 ignore next */ null : new Date(row.deleted_at),
+    due: row.due === null ? /* c8 ignore next */ null : new Date(row.due),
+    expectedRank: row.expected_rank,
+    id: row.id,
+    imageUri: row.image_uri,
+    language: row.language,
+    length: row.length,
+    rank: row.rank,
+    rating: row.rating,
+    summary: row.summary,
+    title: row.title,
+    type: row.type_id,
+    updatedAt: new Date(row.updated_at),
+    uri: row.uri
+  }
+}
+
 const getItemsRequestSchema = z.object({
   count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
@@ -128,22 +149,29 @@ export const getItems = async (params: ParsedQs): Promise<Item[]> => {
   }
   query = query.limit(Math.min(parsedParams.count, 100))
   const result = await query
-  return result.map(row => ({
-    author: row.author,
-    createdAt: new Date(row.created_at),
-    deletedAt: row.deleted_at === null ? /* c8 ignore next */ null : new Date(row.deleted_at),
-    due: row.due === null ? /* c8 ignore next */ null : new Date(row.due),
-    expectedRank: row.expected_rank,
-    id: row.id,
-    imageUri: row.image_uri,
-    language: row.language,
-    length: row.length,
-    rank: row.rank,
-    rating: row.rating,
-    summary: row.summary,
-    title: row.title,
-    type: row.type_id,
-    updatedAt: new Date(row.updated_at),
-    uri: row.uri
-  }))
+  return result.map(mapItemFromDatabase)
+}
+
+const getNextItemRequestSchema = z.object({
+  type: z.string()
+})
+
+interface NextItem {
+  item: Item
+  reason: string
+}
+
+export const getNextItem = async (params: ParsedQs): Promise<NextItem> => {
+  const parsedParams = getNextItemRequestSchema.parse(params)
+  const db = getDatabaseConnection()
+  // For now, simply choose the first item in the DB.
+  const query = db.select('*').from('items').where('type_id', parsedParams.type).whereNull('deleted_at').limit(1)
+  const result = await query
+  if (result.length === 0) {
+    throw new NotFoundError('No items found')
+  }
+  return {
+    item: mapItemFromDatabase(result[0]),
+    reason: 'This item is the first in the list.'
+  }
 }
