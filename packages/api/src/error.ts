@@ -9,14 +9,16 @@ export class ClientError extends Error {}
 
 export class MissingRouteError extends Error {}
 
+export class NotFoundError extends Error {}
+
 export const errorHandler = (err: Error, _req: Request, res: Response, next: NextFunction): void => {
   // Delegate to the default Express handler if headers have been sent.
   if (res.headersSent) {
     return next(err)
   }
 
-  // Invalid route should return a 404.
-  if (err instanceof MissingRouteError) {
+  // Invalid route or Not Found should return a 404.
+  if (err instanceof MissingRouteError || err instanceof NotFoundError) {
     res.status(404)
     res.send({ error: err.message })
     return

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { getItems } from './items.js'
+import { getItems, getNextItem } from './items.js'
 import { getTypes } from './types.js'
 import { render } from './webpage.js'
 
@@ -7,6 +7,11 @@ export type Controller = (req: Request, res: Response, next: NextFunction) => Pr
 
 export const getItemsController: Controller = async (req, res) => {
   const result = await getItems(req.query)
+  res.json(result)
+}
+
+export const getNextItemController: Controller = async (req, res) => {
+  const result = await getNextItem(req.query)
   res.json(result)
 }
 
