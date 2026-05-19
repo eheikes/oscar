@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
-describe('GET /items/:typeId', () => {
+describe('DELETE /items/:itemId', () => {
   const db = getDatabaseConnection()
   const testItem1 = {
     id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
@@ -19,7 +19,8 @@ describe('GET /items/:typeId', () => {
     uri: 'http://example.com/foo',
     type_id: 'task',
     created_at: new Date('2024-05-31T06:28:34.356Z'),
-    updated_at: new Date('2024-05-31T06:28:34.356Z')
+    updated_at: new Date('2024-05-31T06:28:34.356Z'),
+    deleted_at: new Date('2024-06-01T10:00:00.000Z')
   }
 
   beforeAll(async () => {
@@ -28,28 +29,29 @@ describe('GET /items/:typeId', () => {
     await db('items').insert(testItem2)
   })
 
-  it('should return the next item for a given type', async () => {
+  it('should delete an item by ID', async () => {
     await request(app)
-      .get('/items/next?type=task')
-      .expect(200)
-      .then(response => {
-        expect(response.body.item.id).toEqual(testItem1.id)
-        expect(response.body.reason).toEqual(expect.any(String))
-      })
+      .delete(`/items/${testItem1.id}`)
+      .expect(204)
   })
 
-  it('should return 404 when there is no item of the given type', async () => {
+  it('should return 400 when a non-UUID is provided', async () => {
     await request(app)
-      .get('/items/next?type=nonexistent')
+      .delete('/items/invalid-uuid')
+      .expect(400)
+  })
+
+  it('should return 404 when trying to delete a non-existent item', async () => {
+    await request(app)
+      .delete('/items/00000000-0000-0000-0000-000000000000')
       .expect(404)
   })
 
-  it('should return 400 when given invalid params', async () => {
+  it('should not change the deletion date for an item already deleted', async () => {
     await request(app)
-      .get('/items/next')
-      .expect(400)
-      .then(response => {
-        expect(response.body.error).toEqual(expect.any(String))
-      })
+      .delete(`/items/${testItem2.id}`)
+      .expect(204)
+    const item = await db('items').where({ id: testItem2.id }).first()
+    expect(item?.deleted_at?.toISOString()).toBe('2024-06-01T10:00:00.000Z')
   })
 })

@@ -4,6 +4,7 @@ import express from 'express'
 import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
 import {
+  deleteItemController,
   getItemsController,
   getNextItemController,
   getProfileController,
@@ -30,6 +31,7 @@ if (isDevelopment()) {
   app.get('/', getWebpageController)
 }
 app.get('/items/next', getNextItemController)
+app.delete('/items/:itemId', deleteItemController)
 app.get('/items', checkAuthn, checkAuthz, getItemsController)
 app.get('/types', getTypesController)
 app.get('/profile', checkAuthn, checkAuthz, getProfileController)
