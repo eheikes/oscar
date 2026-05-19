@@ -5,8 +5,8 @@ import { ClientError, NotFoundError } from './error.js'
 
 export interface DatabaseItem {
   author: string | null
-  created_at: string
-  deleted_at: string | null
+  created_at: Date
+  deleted_at: Date | null
   due: string | null
   expected_rank: number | null
   id: string
@@ -18,7 +18,7 @@ export interface DatabaseItem {
   summary: string | null
   title: string
   type_id: string
-  updated_at: string
+  updated_at: Date
   uri: string
 }
 
@@ -89,6 +89,24 @@ const mapItemFromDatabase = (row: DatabaseItem): Item => {
     updatedAt: new Date(row.updated_at),
     uri: row.uri
   }
+}
+
+const deleteItemRequestSchema = z.object({
+  itemId: z.string().uuid()
+})
+
+export const deleteItem = async (itemId: string): Promise<void> => {
+  deleteItemRequestSchema.parse({ itemId })
+  const db = getDatabaseConnection()
+  const result = await db.select('*').from('items').where({ id: itemId }).first()
+  if (result === undefined) {
+    throw new NotFoundError('Item not found')
+  }
+  if (result.deleted_at !== null) {
+    // Item is already deleted, so don't update the deletion date.
+    return
+  }
+  await db('items').update({ deleted_at: new Date() }).where({ id: itemId })
 }
 
 const getItemsRequestSchema = z.object({
