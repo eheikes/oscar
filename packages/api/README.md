@@ -26,7 +26,7 @@ Remember to set your environment variables (using `.env` or other method) to con
 
 Scripts for local development:
 
-* Run a local server: `npm start`.
+* Run a local server: `NODE_ENV=local npm start`.
 * Lint the files: `npm run lint`.
 * Build the app: `npm run build`. Run `npm run build:release` to minify the files.
 * Upload & publish to AWS Lambda: `ARN=<LAMBDA ARN> npm run release`
