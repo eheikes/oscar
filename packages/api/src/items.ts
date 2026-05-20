@@ -107,46 +107,46 @@ const addItemRequestSchema = z.object({
   uri: z.string().nullish()
 })
 
-export const addItem = async (itemData: Record<string, any>): Promise<Item> => {
-  addItemRequestSchema.parse(itemData)
+export const addItem = async (itemData: unknown): Promise<Item> => {
+  const parsedItemData = addItemRequestSchema.parse(itemData)
   const db = getDatabaseConnection()
   const id = uuidv4()
   const now = new Date()
   await db('items').insert({
-    author: itemData.author,
+    author: parsedItemData.author,
     created_at: now,
     deleted_at: null,
-    due: itemData.due,
-    expected_rank: itemData.expectedRank,
+    due: parsedItemData.due,
+    expected_rank: parsedItemData.expectedRank,
     id,
-    image_uri: itemData.imageUri,
-    language: itemData.language,
-    length: itemData.length,
-    rank: itemData.rank,
-    rating: itemData.rating,
-    summary: itemData.summary,
-    title: itemData.title,
-    type_id: itemData.type,
+    image_uri: parsedItemData.imageUri,
+    language: parsedItemData.language,
+    length: parsedItemData.length,
+    rank: parsedItemData.rank,
+    rating: parsedItemData.rating,
+    summary: parsedItemData.summary,
+    title: parsedItemData.title,
+    type_id: parsedItemData.type,
     updated_at: now,
-    uri: itemData.uri
+    uri: parsedItemData.uri
   })
   return {
-    author: itemData.author ?? null,
+    author: parsedItemData.author ?? null,
     createdAt: now.toISOString(),
     deletedAt: null,
-    due: itemData.due ?? null,
-    expectedRank: itemData.expectedRank ?? null,
+    due: parsedItemData.due ?? null,
+    expectedRank: parsedItemData.expectedRank ?? null,
     id,
-    imageUri: itemData.imageUri ?? null,
-    language: itemData.language ?? null,
-    length: itemData.length ?? null,
-    rank: itemData.rank ?? null,
-    rating: itemData.rating ?? null,
-    summary: itemData.summary ?? null,
-    title: itemData.title ?? null,
-    type: itemData.type,
+    imageUri: parsedItemData.imageUri ?? null,
+    language: parsedItemData.language ?? null,
+    length: parsedItemData.length ?? null,
+    rank: parsedItemData.rank ?? null,
+    rating: parsedItemData.rating ?? null,
+    summary: parsedItemData.summary ?? null,
+    title: parsedItemData.title ?? null,
+    type: parsedItemData.type,
     updatedAt: now.toISOString(),
-    uri: itemData.uri ?? null
+    uri: parsedItemData.uri ?? null
   }
 }
 
