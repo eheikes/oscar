@@ -1,9 +1,11 @@
+import { json } from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
 import { isDevelopment } from './config.js'
 import {
+  addItemController,
   deleteItemController,
   getItemsController,
   getNextItemController,
@@ -17,6 +19,8 @@ import { errorHandler, throw404 } from './error.js'
 await migrateDatabase()
 
 export const app = express()
+
+app.use(json())
 
 app.set('x-powered-by', false)
 
@@ -33,6 +37,7 @@ if (isDevelopment()) {
 app.get('/items/next', getNextItemController)
 app.delete('/items/:itemId', deleteItemController)
 app.get('/items', checkAuthn, checkAuthz, getItemsController)
+app.post('/items', addItemController)
 app.get('/types', getTypesController)
 app.get('/profile', checkAuthn, checkAuthz, getProfileController)
 /* eslint-enable @typescript-eslint/no-misused-promises */

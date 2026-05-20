@@ -37,7 +37,12 @@ export const getConfig = (): Config => {
 
 export const isDevelopment = (): boolean => {
   const config = getConfig()
-  return config.NODE_ENV === 'development'
+  return config.NODE_ENV === 'development' || config.NODE_ENV === 'local'
+}
+
+export const isTest = (): boolean => {
+  const config = getConfig()
+  return config.NODE_ENV === 'test'
 }
 
 // Helper function for tests

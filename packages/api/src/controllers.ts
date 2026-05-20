@@ -1,9 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
-import { deleteItem, getItems, getNextItem } from './items.js'
+import { addItem, deleteItem, getItems, getNextItem } from './items.js'
 import { getTypes } from './types.js'
 import { render } from './webpage.js'
 
 export type Controller = (req: Request, res: Response, next: NextFunction) => Promise<void>
+
+export const addItemController: Controller = async (req, res) => {
+  const result = await addItem(req.body)
+  res.status(201).json(result)
+}
 
 export const deleteItemController: Controller = async (req, res) => {
   await deleteItem(req.params.itemId)
