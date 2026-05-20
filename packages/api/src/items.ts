@@ -1,4 +1,5 @@
 import { type ParsedQs } from 'qs'
+import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
 import { getDatabaseConnection } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
@@ -30,9 +31,9 @@ declare module 'knex/types/tables.js' {
 
 export interface Item {
   author: string | null
-  createdAt: Date
-  deletedAt: Date | null
-  due: Date | null
+  createdAt: string
+  deletedAt: string | null
+  due: string | null
   expectedRank: number | null
   id: string
   imageUri: string | null
@@ -43,8 +44,8 @@ export interface Item {
   summary: string | null
   title: string
   type: string
-  updatedAt: Date
-  uri: string
+  updatedAt: string
+  uri: string | null
 }
 
 const itemFieldMapping: Record<keyof Item, keyof DatabaseItem> = {
@@ -73,9 +74,9 @@ const isItemField = (name: string): name is keyof Item => {
 const mapItemFromDatabase = (row: DatabaseItem): Item => {
   return {
     author: row.author,
-    createdAt: new Date(row.created_at),
-    deletedAt: row.deleted_at === null ? /* c8 ignore next */ null : new Date(row.deleted_at),
-    due: row.due === null ? /* c8 ignore next */ null : new Date(row.due),
+    createdAt: new Date(row.created_at).toISOString(),
+    deletedAt: row.deleted_at === null ? /* c8 ignore next */ null : new Date(row.deleted_at).toISOString(),
+    due: row.due === null ? /* c8 ignore next */ null : new Date(row.due).toISOString(),
     expectedRank: row.expected_rank,
     id: row.id,
     imageUri: row.image_uri,
@@ -86,8 +87,66 @@ const mapItemFromDatabase = (row: DatabaseItem): Item => {
     summary: row.summary,
     title: row.title,
     type: row.type_id,
-    updatedAt: new Date(row.updated_at),
+    updatedAt: new Date(row.updated_at).toISOString(),
     uri: row.uri
+  }
+}
+
+const addItemRequestSchema = z.object({
+  author: z.string().nullish(),
+  due: z.string().datetime().nullish(),
+  expectedRank: z.number().nullish(),
+  imageUri: z.string().nullish(),
+  language: z.string().nullish(),
+  length: z.number().nullish(),
+  rank: z.number().nullish(),
+  rating: z.number().nullish(),
+  summary: z.string().nullish(),
+  title: z.string(),
+  type: z.string(),
+  uri: z.string().nullish()
+})
+
+export const addItem = async (itemData: Record<string, any>): Promise<Item> => {
+  addItemRequestSchema.parse(itemData)
+  const db = getDatabaseConnection()
+  const id = uuidv4()
+  const now = new Date()
+  await db('items').insert({
+    author: itemData.author,
+    created_at: now,
+    deleted_at: null,
+    due: itemData.due,
+    expected_rank: itemData.expectedRank,
+    id,
+    image_uri: itemData.imageUri,
+    language: itemData.language,
+    length: itemData.length,
+    rank: itemData.rank,
+    rating: itemData.rating,
+    summary: itemData.summary,
+    title: itemData.title,
+    type_id: itemData.type,
+    updated_at: now,
+    uri: itemData.uri
+  })
+  return {
+    author: itemData.author ?? null,
+    createdAt: now.toISOString(),
+    deletedAt: null,
+    due: itemData.due ?? null,
+    expectedRank: itemData.expectedRank ?? null,
+    id,
+    imageUri: itemData.imageUri ?? null,
+    language: itemData.language ?? null,
+    length: itemData.length ?? null,
+    rank: itemData.rank ?? null,
+    rating: itemData.rating ?? null,
+    summary: itemData.summary ?? null,
+    title: itemData.title ?? null,
+    type: itemData.type,
+    updatedAt: now.toISOString(),
+    uri: itemData.uri ?? null
   }
 }
 

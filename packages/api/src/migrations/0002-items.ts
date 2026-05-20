@@ -4,7 +4,7 @@ import knex from 'knex'
 const upSql = `CREATE TABLE IF NOT EXISTS items
 (
   id uuid NOT NULL,
-  uri character varying(2048) NOT NULL,
+  uri character varying(2048),
   title character varying(256) NOT NULL,
   author character varying(256),
   summary text,
@@ -12,7 +12,7 @@ const upSql = `CREATE TABLE IF NOT EXISTS items
   image_uri character varying(2048),
   length double precision,
   rating numeric(5,2) DEFAULT NULL::numeric,
-  due date,
+  due timestamptz,
   rank numeric(3,1) DEFAULT NULL::numeric,
   expected_rank numeric(3,1) DEFAULT NULL::numeric,
   created_at timestamp with time zone NOT NULL,
