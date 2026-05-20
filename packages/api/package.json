@@ -23,7 +23,7 @@
     "release": "bin/release.sh",
     "test": "run-s test:e2e",
     "test:e2e": "NODE_ENV=test NODE_OPTIONS='--import tsx' vitest run test/e2e",
-    "start": "TS_NODE_FILES=true NODE_PATH=./ node --loader ts-node/esm --no-warnings=ExperimentalWarning ./src/server.ts"
+    "start": "tsx ./src/server.ts"
   },
   "repository": {
     "type": "git",
