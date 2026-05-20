@@ -20,7 +20,7 @@ export interface DatabaseItem {
   title: string
   type_id: string
   updated_at: Date
-  uri: string
+  uri: string | null
 }
 
 declare module 'knex/types/tables.js' {

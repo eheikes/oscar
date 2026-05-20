@@ -1,4 +1,4 @@
-import { json } from 'body-parser'
+import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
@@ -20,7 +20,7 @@ await migrateDatabase()
 
 export const app = express()
 
-app.use(json())
+app.use(bodyParser.json())
 
 app.set('x-powered-by', false)
 
