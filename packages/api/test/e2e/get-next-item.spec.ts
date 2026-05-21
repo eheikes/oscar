@@ -23,8 +23,10 @@ describe('GET /items/:typeId', () => {
   }
 
   beforeAll(async () => {
+    await db('item_labels').delete()
     await db('items').delete()
     await db('items').insert(testItem1)
+    await db('item_labels').insert({ item_id: testItem1.id, label_id: 'work' })
     await db('items').insert(testItem2)
   })
 
@@ -34,6 +36,7 @@ describe('GET /items/:typeId', () => {
       .expect(200)
       .then(response => {
         expect(response.body.item.id).toEqual(testItem1.id)
+        expect(response.body.item.labels).toEqual(['work'])
         expect(response.body.reason).toEqual(expect.any(String))
       })
   })

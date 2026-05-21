@@ -7,6 +7,7 @@ describe('POST /items', () => {
   const db = getDatabaseConnection()
 
   beforeEach(async () => {
+    await db('item_labels').delete()
     await db('items').delete()
   })
 
@@ -18,6 +19,7 @@ describe('POST /items', () => {
         due: '2024-06-01T10:00:00.000Z',
         expectedRank: 1,
         imageUri: 'http://example.com/image.jpg',
+        labels: ['work', 'urgent'],
         language: 'en',
         length: 100,
         rank: 5,
@@ -45,6 +47,9 @@ describe('POST /items', () => {
     expect(item?.type_id).toBe('task')
     expect(item?.updated_at).toEqual(expect.any(Date))
     expect(item?.uri).toBe('http://example.com')
+    const labels = await db('item_labels').where({ item_id: item?.id })
+    expect(labels).toHaveLength(2)
+    expect(labels.map(l => l.label_id)).toEqual(['work', 'urgent'])
   })
 
   it('should return the new item in the response body', async () => {
@@ -55,6 +60,7 @@ describe('POST /items', () => {
         due: '2024-06-01T10:00:00.000Z',
         expectedRank: 1,
         imageUri: 'http://example.com/image.jpg',
+        labels: ['work', 'urgent'],
         language: 'en',
         length: 100,
         rank: 5,
@@ -73,6 +79,7 @@ describe('POST /items', () => {
         expect(response.body.expectedRank).toBe(1)
         expect(response.body.id).toEqual(expect.any(String))
         expect(response.body.imageUri).toBe('http://example.com/image.jpg')
+        expect(response.body.labels).toEqual(['work', 'urgent'])
         expect(response.body.language).toBe('en')
         expect(response.body.length).toBe(100)
         expect(response.body.rank).toBe(5)
@@ -85,7 +92,7 @@ describe('POST /items', () => {
       })
   })
 
-  it('should use null values for optional fields', async () => {
+  it('should use null or empty values for optional fields', async () => {
     await request(app)
       .post('/items')
       .send({
@@ -99,6 +106,7 @@ describe('POST /items', () => {
         expect(response.body.due).toBe(null)
         expect(response.body.expectedRank).toBe(null)
         expect(response.body.imageUri).toBe(null)
+        expect(response.body.labels).toEqual([])
         expect(response.body.language).toBe(null)
         expect(response.body.length).toBe(null)
         expect(response.body.rank).toBe(null)
