@@ -24,6 +24,7 @@ describe('DELETE /items/:itemId', () => {
   }
 
   beforeAll(async () => {
+    await db('item_labels').delete()
     await db('items').delete()
     await db('items').insert(testItem1)
     await db('items').insert(testItem2)
@@ -33,6 +34,10 @@ describe('DELETE /items/:itemId', () => {
     await request(app)
       .delete(`/items/${testItem1.id}`)
       .expect(204)
+  })
+
+  it('should set the deletion date and not actually delete it', async () => {
+    // TODO
   })
 
   it('should return 400 when a non-UUID is provided', async () => {

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
 import { getDatabaseConnection } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
+import { addItemLabels, getItemLabels } from './labels.js'
 
 export interface DatabaseItem {
   author: string | null
@@ -48,6 +49,10 @@ export interface Item {
   uri: string | null
 }
 
+export interface ItemWithLabels extends Item {
+  labels: string[]
+}
+
 const itemFieldMapping: Record<keyof Item, keyof DatabaseItem> = {
   author: 'author',
   createdAt: 'created_at',
@@ -71,7 +76,7 @@ const isItemField = (name: string): name is keyof Item => {
   return Object.keys(itemFieldMapping).includes(name)
 }
 
-const mapItemFromDatabase = (row: DatabaseItem): Item => {
+const mapItemFromDatabase = (row: DatabaseItem, labels: string[] = []): ItemWithLabels => {
   return {
     author: row.author,
     createdAt: new Date(row.created_at).toISOString(),
@@ -80,6 +85,7 @@ const mapItemFromDatabase = (row: DatabaseItem): Item => {
     expectedRank: row.expected_rank,
     id: row.id,
     imageUri: row.image_uri,
+    labels,
     language: row.language,
     length: row.length,
     rank: row.rank,
@@ -97,6 +103,7 @@ const addItemRequestSchema = z.object({
   due: z.string().datetime().nullish(),
   expectedRank: z.number().nullish(),
   imageUri: z.string().nullish(),
+  labels: z.array(z.string()).nullish(),
   language: z.string().nullish(),
   length: z.number().nullish(),
   rank: z.number().nullish(),
@@ -107,7 +114,7 @@ const addItemRequestSchema = z.object({
   uri: z.string().nullish()
 })
 
-export const addItem = async (itemData: unknown): Promise<Item> => {
+export const addItem = async (itemData: unknown): Promise<ItemWithLabels> => {
   const parsedItemData = addItemRequestSchema.parse(itemData)
   const db = getDatabaseConnection()
   const id = uuidv4()
@@ -130,6 +137,9 @@ export const addItem = async (itemData: unknown): Promise<Item> => {
     updated_at: now,
     uri: parsedItemData.uri
   })
+  if (Array.isArray(parsedItemData.labels)) {
+    await addItemLabels(id, parsedItemData.labels)
+  }
   return {
     author: parsedItemData.author ?? null,
     createdAt: now.toISOString(),
@@ -138,6 +148,7 @@ export const addItem = async (itemData: unknown): Promise<Item> => {
     expectedRank: parsedItemData.expectedRank ?? null,
     id,
     imageUri: parsedItemData.imageUri ?? null,
+    labels: parsedItemData.labels ?? [],
     language: parsedItemData.language ?? null,
     length: parsedItemData.length ?? null,
     rank: parsedItemData.rank ?? null,
@@ -182,7 +193,7 @@ const getItemsRequestSchema = z.object({
   type: z.union([z.array(z.string()), z.string()]).optional()
 })
 
-export const getItems = async (params: ParsedQs): Promise<Item[]> => {
+export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
   const parsedParams = getItemsRequestSchema.parse(params)
   const db = getDatabaseConnection()
   let query = db.select('*').from('items')
@@ -226,7 +237,11 @@ export const getItems = async (params: ParsedQs): Promise<Item[]> => {
   }
   query = query.limit(Math.min(parsedParams.count, 100))
   const result = await query
-  return result.map(mapItemFromDatabase)
+  const items: ItemWithLabels[] = await Promise.all(result.map(async item => {
+    const labels = await getItemLabels(item.id)
+    return mapItemFromDatabase(item, labels.map(label => label.labelId))
+  }))
+  return items
 }
 
 const getNextItemRequestSchema = z.object({
@@ -234,7 +249,7 @@ const getNextItemRequestSchema = z.object({
 })
 
 interface NextItem {
-  item: Item
+  item: ItemWithLabels
   reason: string
 }
 
@@ -247,8 +262,9 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem> => {
   if (result.length === 0) {
     throw new NotFoundError('No items found')
   }
+  const labels = await getItemLabels(result[0].id)
   return {
-    item: mapItemFromDatabase(result[0]),
+    item: mapItemFromDatabase(result[0], labels.map(label => label.labelId)),
     reason: 'This item is the first in the list.'
   }
 }
