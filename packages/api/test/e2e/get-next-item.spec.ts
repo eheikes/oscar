@@ -30,14 +30,30 @@ describe('GET /items/:typeId', () => {
     await db('items').insert(testItem2)
   })
 
-  it('should return the next item for a given type', async () => {
+  it('should return an item of a given type', async () => {
     await request(app)
       .get('/items/next?type=task')
       .expect(200)
       .then(response => {
-        expect(response.body.item.id).toEqual(testItem1.id)
-        expect(response.body.item.labels).toEqual(['work'])
-        expect(response.body.reason).toEqual(expect.any(String))
+        expect(response.body[0].item.id).toEqual(testItem1.id)
+        expect(response.body[0].item.labels).toEqual(['work'])
+        expect(response.body[0].reason).toEqual(expect.any(String))
+      })
+  })
+
+  it('should return multiple items if requested', async () => {
+    await request(app)
+      .get('/items/next?type=task&count=2')
+      .expect(200)
+      .then(response => {
+        expect(Array.isArray(response.body)).toBe(true)
+        expect(response.body.length).toBe(2)
+        expect(response.body[0].item.id).toEqual(testItem1.id)
+        expect(response.body[0].item.labels).toEqual(['work'])
+        expect(response.body[0].reason).toEqual(expect.any(String))
+        expect(response.body[1].item.id).toEqual(testItem2.id)
+        expect(response.body[1].item.labels).toEqual([])
+        expect(response.body[1].reason).toEqual(expect.any(String))
       })
   })
 

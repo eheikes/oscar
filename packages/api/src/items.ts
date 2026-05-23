@@ -245,6 +245,7 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
 }
 
 const getNextItemRequestSchema = z.object({
+  count: z.coerce.number().default(1),
   type: z.string()
 })
 
@@ -253,18 +254,23 @@ interface NextItem {
   reason: string
 }
 
-export const getNextItem = async (params: ParsedQs): Promise<NextItem> => {
+export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
   const parsedParams = getNextItemRequestSchema.parse(params)
   const db = getDatabaseConnection()
+  const limit = Math.min(parsedParams.count, 100)
   // For now, simply choose the first item in the DB.
-  const query = db.select('*').from('items').where('type_id', parsedParams.type).whereNull('deleted_at').limit(1)
+  const query = db.select('*').from('items').where('type_id', parsedParams.type).whereNull('deleted_at').limit(limit)
   const result = await query
   if (result.length === 0) {
     throw new NotFoundError('No items found')
   }
-  const labels = await getItemLabels(result[0].id)
-  return {
-    item: mapItemFromDatabase(result[0], labels.map(label => label.labelId)),
-    reason: 'This item is the first in the list.'
+  const response: NextItem[] = []
+  for (const item of result) {
+    const labels = await getItemLabels(item.id)
+    response.push({
+      item: mapItemFromDatabase(item, labels.map(label => label.labelId)),
+      reason: 'This item is the first in the list.'
+    })
   }
+  return response
 }
