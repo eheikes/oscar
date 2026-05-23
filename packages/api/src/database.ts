@@ -37,3 +37,8 @@ export const migrateDatabase = async (): Promise<void> => {
     directory: './src/migrations'
   })
 }
+
+export const raw = (value: string): Knex.Raw => {
+  const db = getDatabaseConnection()
+  return db.raw(value)
+}
