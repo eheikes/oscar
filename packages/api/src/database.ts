@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import knex, { Knex } from 'knex'
 import { getConfig } from './config.js'
 
-export { Knex } from 'knex'
+export { type Knex } from 'knex'
 
 let connection: Knex | null = null
 
