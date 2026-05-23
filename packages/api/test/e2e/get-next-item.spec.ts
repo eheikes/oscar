@@ -145,5 +145,16 @@ describe('GET /items/:typeId', () => {
           expect(response.body[2].reason).toEqual('This is the next-oldest item.')
         })
     })
+
+    it('should filter labels', async () => {
+      await request(app)
+        .get('/items/next?type=play&count=3&label=work')
+        .expect(200)
+        .then(response => {
+          expect(response.body.length).toEqual(1)
+          expect(response.body[0].item.id).toEqual(testItem1.id)
+          expect(response.body[0].item.labels).toEqual(['work'])
+        })
+    })
   })
 })

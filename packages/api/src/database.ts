@@ -2,6 +2,8 @@ import { readFileSync } from 'fs'
 import knex, { Knex } from 'knex'
 import { getConfig } from './config.js'
 
+export { Knex } from 'knex'
+
 let connection: Knex | null = null
 
 const getCert = (filename: string): string => {

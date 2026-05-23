@@ -1,9 +1,9 @@
 import { type ParsedQs } from 'qs'
 import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
-import { getDatabaseConnection } from './database.js'
+import { getDatabaseConnection, Knex } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
-import { addItemLabels, getItemLabels } from './labels.js'
+import { addItemLabels, DatabaseItemLabel, getItemLabels } from './labels.js'
 
 export interface DatabaseItem {
   author: string | null
@@ -246,6 +246,7 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
 
 const getNextItemRequestSchema = z.object({
   count: z.coerce.number().default(1),
+  label: z.union([z.array(z.string()), z.string()]).optional(),
   type: z.string()
 })
 
@@ -264,14 +265,22 @@ interface NextItemWithWeight {
 }
 
 export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
-  const parsedParams = getNextItemRequestSchema.parse(params)
   const db = getDatabaseConnection()
+  const parsedParams = getNextItemRequestSchema.parse(params)
+  const labels = Array.isArray(parsedParams.label)
+    ? parsedParams.label
+    : (typeof parsedParams.label === 'string' ? [parsedParams.label] : [])
   const limit = Math.min(parsedParams.count, 100)
-  let query = db.select('*')
+  let query: Knex.QueryBuilder<DatabaseItem & DatabaseItemLabel> | Knex.QueryBuilder<DatabaseItem> = db.select('*')
     .from('items')
     .where('type_id', parsedParams.type)
     .whereNull('deleted_at')
     .limit(limit + 10) // get some extra items in case of weight adjustments
+  if (labels.length > 0) {
+    query = query
+      .join('item_labels', 'items.id', 'item_labels.item_id')
+      .whereIn('item_labels.label_id', labels)
+  }
   if (parsedParams.type === 'task') {
     query = query.orderBy('due', 'ASC', 'last').orderBy('created_at', 'ASC')
   } else {
@@ -313,14 +322,13 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
         reason = 'This item is next in order.'
       }
       weight = daysSinceLastItem - relativeDueDate
-      console.log('**** relativeDueDate:', relativeDueDate, 'daysSinceLastItem:', daysSinceLastItem, 'labels:', labels.map(label => label.labelId), 'weight:', weight)
     } else {
       if (item.rank === null) {
         weight = 0
         reason = 'This is the next-oldest item.'
       } else {
         weight = item.rank
-        reason = `This item has a rank of ${item.rank}.`
+        reason = `This item has a rank of ${item.rank as number}.`
       }
     }
     response.push({
