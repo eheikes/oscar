@@ -249,8 +249,17 @@ const getNextItemRequestSchema = z.object({
   type: z.string()
 })
 
+interface ItemWithLabelsAndWeight extends ItemWithLabels {
+  weight?: number
+}
+
 interface NextItem {
   item: ItemWithLabels
+  reason: string
+}
+
+interface NextItemWithWeight {
+  item: ItemWithLabelsAndWeight
   reason: string
 }
 
@@ -258,19 +267,72 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
   const parsedParams = getNextItemRequestSchema.parse(params)
   const db = getDatabaseConnection()
   const limit = Math.min(parsedParams.count, 100)
-  // For now, simply choose the first item in the DB.
-  const query = db.select('*').from('items').where('type_id', parsedParams.type).whereNull('deleted_at').limit(limit)
+  let query = db.select('*')
+    .from('items')
+    .where('type_id', parsedParams.type)
+    .whereNull('deleted_at')
+    .limit(limit + 10) // get some extra items in case of weight adjustments
+  if (parsedParams.type === 'task') {
+    query = query.orderBy('due', 'ASC', 'last').orderBy('created_at', 'ASC')
+  } else {
+    query = query.orderBy('rank', 'DESC', 'last').orderBy('created_at', 'ASC')
+  }
   const result = await query
   if (result.length === 0) {
     throw new NotFoundError('No items found')
   }
-  const response: NextItem[] = []
+  const msPerDay = 86400000 // 1000ms * 60s * 60m * 24h
+  const nearFuture = Date.now() * msPerDay * 14
+  const farFuture = Date.now() * msPerDay * 100
+  const lastItemDate = new Date(result[result.length - 1].due ?? farFuture)
+  const daysSinceLastItem = lastItemDate.getTime() / msPerDay + (10 * 365) // only used for tasks
+  let response: NextItemWithWeight[] = []
   for (const item of result) {
     const labels = await getItemLabels(item.id)
+    let reason = ''
+    let weight = 0
+    if (item.type_id === 'task') {
+      let relativeDueDate = 0
+      if (item.due === null) {
+        relativeDueDate = nearFuture
+        reason += ' This item has no due date.'
+      } else {
+        relativeDueDate = new Date(item.due).getTime() / msPerDay
+      }
+      if (labels.some(label => label.labelId === 'urgent')) {
+        relativeDueDate -= 5
+        reason += ' This item is labeled urgent.'
+      } else if (labels.some(label => label.labelId === 'busywork')) {
+        relativeDueDate -= 3
+        reason += ' This item is labeled busywork.'
+      } else if (labels.some(label => label.labelId === 'trivial')) {
+        relativeDueDate += 5
+        reason += ' This item is labeled trivial.'
+      }
+      if (reason === '') {
+        reason = 'This item is next in order.'
+      }
+      weight = daysSinceLastItem - relativeDueDate
+      console.log('**** relativeDueDate:', relativeDueDate, 'daysSinceLastItem:', daysSinceLastItem, 'labels:', labels.map(label => label.labelId), 'weight:', weight)
+    } else {
+      if (item.rank === null) {
+        weight = 0
+        reason = 'This is the next-oldest item.'
+      } else {
+        weight = item.rank
+        reason = `This item has a rank of ${item.rank}.`
+      }
+    }
     response.push({
-      item: mapItemFromDatabase(item, labels.map(label => label.labelId)),
-      reason: 'This item is the first in the list.'
+      item: { ...mapItemFromDatabase(item, labels.map(label => label.labelId)), weight },
+      reason: reason.trim()
     })
   }
+  response.sort((a, b) => (b.item.weight ?? 0) - (a.item.weight ?? 0))
+  response = response.slice(0, limit).map(({ item, reason }) => ({
+    item: { ...item, weight: undefined },
+    reason
+  }))
+  console.log('**** results post-calc:', JSON.stringify(response, null, 2)) // TODO: convert to log
   return response
 }
