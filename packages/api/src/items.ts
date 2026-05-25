@@ -1,9 +1,9 @@
 import { type ParsedQs } from 'qs'
 import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
-import { getDatabaseConnection, Knex } from './database.js'
+import { getDatabaseConnection, raw } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
-import { addItemLabels, DatabaseItemLabel, getItemLabels } from './labels.js'
+import { addItemLabels, getItemLabels } from './labels.js'
 
 export interface DatabaseItem {
   author: string | null
@@ -22,6 +22,10 @@ export interface DatabaseItem {
   type_id: string
   updated_at: Date
   uri: string | null
+}
+
+export interface DatabaseItemWithLabels extends DatabaseItem {
+  labels: string[]
 }
 
 declare module 'knex/types/tables.js' {
@@ -267,29 +271,127 @@ interface NextItemWithWeight {
 export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
   const db = getDatabaseConnection()
   const parsedParams = getNextItemRequestSchema.parse(params)
+  const WORK_CHUNK_SIZE = 30
+
+  // Start building the query to get candidate items based on type and labels.
+  // We'll calculate weights and reasons in JS since the logic is complex and involves multiple fields and labels.
   const labels = Array.isArray(parsedParams.label)
     ? parsedParams.label
     : (typeof parsedParams.label === 'string' ? [parsedParams.label] : [])
   const limit = Math.min(parsedParams.count, 100)
-  let query: Knex.QueryBuilder<DatabaseItem & DatabaseItemLabel> | Knex.QueryBuilder<DatabaseItem> = db.select('*')
+  let query = db.select('*')
     .from('items')
+    .leftJoin('item_labels', 'items.id', 'item_labels.item_id')
     .where('type_id', parsedParams.type)
     .whereNull('deleted_at')
     .limit(limit + 10) // get some extra items in case of weight adjustments
   if (labels.length > 0) {
-    query = query
-      .join('item_labels', 'items.id', 'item_labels.item_id')
-      .whereIn('item_labels.label_id', labels)
+    query = query.whereIn('item_labels.label_id', labels)
   }
   if (parsedParams.type === 'task') {
+    // Get the most recent completed items.
+    const subquery = db('item_labels').select(raw('ARRAY_AGG(label_id)')).where('item_id', db.ref('items.id'))
+    const completedQuery = db
+      .select([
+        'items.*',
+        raw(`(${subquery.toQuery()}) AS labels`)
+      ])
+      .from('items')
+      .where('items.type_id', parsedParams.type)
+      .whereNotNull('items.deleted_at')
+      .orderBy('items.deleted_at', 'DESC')
+      .limit(Math.ceil(WORK_CHUNK_SIZE / 5) + 1)
+    const completedItems = await completedQuery
+    console.log('**** completed items:', JSON.stringify(completedItems, null, 2)) // TODO: convert to log
+
+    // Rotate through these types of tasks:
+    // * overdue busywork
+    // * due-today busywork
+    // * important (non-busywork) tasks
+    if (completedItems.length > 0) {
+      const isBusywork = (item: DatabaseItemWithLabels): boolean => {
+        return item.labels.includes('busywork')
+      }
+      const isImportant = (item: DatabaseItemWithLabels): boolean => {
+        return item.labels.includes('important')
+      }
+      const isDueToday = (item: DatabaseItemWithLabels): boolean => {
+        if (item.due === null) {
+          return false
+        }
+        const dueDate = new Date(item.due)
+        const today = new Date()
+        return dueDate.getFullYear() === today.getFullYear() &&
+          dueDate.getMonth() === today.getMonth() &&
+          dueDate.getDate() === today.getDate()
+      }
+      const isOverdue = (item: DatabaseItemWithLabels): boolean => {
+        if (item.due === null) {
+          return false
+        }
+        const dueDate = new Date(item.due)
+        const now = new Date()
+        return dueDate.getTime() < now.getTime()
+      }
+      const doCompletedItemsMatch = (items: DatabaseItemWithLabels[], condition: (item: DatabaseItemWithLabels) => boolean, chunkSize: number): boolean => {
+        let workSize = 0
+
+        // If the first item doesn't match the condition, it doesn't satisfy.
+        if (!condition(items[0])) {
+          return false
+        }
+
+        // Make sure enough work has been completed.
+        for (const item of items) {
+          console.log('--- checking item', item)
+          if (!condition(item)) {
+            break
+          }
+          workSize += item.length ?? 0
+        }
+
+        return workSize >= chunkSize
+      }
+      if (doCompletedItemsMatch(completedItems, isImportant, WORK_CHUNK_SIZE)) {
+        // Choose a busywork item due today.
+        console.log('**** most recent completed item is important, looking for busywork due today') // TODO: convert to log
+        const sod = new Date()
+        sod.setHours(0, 0, 0, 0)
+        const eod = new Date()
+        eod.setHours(23, 59, 59, 999)
+        query = query
+          .whereIn('item_labels.label_id', ['busywork'])
+          .where('due', '>=', sod.toISOString())
+          .where('due', '<=', eod.toISOString())
+      } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isDueToday(item), WORK_CHUNK_SIZE)) {
+        // Choose an overdue busywork item.
+        console.log('**** most recent completed item is busywork due today, looking for overdue busywork') // TODO: convert to log
+        query = query
+          .whereIn('item_labels.label_id', ['busywork'])
+          .where('due', '<', new Date().toISOString())
+      } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && !isOverdue(item), WORK_CHUNK_SIZE)) {
+        // Choose an important item.
+        console.log('**** most recent completed item is busywork not due today, looking for important items') // TODO: convert to log
+        query = query.whereIn('item_labels.label_id', ['important'])
+      } else {
+        console.log('**** no matching conditions found, using default logic') // TODO: convert to log
+      }
+    }
+
+    // By default, order by due date and creation date.
     query = query.orderBy('due', 'ASC', 'last').orderBy('created_at', 'ASC')
   } else {
+    // For non-task items, rank is the primary ordering factor, with created_at as a tiebreaker.
     query = query.orderBy('rank', 'DESC', 'last').orderBy('created_at', 'ASC')
   }
+
+  // Execute the query and check the results.
   const result = await query
   if (result.length === 0) {
     throw new NotFoundError('No items found')
   }
+
+  // Go through the results and calculate weights and reasons for each item based on the decision logic.
   const msPerDay = 86400000 // 1000ms * 60s * 60m * 24h
   const nearFuture = Date.now() * msPerDay * 14
   const farFuture = Date.now() * msPerDay * 100
@@ -328,7 +430,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
         reason = 'This is the next-oldest item.'
       } else {
         weight = item.rank
-        reason = `This item has a rank of ${item.rank as number}.`
+        reason = `This item has a rank of ${item.rank}.`
       }
     }
     response.push({
@@ -336,11 +438,14 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
       reason: reason.trim()
     })
   }
+
+  // Sort the items by their weights.
   response.sort((a, b) => (b.item.weight ?? 0) - (a.item.weight ?? 0))
   response = response.slice(0, limit).map(({ item, reason }) => ({
     item: { ...item, weight: undefined },
     reason
   }))
   console.log('**** results post-calc:', JSON.stringify(response, null, 2)) // TODO: convert to log
+
   return response
 }

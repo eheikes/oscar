@@ -27,44 +27,48 @@ describe('GET /items/:typeId', () => {
   })
 
   describe('for task items', () => {
-    const testItem1 = {
-      id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
-      title: 'Item 1',
-      uri: 'http://example.com',
-      type_id: 'task',
-      due: '2024-06-10T00:00:00.000Z',
-      created_at: new Date('2024-05-31T00:00:00.000Z'),
-      updated_at: new Date('2024-05-31T00:00:00.000Z')
-    }
-    const testItem2 = {
-      id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
-      title: 'Item 2',
-      uri: 'http://example.com/foo',
-      type_id: 'task',
-      due: '2024-06-10T00:00:00.000Z',
-      created_at: new Date('2024-05-31T00:00:00.000Z'),
-      updated_at: new Date('2024-05-31T00:00:00.000Z')
-    }
-    const testItem3 = {
-      id: '440c6edb-0489-4a51-bd51-5c301be888f7',
-      title: 'Item 3',
-      uri: 'http://example.com/bar',
-      type_id: 'task',
-      due: '2024-06-10T00:00:00.000Z',
-      created_at: new Date('2024-05-31T00:00:00.000Z'),
-      updated_at: new Date('2024-05-31T00:00:00.000Z')
-    }
-    const testItem4 = {
-      id: '621c06ed-f0d4-4d4b-82d7-7a5a464e11a8',
-      title: 'Item 4',
-      uri: 'http://example.com/baz',
-      type_id: 'task',
-      due: '2024-06-10T00:00:00.000Z',
-      created_at: new Date('2024-05-31T00:00:00.000Z'),
-      updated_at: new Date('2024-05-31T00:00:00.000Z')
-    }
+    const dueInPast = '2024-06-01T00:00:00.000Z'
+    const dueToday = new Date(Date.now() + 1000 * 60 * 10).toISOString()
+    const dueDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
 
-    beforeEach(async () => {
+    it('should sort by urgent, then busywork, then non-trivial, then trivial', async () => {
+      const testItem1 = {
+        id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
+        title: 'Item 1',
+        uri: 'http://example.com',
+        type_id: 'task',
+        due: '2024-06-10T00:00:00.000Z',
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem2 = {
+        id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
+        title: 'Item 2',
+        uri: 'http://example.com/foo',
+        type_id: 'task',
+        due: '2024-06-10T00:00:00.000Z',
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem3 = {
+        id: '440c6edb-0489-4a51-bd51-5c301be888f7',
+        title: 'Item 3',
+        uri: 'http://example.com/bar',
+        type_id: 'task',
+        due: '2024-06-10T00:00:00.000Z',
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem4 = {
+        id: '621c06ed-f0d4-4d4b-82d7-7a5a464e11a8',
+        title: 'Item 4',
+        uri: 'http://example.com/baz',
+        type_id: 'task',
+        due: '2024-06-10T00:00:00.000Z',
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+
       await db('items').insert(testItem1)
       await db('items').insert(testItem2)
       await db('items').insert(testItem3)
@@ -72,9 +76,7 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem1.id, label_id: 'busywork' })
       await db('item_labels').insert({ item_id: testItem2.id, label_id: 'urgent' })
       await db('item_labels').insert({ item_id: testItem3.id, label_id: 'trivial' })
-    })
 
-    it('should sort by urgent, then busywork, then non-trivial, then trivial', async () => {
       await request(app)
         .get('/items/next?type=task&count=4')
         .expect(200)
@@ -91,6 +93,212 @@ describe('GET /items/:typeId', () => {
           expect(response.body[3].item.id).toEqual(testItem3.id)
           expect(response.body[3].item.labels).toEqual(['trivial'])
           expect(response.body[3].reason).toEqual('This item is labeled trivial.')
+        })
+    })
+
+    it('should choose a busywork item due today if an important item was just worked on', async () => {
+      const testItem1 = { // completed item
+        id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
+        title: 'Item 1',
+        uri: 'http://example.com',
+        type_id: 'task',
+        length: 60,
+        due: dueInPast,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z'),
+        deleted_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem2 = { // due today
+        id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
+        title: 'Item 2',
+        uri: 'http://example.com/foo',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem3 = { // overdue
+        id: '440c6edb-0489-4a51-bd51-5c301be888f7',
+        title: 'Item 3',
+        uri: 'http://example.com/bar',
+        type_id: 'task',
+        length: 10,
+        due: dueDaysAgo,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem4 = { // important
+        id: '621c06ed-f0d4-4d4b-82d7-7a5a464e11a8',
+        title: 'Item 4',
+        uri: 'http://example.com/baz',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+
+      await db('items').insert(testItem1)
+      await db('items').insert(testItem2)
+      await db('items').insert(testItem3)
+      await db('items').insert(testItem4)
+      await db('item_labels').insert({ item_id: testItem1.id, label_id: 'important' })
+      await db('item_labels').insert({ item_id: testItem2.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem3.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem4.id, label_id: 'important' })
+
+      await request(app)
+        .get('/items/next?type=task&count=1')
+        .expect(200)
+        .then(response => {
+          expect(response.body[0].item.id).toEqual(testItem2.id)
+        })
+    })
+
+    it('should choose an overdue busywork item if busywork items due today were just worked on', async () => {
+      const testItem1 = { // completed item
+        id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
+        title: 'Item 1',
+        uri: 'http://example.com',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z'),
+        deleted_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem2 = { // another completed today
+        id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
+        title: 'Item 2',
+        uri: 'http://example.com/foo',
+        type_id: 'task',
+        length: 30,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z'),
+        deleted_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem3 = { // overdue
+        id: '440c6edb-0489-4a51-bd51-5c301be888f7',
+        title: 'Item 3',
+        uri: 'http://example.com/bar',
+        type_id: 'task',
+        length: 10,
+        due: dueDaysAgo,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem4 = { // due today
+        id: '621c06ed-f0d4-4d4b-82d7-7a5a464e11a8',
+        title: 'Item 4',
+        uri: 'http://example.com/baz',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem5 = { // important
+        id: 'dd46384c-49d5-4bd2-8bb0-2186e66b8287',
+        title: 'Item 5',
+        uri: 'http://example.com/qux',
+        type_id: 'task',
+        length: 10,
+        due: dueInPast,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+
+      await db('items').insert(testItem1)
+      await db('items').insert(testItem2)
+      await db('items').insert(testItem3)
+      await db('items').insert(testItem4)
+      await db('items').insert(testItem5)
+      await db('item_labels').insert({ item_id: testItem1.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem2.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem3.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem4.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem5.id, label_id: 'important' })
+
+      await request(app)
+        .get('/items/next?type=task&count=1')
+        .expect(200)
+        .then(response => {
+          expect(response.body[0].item.id).toEqual(testItem3.id)
+        })
+    })
+
+    it('should choose an important item if overdue busywork items were just worked on', async () => {
+      const testItem1 = { // completed item
+        id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
+        title: 'Item 1',
+        uri: 'http://example.com',
+        type_id: 'task',
+        length: 10,
+        due: dueInPast,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z'),
+        deleted_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem2 = { // another completed today
+        id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
+        title: 'Item 2',
+        uri: 'http://example.com/foo',
+        type_id: 'task',
+        length: 30,
+        due: dueInPast,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z'),
+        deleted_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem3 = { // overdue
+        id: '440c6edb-0489-4a51-bd51-5c301be888f7',
+        title: 'Item 3',
+        uri: 'http://example.com/bar',
+        type_id: 'task',
+        length: 10,
+        due: dueDaysAgo,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem4 = { // due today
+        id: '621c06ed-f0d4-4d4b-82d7-7a5a464e11a8',
+        title: 'Item 4',
+        uri: 'http://example.com/baz',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem5 = { // important
+        id: 'dd46384c-49d5-4bd2-8bb0-2186e66b8287',
+        title: 'Item 5',
+        uri: 'http://example.com/qux',
+        type_id: 'task',
+        length: 10,
+        due: dueInPast,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+
+      await db('items').insert(testItem1)
+      await db('items').insert(testItem2)
+      await db('items').insert(testItem3)
+      await db('items').insert(testItem4)
+      await db('items').insert(testItem5)
+      await db('item_labels').insert({ item_id: testItem1.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem2.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem3.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem4.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem5.id, label_id: 'important' })
+
+      await request(app)
+        .get('/items/next?type=task&count=1')
+        .expect(200)
+        .then(response => {
+          expect(response.body[0].item.id).toEqual(testItem5.id)
         })
     })
   })
