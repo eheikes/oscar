@@ -281,20 +281,24 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
   const limit = Math.min(parsedParams.count, 100)
   let query = db.select('*')
     .from('items')
-    .leftJoin('item_labels', 'items.id', 'item_labels.item_id')
     .where('type_id', parsedParams.type)
     .whereNull('deleted_at')
     .limit(limit + 10) // get some extra items in case of weight adjustments
   if (labels.length > 0) {
-    query = query.whereIn('item_labels.label_id', labels)
+    query = query.whereExists(function () {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').whereIn('label_id', labels)
+    })
   }
+
+  let baseReason = ''
   if (parsedParams.type === 'task') {
     // Get the most recent completed items.
-    const subquery = db('item_labels').select(raw('ARRAY_AGG(label_id)')).where('item_id', db.ref('items.id'))
+    const completedSubquery = db('item_labels').select(raw('ARRAY_AGG(label_id)')).where('item_id', db.ref('items.id'))
     const completedQuery = db
       .select([
         'items.*',
-        raw(`(${subquery.toQuery()}) AS labels`)
+        raw(`(${completedSubquery.toQuery()}) AS labels`)
       ])
       .from('items')
       .where('items.type_id', parsedParams.type)
@@ -343,7 +347,6 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
 
         // Make sure enough work has been completed.
         for (const item of items) {
-          console.log('--- checking item', item)
           if (!condition(item)) {
             break
           }
@@ -354,27 +357,49 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
       }
       if (doCompletedItemsMatch(completedItems, isImportant, WORK_CHUNK_SIZE)) {
         // Choose a busywork item due today.
-        console.log('**** most recent completed item is important, looking for busywork due today') // TODO: convert to log
+        baseReason = 'Most recent completed item is important, looking for busywork due today.'
         const sod = new Date()
         sod.setHours(0, 0, 0, 0)
         const eod = new Date()
         eod.setHours(23, 59, 59, 999)
         query = query
-          .whereIn('item_labels.label_id', ['busywork'])
+          .whereExists(function () {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'busywork')
+          })
           .where('due', '>=', sod.toISOString())
           .where('due', '<=', eod.toISOString())
       } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isDueToday(item), WORK_CHUNK_SIZE)) {
         // Choose an overdue busywork item.
-        console.log('**** most recent completed item is busywork due today, looking for overdue busywork') // TODO: convert to log
+        baseReason = 'Most recent completed item is busywork due today, looking for overdue busywork.'
         query = query
-          .whereIn('item_labels.label_id', ['busywork'])
+          .whereExists(function () {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'busywork')
+          })
           .where('due', '<', new Date().toISOString())
-      } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && !isOverdue(item), WORK_CHUNK_SIZE)) {
+      } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isOverdue(item), WORK_CHUNK_SIZE)) {
         // Choose an important item.
-        console.log('**** most recent completed item is busywork not due today, looking for important items') // TODO: convert to log
-        query = query.whereIn('item_labels.label_id', ['important'])
+        baseReason = 'Most recent completed item is busywork not due today, looking for important items.'
+        query = query
+          .whereExists(function () {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'important')
+          })
       } else {
-        console.log('**** no matching conditions found, using default logic') // TODO: convert to log
+        baseReason = 'No matching conditions found, using default logic.'
+        // Choose a busywork item due today.
+        const sod = new Date()
+        sod.setHours(0, 0, 0, 0)
+        const eod = new Date()
+        eod.setHours(23, 59, 59, 999)
+        query = query
+          .whereExists(function () {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'busywork')
+          })
+          .where('due', '>=', sod.toISOString())
+          .where('due', '<=', eod.toISOString())
       }
     }
 
@@ -384,6 +409,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
     // For non-task items, rank is the primary ordering factor, with created_at as a tiebreaker.
     query = query.orderBy('rank', 'DESC', 'last').orderBy('created_at', 'ASC')
   }
+  console.log('*** query:', query.toSQL()) // TODO: convert to log
 
   // Execute the query and check the results.
   const result = await query
@@ -400,7 +426,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
   let response: NextItemWithWeight[] = []
   for (const item of result) {
     const labels = await getItemLabels(item.id)
-    let reason = ''
+    let reason = baseReason
     let weight = 0
     if (item.type_id === 'task') {
       let relativeDueDate = 0

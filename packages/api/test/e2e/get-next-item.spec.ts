@@ -147,9 +147,13 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem2.id, label_id: 'busywork' })
       await db('item_labels').insert({ item_id: testItem3.id, label_id: 'busywork' })
       await db('item_labels').insert({ item_id: testItem4.id, label_id: 'important' })
+      await db('item_labels').insert({ item_id: testItem1.id, label_id: 'personal' })
+      await db('item_labels').insert({ item_id: testItem2.id, label_id: 'personal' })
+      await db('item_labels').insert({ item_id: testItem3.id, label_id: 'personal' })
+      await db('item_labels').insert({ item_id: testItem4.id, label_id: 'personal' })
 
       await request(app)
-        .get('/items/next?type=task&count=1')
+        .get('/items/next?type=task&label=personal&count=1')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem2.id)
