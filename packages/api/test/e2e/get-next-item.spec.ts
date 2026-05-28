@@ -160,6 +160,71 @@ describe('GET /items/:typeId', () => {
         })
     })
 
+    it('should choose another busywork item due today if the chunk size is not met', async () => {
+      const testItem1 = { // completed item
+        id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
+        title: 'Item 1',
+        uri: 'http://example.com',
+        type_id: 'task',
+        length: 5,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z'),
+        deleted_at: new Date()
+      }
+      const testItem2 = { // due today
+        id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
+        title: 'Item 2',
+        uri: 'http://example.com/foo',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem3 = { // overdue
+        id: '440c6edb-0489-4a51-bd51-5c301be888f7',
+        title: 'Item 3',
+        uri: 'http://example.com/bar',
+        type_id: 'task',
+        length: 10,
+        due: dueDaysAgo,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+      const testItem4 = { // important
+        id: '621c06ed-f0d4-4d4b-82d7-7a5a464e11a8',
+        title: 'Item 4',
+        uri: 'http://example.com/baz',
+        type_id: 'task',
+        length: 10,
+        due: dueToday,
+        created_at: new Date('2024-05-31T00:00:00.000Z'),
+        updated_at: new Date('2024-05-31T00:00:00.000Z')
+      }
+
+      await db('items').insert(testItem1)
+      await db('items').insert(testItem2)
+      await db('items').insert(testItem3)
+      await db('items').insert(testItem4)
+      await db('item_labels').insert({ item_id: testItem1.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem2.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem3.id, label_id: 'busywork' })
+      await db('item_labels').insert({ item_id: testItem4.id, label_id: 'important' })
+      await db('item_labels').insert({ item_id: testItem1.id, label_id: 'personal' })
+      await db('item_labels').insert({ item_id: testItem2.id, label_id: 'personal' })
+      await db('item_labels').insert({ item_id: testItem3.id, label_id: 'personal' })
+      await db('item_labels').insert({ item_id: testItem4.id, label_id: 'personal' })
+
+      await request(app)
+        .get('/items/next?type=task&label=personal&count=1')
+        .expect(200)
+        .then(response => {
+          expect(response.body[0].item.id).toEqual(testItem2.id)
+          expect(response.body[0].reason).toContain('Currently working through a chunk of busywork due today.')
+        })
+    })
+
     it('should choose an overdue busywork item if busywork items due today were just worked on', async () => {
       const testItem1 = { // completed item
         id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
