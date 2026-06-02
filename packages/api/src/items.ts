@@ -359,29 +359,23 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
         return workSize >= chunkSize
       }
       if (doCompletedItemsMatch(completedItems, isImportant)) {
-        // Choose a busywork item due today.
-        baseReason = 'Most recent completed item is important, looking for busywork due today.'
-        const sod = new Date()
-        sod.setHours(0, 0, 0, 0)
-        const eod = new Date()
-        eod.setHours(23, 59, 59, 999)
+        // Choose an overdue busywork item.
+        baseReason = 'Most recent completed item is important, looking for overdue busywork.'
         query = query
           .whereExists(function () {
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'busywork')
           })
-          .where('due', '>=', sod.toISOString())
-          .where('due', '<=', eod.toISOString())
+          .where('due', '<', new Date().toISOString())
       } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isDueToday(item))) {
         if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isDueToday(item), WORK_CHUNK_SIZE)) {
-          // Choose an overdue busywork item.
-          baseReason = 'Most recent completed item is busywork due today, looking for overdue busywork.'
+          // Choose an important item.
+          baseReason = 'Most recent completed item is busywork due today, looking for important items.'
           query = query
             .whereExists(function () {
               // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'busywork')
+              this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'important')
             })
-            .where('due', '<', new Date().toISOString())
         } else {
           // Choose another busywork item due today.
           baseReason = 'Currently working through a chunk of busywork due today.'
@@ -399,13 +393,19 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
         }
       } else if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isOverdue(item))) {
         if (doCompletedItemsMatch(completedItems, item => isBusywork(item) && isOverdue(item), WORK_CHUNK_SIZE)) {
-          // Choose an important item.
-          baseReason = 'Most recent completed item is busywork not due today, looking for important items.'
+          // Choose a busywork item due today.
+          baseReason = 'Most recent completed item is overdue busywork, looking for busywork due today.'
+          const sod = new Date()
+          sod.setHours(0, 0, 0, 0)
+          const eod = new Date()
+          eod.setHours(23, 59, 59, 999)
           query = query
             .whereExists(function () {
               // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'important')
+              this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', 'busywork')
             })
+            .where('due', '>=', sod.toISOString())
+            .where('due', '<=', eod.toISOString())
         } else {
           // Choose another overdue busywork item.
           baseReason = 'Currently working through a chunk of overdue busywork.'
