@@ -358,7 +358,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
 
         return workSize >= chunkSize
       }
-      if (doCompletedItemsMatch(completedItems, isImportant, WORK_CHUNK_SIZE)) {
+      if (doCompletedItemsMatch(completedItems, isImportant)) {
         // Choose a busywork item due today.
         baseReason = 'Most recent completed item is important, looking for busywork due today.'
         const sod = new Date()
