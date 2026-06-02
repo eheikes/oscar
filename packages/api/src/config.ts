@@ -17,7 +17,8 @@ const fields = {
   NODE_ENV: z.string().optional(),
   OPENID_CLIENT_ID: z.string(),
   OPENID_CLIENT_SECRET: z.string(),
-  OPENID_URL: z.string()
+  OPENID_URL: z.string(),
+  WORK_CHUNK_SIZE: z.coerce.number().default(30)
 }
 export type Config = DeepReadonlyObject<typeof fields>
 

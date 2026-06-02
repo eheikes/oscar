@@ -1,9 +1,12 @@
 import { type ParsedQs } from 'qs'
 import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
+import { getConfig } from './config.js'
 import { getDatabaseConnection, raw } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
 import { addItemLabels, getItemLabels } from './labels.js'
+
+const config = getConfig()
 
 export interface DatabaseItem {
   author: string | null
@@ -271,7 +274,7 @@ interface NextItemWithWeight {
 export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
   const db = getDatabaseConnection()
   const parsedParams = getNextItemRequestSchema.parse(params)
-  const WORK_CHUNK_SIZE = 30
+  const WORK_CHUNK_SIZE = config.WORK_CHUNK_SIZE
 
   // Start building the query to get candidate items based on type and labels.
   // We'll calculate weights and reasons in JS since the logic is complex and involves multiple fields and labels.
