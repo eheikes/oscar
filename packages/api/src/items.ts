@@ -308,6 +308,13 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
       .whereNotNull('items.deleted_at')
       .orderBy('items.deleted_at', 'DESC')
       .limit(Math.ceil(WORK_CHUNK_SIZE / 5) + 1)
+    for (const label of labels) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      completedQuery.whereExists(function () {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', label)
+      })
+    }
     const completedItems = await completedQuery
     console.log('**** completed items:', JSON.stringify(completedItems, null, 2)) // TODO: convert to log
 
