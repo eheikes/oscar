@@ -106,6 +106,10 @@ const mapItemFromDatabase = (row: DatabaseItem, labels: string[] = []): ItemWith
 }
 
 const addItemRequestSchema = z.object({
+  replace: z.coerce.boolean().optional()
+})
+
+const addItemBodySchema = z.object({
   author: z.string().nullish(),
   due: z.string().datetime().nullish(),
   expectedRank: z.number().nullish(),
@@ -121,9 +125,17 @@ const addItemRequestSchema = z.object({
   uri: z.string().nullish()
 })
 
-export const addItem = async (itemData: unknown): Promise<ItemWithLabels> => {
-  const parsedItemData = addItemRequestSchema.parse(itemData)
+export const addItem = async (params: ParsedQs, itemData: unknown): Promise<ItemWithLabels> => {
+  const parsedParams = addItemRequestSchema.parse(params)
+  const parsedItemData = addItemBodySchema.parse(itemData)
   const db = getDatabaseConnection()
+  if (parsedParams.replace ?? false) {
+    // Delete rather than mark deleted_at so as to not interfere with getNextItem()
+    await db('items').where({
+      title: parsedItemData.title,
+      type_id: parsedItemData.type
+    }).whereNull('deleted_at').delete()
+  }
   const id = uuidv4()
   const now = new Date()
   await db('items').insert({
@@ -172,7 +184,7 @@ const deleteItemRequestSchema = z.object({
   itemId: z.string().uuid()
 })
 
-export const deleteItem = async (itemId: string): Promise<void> => {
+export const markItemAsDeleted = async (itemId: string): Promise<void> => {
   deleteItemRequestSchema.parse({ itemId })
   const db = getDatabaseConnection()
   const result = await db.select('*').from('items').where({ id: itemId }).first()

@@ -116,6 +116,71 @@ describe('POST /items', () => {
       })
   })
 
+  it('should delete existing items with the same name when "replace" parameter is true', async () => {
+    const testItem1 = {
+      id: 'bdb76fb4-98aa-4b48-bb9c-fc647199e09f',
+      title: 'Test Item',
+      uri: 'http://example.com',
+      type_id: 'task',
+      length: 10,
+      due: '2024-06-01T00:00:00.000Z',
+      created_at: new Date('2024-05-31T00:00:00.000Z'),
+      updated_at: new Date('2024-05-31T00:00:00.000Z'),
+      deleted_at: null
+    }
+    const testItem2 = {
+      id: '2400b74e-3d59-4fcc-9d5f-3a0ad46a2066',
+      title: 'Test Item',
+      uri: 'http://example.com/foo',
+      type_id: 'task',
+      length: 30,
+      due: '2024-06-01T00:00:00.000Z',
+      created_at: new Date('2024-05-31T00:00:00.000Z'),
+      updated_at: new Date('2024-05-31T00:00:00.000Z'),
+      deleted_at: null
+    }
+    const testItem3 = {
+      id: '440c6edb-0489-4a51-bd51-5c301be888f7',
+      title: 'Other Item',
+      uri: 'http://example.com/bar',
+      type_id: 'task',
+      length: 10,
+      due: '2024-06-01T00:00:00.000Z',
+      created_at: new Date('2024-05-31T00:00:00.000Z'),
+      updated_at: new Date('2024-05-31T00:00:00.000Z'),
+      deleted_at: null
+    }
+    await db('items').insert(testItem1)
+    await db('items').insert(testItem2)
+    await db('items').insert(testItem3)
+
+    await request(app)
+      .post('/items')
+      .query({ replace: 1 })
+      .send({
+        author: 'John Doe',
+        due: '2024-06-01T10:00:00.000Z',
+        expectedRank: 1,
+        imageUri: 'http://example.com/image.jpg',
+        labels: ['work', 'urgent'],
+        language: 'en',
+        length: 100,
+        rank: 5,
+        rating: 4.5,
+        summary: 'This is a summary.',
+        title: 'Test Item',
+        uri: 'http://example.com',
+        type: 'task'
+      })
+      .expect(201)
+
+    const testItems = await db('items').where({ title: 'Test Item' })
+    expect(testItems).toHaveLength(1)
+
+    const nonTestItems = await db('items').whereNot({ title: 'Test Item' })
+    expect(nonTestItems).toHaveLength(1)
+  })
+
   it('should return 400 when an invalid value is provided', async () => {
     await request(app)
       .post('/items')
