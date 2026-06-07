@@ -106,7 +106,7 @@ const mapItemFromDatabase = (row: DatabaseItem, labels: string[] = []): ItemWith
 }
 
 const addItemRequestSchema = z.object({
-  replace: z.coerce.boolean().optional()
+  replace: z.string().optional()
 })
 
 const addItemBodySchema = z.object({
@@ -129,7 +129,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
   const parsedParams = addItemRequestSchema.parse(params)
   const parsedItemData = addItemBodySchema.parse(itemData)
   const db = getDatabaseConnection()
-  if (parsedParams.replace ?? false) {
+  if (parsedParams.replace === 'true') {
     // Delete rather than mark deleted_at so as to not interfere with getNextItem()
     await db('items').where({
       title: parsedItemData.title,
