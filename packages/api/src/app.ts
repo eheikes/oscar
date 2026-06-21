@@ -11,7 +11,8 @@ import {
   getNextItemController,
   getProfileController,
   getTypesController,
-  getWebpageController
+  getWebpageController,
+  updateItemController
 } from './controllers.js'
 import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
@@ -36,6 +37,7 @@ if (isDevelopment()) {
 }
 app.get('/items/next', getNextItemController)
 app.delete('/items/:itemId', deleteItemController)
+app.put('/items/:itemId', updateItemController)
 app.get('/items', checkAuthn, checkAuthz, getItemsController)
 app.post('/items', addItemController)
 app.get('/types', getTypesController)

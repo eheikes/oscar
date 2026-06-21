@@ -198,6 +198,59 @@ export const markItemAsDeleted = async (itemId: string): Promise<void> => {
   await db('items').update({ deleted_at: new Date() }).where({ id: itemId })
 }
 
+const updateItemParamsSchema = z.object({
+  itemId: z.string().uuid()
+})
+
+const updateItemBodySchema = z.object({
+  author: z.string().nullable().optional(),
+  due: z.string().datetime().nullable().optional(),
+  expectedRank: z.number().nullable().optional(),
+  imageUri: z.string().nullable().optional(),
+  labels: z.array(z.string()).optional(),
+  language: z.string().nullable().optional(),
+  length: z.number().nullable().optional(),
+  rank: z.number().nullable().optional(),
+  rating: z.number().nullable().optional(),
+  summary: z.string().nullable().optional(),
+  title: z.string().optional(),
+  type: z.string().optional(),
+  uri: z.string().nullable().optional()
+}).strict()
+
+export const updateItem = async (itemId: string, itemData: unknown): Promise<ItemWithLabels> => {
+  updateItemParamsSchema.parse({ itemId })
+  const parsedItemData = updateItemBodySchema.parse(itemData)
+  const db = getDatabaseConnection()
+  const existing = await db.select('*').from('items').where({ id: itemId }).whereNull('deleted_at').first()
+  if (existing === undefined) {
+    throw new NotFoundError('Item not found')
+  }
+  const now = new Date()
+  const dbUpdates: Partial<DatabaseItem> = { updated_at: now }
+  if (parsedItemData.author !== undefined) dbUpdates.author = parsedItemData.author
+  if (parsedItemData.due !== undefined) dbUpdates.due = parsedItemData.due
+  if (parsedItemData.expectedRank !== undefined) dbUpdates.expected_rank = parsedItemData.expectedRank
+  if (parsedItemData.imageUri !== undefined) dbUpdates.image_uri = parsedItemData.imageUri
+  if (parsedItemData.language !== undefined) dbUpdates.language = parsedItemData.language
+  if (parsedItemData.length !== undefined) dbUpdates.length = parsedItemData.length
+  if (parsedItemData.rank !== undefined) dbUpdates.rank = parsedItemData.rank
+  if (parsedItemData.rating !== undefined) dbUpdates.rating = parsedItemData.rating
+  if (parsedItemData.summary !== undefined) dbUpdates.summary = parsedItemData.summary
+  if (parsedItemData.title !== undefined) dbUpdates.title = parsedItemData.title
+  if (parsedItemData.type !== undefined) dbUpdates.type_id = parsedItemData.type
+  if (parsedItemData.uri !== undefined) dbUpdates.uri = parsedItemData.uri
+  await db('items').update(dbUpdates).where({ id: itemId })
+  if (parsedItemData.labels !== undefined) {
+    await db('item_labels').where({ item_id: itemId }).delete()
+    await addItemLabels(itemId, parsedItemData.labels)
+  }
+  const updatedRow = await db.select('*').from('items').where({ id: itemId }).first()
+  const itemLabels = await getItemLabels(itemId)
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return mapItemFromDatabase(updatedRow!, itemLabels.map(label => label.labelId))
+}
+
 const getItemsRequestSchema = z.object({
   count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
