@@ -147,11 +147,29 @@ describe('PUT /items/:itemId', () => {
       .expect(400)
   })
 
-  it('should return 400 when "deletedAt" is included in the body', async () => {
+  it('should allow setting deletedAt to an ISO 8601 value', async () => {
     await request(app)
       .put(`/items/${testItem.id}`)
       .send({ deletedAt: '2024-01-01T00:00:00.000Z' })
-      .expect(400)
+      .expect(200)
+      .then(response => {
+        expect(response.body.deletedAt).toBe('2024-01-01T00:00:00.000Z')
+      })
+    const row = await db('items').where({ id: testItem.id }).first()
+    expect(row?.deleted_at?.toISOString()).toBe('2024-01-01T00:00:00.000Z')
+  })
+
+  it('should allow setting deletedAt to null', async () => {
+    await db('items').update({ deleted_at: new Date('2024-06-01T10:00:00.000Z') }).where({ id: testItem.id })
+    await request(app)
+      .put(`/items/${testItem.id}`)
+      .send({ deletedAt: null })
+      .expect(200)
+      .then(response => {
+        expect(response.body.deletedAt).toBe(null)
+      })
+    const row = await db('items').where({ id: testItem.id }).first()
+    expect(row?.deleted_at).toBe(null)
   })
 
   it('should return 400 when a non-UUID is provided for itemId', async () => {
@@ -168,10 +186,13 @@ describe('PUT /items/:itemId', () => {
       .expect(404)
   })
 
-  it('should return 404 for a soft-deleted item', async () => {
+  it('should update a previously soft-deleted item', async () => {
     await request(app)
       .put(`/items/${deletedItem.id}`)
       .send({ title: 'Updated' })
-      .expect(404)
+      .expect(200)
+      .then(response => {
+        expect(response.body.title).toBe('Updated')
+      })
   })
 })

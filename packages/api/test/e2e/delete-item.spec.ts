@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
@@ -23,7 +23,7 @@ describe('DELETE /items/:itemId', () => {
     deleted_at: new Date('2024-06-01T10:00:00.000Z')
   }
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await db('item_labels').delete()
     await db('items').delete()
     await db('items').insert(testItem1)
@@ -34,10 +34,16 @@ describe('DELETE /items/:itemId', () => {
     await request(app)
       .delete(`/items/${testItem1.id}`)
       .expect(204)
+    const item = await db('items').where({ id: testItem1.id }).first()
+    expect(item).toBeUndefined()
   })
 
-  it('should set the deletion date and not actually delete it', async () => {
-    // TODO
+  it('should delete an item that already has deleted_at set', async () => {
+    await request(app)
+      .delete(`/items/${testItem2.id}`)
+      .expect(204)
+    const item = await db('items').where({ id: testItem2.id }).first()
+    expect(item).toBeUndefined()
   })
 
   it('should return 400 when a non-UUID is provided', async () => {
@@ -52,11 +58,12 @@ describe('DELETE /items/:itemId', () => {
       .expect(404)
   })
 
-  it('should not change the deletion date for an item already deleted', async () => {
+  it('should return 404 after the item has already been deleted', async () => {
     await request(app)
-      .delete(`/items/${testItem2.id}`)
+      .delete(`/items/${testItem1.id}`)
       .expect(204)
-    const item = await db('items').where({ id: testItem2.id }).first()
-    expect(item?.deleted_at?.toISOString()).toBe('2024-06-01T10:00:00.000Z')
+    await request(app)
+      .delete(`/items/${testItem1.id}`)
+      .expect(404)
   })
 })

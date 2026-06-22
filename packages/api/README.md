@@ -91,7 +91,7 @@ Request body (JSON):
 
 ### `PUT /items/:itemId`
 
-Updates an existing item. Only the fields included in the request body are changed; omitted fields keep their current values. The item must exist and must not be soft-deleted.
+Updates an existing item. Only the fields included in the request body are changed; omitted fields keep their current values. The item must exist.
 
 Path parameters:
 
@@ -106,6 +106,7 @@ Request body (JSON) — all fields are optional:
 | `title` | string | Item title. |
 | `type` | string | Item type identifier. |
 | `author` | string \| null | Author name. |
+| `deletedAt` | ISO 8601 datetime \| null | Value to store in the item's deletion timestamp. |
 | `due` | ISO 8601 datetime \| null | Due date. |
 | `expectedRank` | number \| null | Expected priority rank. |
 | `imageUri` | string \| null | URL of an associated image. |
@@ -117,17 +118,17 @@ Request body (JSON) — all fields are optional:
 | `summary` | string \| null | Short description. |
 | `uri` | string \| null | URL associated with the item. |
 
-The fields `id`, `createdAt`, `updatedAt`, and `deletedAt` cannot be included in the body — doing so results in a `400` error.
+The fields `id`, `createdAt`, and `updatedAt` cannot be included in the body — doing so results in a `400` error.
 
 **Response `200 OK`** — the updated item object.
 **Response `400 Bad Request`** — invalid `itemId` format or forbidden/invalid fields in body.
-**Response `404 Not Found`** — no active item with the given `itemId`.
+**Response `404 Not Found`** — no item with the given `itemId`.
 
 ---
 
 ### `DELETE /items/:itemId`
 
-Soft-deletes an item by setting its `deleted_at` timestamp.
+Deletes an item from the database.
 
 Path parameters:
 
@@ -135,7 +136,7 @@ Path parameters:
 |---|---|---|
 | `itemId` | UUID | ID of the item to delete. |
 
-**Response `204 No Content`** — item deleted (or was already deleted).
+**Response `204 No Content`** — item deleted.
 **Response `400 Bad Request`** — invalid `itemId` format.
 **Response `404 Not Found`** — no item with the given `itemId`.
 
