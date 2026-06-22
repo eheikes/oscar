@@ -180,22 +180,18 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
   }
 }
 
-const deleteItemRequestSchema = z.object({
+const removeItemRequestSchema = z.object({
   itemId: z.string().uuid()
 })
 
-export const markItemAsDeleted = async (itemId: string): Promise<void> => {
-  deleteItemRequestSchema.parse({ itemId })
+export const deleteItem = async (itemId: string): Promise<void> => {
+  removeItemRequestSchema.parse({ itemId })
   const db = getDatabaseConnection()
   const result = await db.select('*').from('items').where({ id: itemId }).first()
   if (result === undefined) {
     throw new NotFoundError('Item not found')
   }
-  if (result.deleted_at !== null) {
-    // Item is already deleted, so don't update the deletion date.
-    return
-  }
-  await db('items').update({ deleted_at: new Date() }).where({ id: itemId })
+  await db('items').where({ id: itemId }).delete()
 }
 
 const updateItemParamsSchema = z.object({
@@ -204,6 +200,7 @@ const updateItemParamsSchema = z.object({
 
 const updateItemBodySchema = z.object({
   author: z.string().nullable().optional(),
+  deletedAt: z.string().datetime().nullable().optional(),
   due: z.string().datetime().nullable().optional(),
   expectedRank: z.number().nullable().optional(),
   imageUri: z.string().nullable().optional(),
@@ -222,13 +219,16 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   updateItemParamsSchema.parse({ itemId })
   const parsedItemData = updateItemBodySchema.parse(itemData)
   const db = getDatabaseConnection()
-  const existing = await db.select('*').from('items').where({ id: itemId }).whereNull('deleted_at').first()
+  const existing = await db.select('*').from('items').where({ id: itemId }).first()
   if (existing === undefined) {
     throw new NotFoundError('Item not found')
   }
   const now = new Date()
   const dbUpdates: Partial<DatabaseItem> = { updated_at: now }
   if (parsedItemData.author !== undefined) dbUpdates.author = parsedItemData.author
+  if (parsedItemData.deletedAt !== undefined) {
+    dbUpdates.deleted_at = parsedItemData.deletedAt === null ? null : new Date(parsedItemData.deletedAt)
+  }
   if (parsedItemData.due !== undefined) dbUpdates.due = parsedItemData.due
   if (parsedItemData.expectedRank !== undefined) dbUpdates.expected_rank = parsedItemData.expectedRank
   if (parsedItemData.imageUri !== undefined) dbUpdates.image_uri = parsedItemData.imageUri
