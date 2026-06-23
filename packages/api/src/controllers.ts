@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { addItem, deleteItem, getItems, getNextItem, updateItem } from './items.js'
+import { getLabels } from './labels.js'
 import { getTypes } from './types.js'
 import { render } from './webpage.js'
 
@@ -36,6 +37,11 @@ export const getProfileController: Controller = async (req, res) => {
 
 export const getTypesController: Controller = async (req, res) => {
   const result = await getTypes(req.query)
+  res.json(result)
+}
+
+export const getLabelsController: Controller = async (req, res) => {
+  const result = await getLabels()
   res.json(result)
 }
 
