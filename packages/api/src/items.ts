@@ -12,7 +12,7 @@ export interface DatabaseItem {
   author: string | null
   created_at: Date
   deleted_at: Date | null
-  due: string | null
+  due: Date | null
   expected_rank: number | null
   id: string
   image_uri: string | null
@@ -142,7 +142,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     author: parsedItemData.author,
     created_at: now,
     deleted_at: null,
-    due: parsedItemData.due,
+    due: typeof parsedItemData.due === 'string' ? new Date(parsedItemData.due) : null,
     expected_rank: parsedItemData.expectedRank,
     id,
     image_uri: parsedItemData.imageUri,
@@ -163,7 +163,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     author: parsedItemData.author ?? null,
     createdAt: now.toISOString(),
     deletedAt: null,
-    due: parsedItemData.due ?? null,
+    due: typeof parsedItemData.due === 'string' ? new Date(parsedItemData.due).toISOString() : null,
     expectedRank: parsedItemData.expectedRank ?? null,
     id,
     imageUri: parsedItemData.imageUri ?? null,
@@ -229,7 +229,7 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (parsedItemData.deletedAt !== undefined) {
     dbUpdates.deleted_at = parsedItemData.deletedAt === null ? null : new Date(parsedItemData.deletedAt)
   }
-  if (parsedItemData.due !== undefined) dbUpdates.due = parsedItemData.due
+  if (parsedItemData.due !== undefined) dbUpdates.due = parsedItemData.due === null ? null : new Date(parsedItemData.due)
   if (parsedItemData.expectedRank !== undefined) dbUpdates.expected_rank = parsedItemData.expectedRank
   if (parsedItemData.imageUri !== undefined) dbUpdates.image_uri = parsedItemData.imageUri
   if (parsedItemData.language !== undefined) dbUpdates.language = parsedItemData.language

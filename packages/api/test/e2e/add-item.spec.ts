@@ -123,7 +123,7 @@ describe('POST /items', () => {
       uri: 'http://example.com',
       type_id: 'task',
       length: 10,
-      due: '2024-06-01T00:00:00.000Z',
+      due: new Date('2024-06-01T00:00:00.000Z'),
       created_at: new Date('2024-05-31T00:00:00.000Z'),
       updated_at: new Date('2024-05-31T00:00:00.000Z'),
       deleted_at: null
@@ -134,7 +134,7 @@ describe('POST /items', () => {
       uri: 'http://example.com/foo',
       type_id: 'task',
       length: 30,
-      due: '2024-06-01T00:00:00.000Z',
+      due: new Date('2024-06-01T00:00:00.000Z'),
       created_at: new Date('2024-05-31T00:00:00.000Z'),
       updated_at: new Date('2024-05-31T00:00:00.000Z'),
       deleted_at: null
@@ -145,7 +145,7 @@ describe('POST /items', () => {
       uri: 'http://example.com/bar',
       type_id: 'task',
       length: 10,
-      due: '2024-06-01T00:00:00.000Z',
+      due: new Date('2024-06-01T00:00:00.000Z'),
       created_at: new Date('2024-05-31T00:00:00.000Z'),
       updated_at: new Date('2024-05-31T00:00:00.000Z'),
       deleted_at: null
@@ -191,7 +191,7 @@ describe('POST /items', () => {
       uri: 'http://example.com',
       type_id: 'task',
       length: 10,
-      due: '2024-06-01T00:00:00.000Z',
+      due: new Date('2024-06-01T00:00:00.000Z'),
       created_at: new Date('2024-05-31T00:00:00.000Z'),
       updated_at: new Date('2024-05-31T00:00:00.000Z'),
       deleted_at: null
@@ -202,7 +202,7 @@ describe('POST /items', () => {
       uri: 'http://example.com/foo',
       type_id: 'task',
       length: 30,
-      due: '2024-06-01T00:00:00.000Z',
+      due: new Date('2024-06-01T00:00:00.000Z'),
       created_at: new Date('2024-05-31T00:00:00.000Z'),
       updated_at: new Date('2024-05-31T00:00:00.000Z'),
       deleted_at: null
@@ -213,7 +213,7 @@ describe('POST /items', () => {
       uri: 'http://example.com/bar',
       type_id: 'task',
       length: 10,
-      due: '2024-06-01T00:00:00.000Z',
+      due: new Date('2024-06-01T00:00:00.000Z'),
       created_at: new Date('2024-05-31T00:00:00.000Z'),
       updated_at: new Date('2024-05-31T00:00:00.000Z'),
       deleted_at: null
