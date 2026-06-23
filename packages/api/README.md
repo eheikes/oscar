@@ -89,7 +89,7 @@ Request body (JSON):
 
 ---
 
-### `PUT /items/:itemId`
+### `PATCH /items/:itemId`
 
 Updates an existing item. Only the fields included in the request body are changed; omitted fields keep their current values. The item must exist.
 
