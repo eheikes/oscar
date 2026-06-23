@@ -142,6 +142,14 @@ Path parameters:
 
 ---
 
+### `GET /labels`
+
+Returns the list of available labels.
+
+**Response `200 OK`** — array of label objects.
+
+---
+
 ### `GET /types`
 
 Returns the list of available item types.

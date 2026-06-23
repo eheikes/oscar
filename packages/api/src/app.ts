@@ -8,6 +8,7 @@ import {
   addItemController,
   deleteItemController,
   getItemsController,
+  getLabelsController,
   getNextItemController,
   getProfileController,
   getTypesController,
@@ -41,6 +42,7 @@ app.patch('/items/:itemId', updateItemController)
 app.get('/items', checkAuthn, checkAuthz, getItemsController)
 app.post('/items', addItemController)
 app.get('/types', getTypesController)
+app.get('/labels', getLabelsController)
 app.get('/profile', checkAuthn, checkAuthz, getProfileController)
 /* eslint-enable @typescript-eslint/no-misused-promises */
 

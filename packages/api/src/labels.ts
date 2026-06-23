@@ -43,3 +43,13 @@ export const getItemLabels = async (itemId: string): Promise<ItemLabel[]> => {
     labelId: row.label_id
   }))
 }
+
+export const getLabels = async (): Promise<Label[]> => {
+  const db = getDatabaseConnection()
+  const query = db.select('*').from('labels').orderBy('id', 'ASC').limit(100)
+  const result = await query
+  return result.map(row => ({
+    id: row.id,
+    readable: row.readable ?? row.id
+  }))
+}
