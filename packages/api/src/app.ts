@@ -39,7 +39,7 @@ if (isDevelopment()) {
 app.get('/items/next', getNextItemController)
 app.delete('/items/:itemId', deleteItemController)
 app.patch('/items/:itemId', updateItemController)
-app.get('/items', checkAuthn, checkAuthz, getItemsController)
+app.get('/items', getItemsController)
 app.post('/items', addItemController)
 app.get('/types', getTypesController)
 app.get('/labels', getLabelsController)
