@@ -200,8 +200,8 @@ const updateItemParamsSchema = z.object({
 
 const updateItemBodySchema = z.object({
   author: z.string().nullable().optional(),
-  deletedAt: z.string().datetime().nullable().optional(),
-  due: z.string().datetime().nullable().optional(),
+  deletedAt: z.string().datetime({ offset: true }).nullable().optional(),
+  due: z.string().datetime({ offset: true }).nullable().optional(),
   expectedRank: z.number().nullable().optional(),
   imageUri: z.string().nullable().optional(),
   labels: z.array(z.string()).optional(),
