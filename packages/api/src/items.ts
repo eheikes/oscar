@@ -12,7 +12,7 @@ export interface DatabaseItem {
   author: string | null
   created_at: Date
   deleted_at: Date | null
-  due: string | null
+  due: Date | null
   expected_rank: number | null
   id: string
   image_uri: string | null
@@ -111,7 +111,7 @@ const addItemRequestSchema = z.object({
 
 const addItemBodySchema = z.object({
   author: z.string().nullish(),
-  due: z.string().datetime().nullish(),
+  due: z.string().datetime({ offset: true }).nullish(),
   expectedRank: z.number().nullish(),
   imageUri: z.string().nullish(),
   labels: z.array(z.string()).nullish(),
@@ -142,7 +142,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     author: parsedItemData.author,
     created_at: now,
     deleted_at: null,
-    due: parsedItemData.due,
+    due: typeof parsedItemData.due === 'string' ? new Date(parsedItemData.due) : null,
     expected_rank: parsedItemData.expectedRank,
     id,
     image_uri: parsedItemData.imageUri,
@@ -163,7 +163,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     author: parsedItemData.author ?? null,
     createdAt: now.toISOString(),
     deletedAt: null,
-    due: parsedItemData.due ?? null,
+    due: typeof parsedItemData.due === 'string' ? new Date(parsedItemData.due).toISOString() : null,
     expectedRank: parsedItemData.expectedRank ?? null,
     id,
     imageUri: parsedItemData.imageUri ?? null,
@@ -229,7 +229,7 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (parsedItemData.deletedAt !== undefined) {
     dbUpdates.deleted_at = parsedItemData.deletedAt === null ? null : new Date(parsedItemData.deletedAt)
   }
-  if (parsedItemData.due !== undefined) dbUpdates.due = parsedItemData.due
+  if (parsedItemData.due !== undefined) dbUpdates.due = parsedItemData.due === null ? null : new Date(parsedItemData.due)
   if (parsedItemData.expectedRank !== undefined) dbUpdates.expected_rank = parsedItemData.expectedRank
   if (parsedItemData.imageUri !== undefined) dbUpdates.image_uri = parsedItemData.imageUri
   if (parsedItemData.language !== undefined) dbUpdates.language = parsedItemData.language
@@ -254,14 +254,15 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
 const getItemsRequestSchema = z.object({
   count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
+  label: z.union([z.array(z.string()), z.string()]).optional(),
   maximumRank: z.coerce.number().optional(),
   minimumRank: z.coerce.number().optional(),
   offset: z.coerce.number().optional(),
-  orderBy: z.string().default('createdAt'),
-  orderDir: z.enum(['asc', 'desc']).default('desc'),
+  orderBy: z.string().default('due'),
+  orderDir: z.enum(['asc', 'desc']).default('asc'),
   random: z.coerce.boolean().default(false),
   search: z.string().optional(),
-  since: z.string().datetime().optional(),
+  since: z.string().datetime({ offset: true }).optional(),
   type: z.union([z.array(z.string()), z.string()]).optional()
 })
 
@@ -290,6 +291,16 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
         builder.orWhere('type_id', type)
       }
     })
+  }
+  if (typeof parsedParams.label !== 'undefined') {
+    const labelParam = parsedParams.label
+    const labels = Array.isArray(labelParam) ? labelParam : [labelParam]
+    for (const label of labels) {
+      query = query.whereExists(function () {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', label)
+      })
+    }
   }
   if (typeof parsedParams.search !== 'undefined') {
     const terms = parsedParams.search.split(/\s+/)

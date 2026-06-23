@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import openidConnect, { auth } from 'express-openid-connect'
-import { getConfig, isDevelopment } from './config.js'
+import { getConfig, isDevelopment, isTest } from './config.js'
 import { AuthorizationError } from './error.js'
 import { getUserById } from './users.js'
 
@@ -22,7 +22,7 @@ export const configureAuth = auth(authConfig)
 
 export const checkAuthn = (req: Request, res: Response, next: NextFunction): void => {
   /* c8 ignore start -- not for production use */
-  if (isDevelopment() && req.cookies[sessionName] === mockSession) {
+  if ((isDevelopment() || isTest()) && req.cookies[sessionName] === mockSession) {
     req.oidc = JSON.parse(typeof req.cookies.oidc === 'string' ? req.cookies.oidc : '{}')
     return next()
   }

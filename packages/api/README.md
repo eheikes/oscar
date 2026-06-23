@@ -28,11 +28,12 @@ Query parameters:
 |---|---|---|---|
 | `count` | number | `25` | Maximum number of items to return (capped at 100). |
 | `includeDeleted` | boolean | `false` | Whether to include soft-deleted items. |
+| `label` | string or string[] | — | Filter to items that contain all specified labels. |
 | `maximumRank` | number | — | Filter to items with rank ≤ this value. |
 | `minimumRank` | number | — | Filter to items with rank ≥ this value. |
 | `offset` | number | — | Number of items to skip. |
-| `orderBy` | string | `createdAt` | Field to sort by. Use `random` for random order. |
-| `orderDir` | `asc` \| `desc` | `desc` | Sort direction. |
+| `orderBy` | string | `due` | Field to sort by. Use `random` for random order. |
+| `orderDir` | `asc` \| `desc` | `asc` | Sort direction. |
 | `search` | string | — | Filter by title (space-separated terms, case-insensitive). |
 | `since` | ISO 8601 datetime | — | Filter to items created on or after this timestamp. |
 | `type` | string or string[] | — | Filter by one or more item types. |

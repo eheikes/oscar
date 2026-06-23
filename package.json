@@ -21,6 +21,7 @@
   "homepage": "https://github.com/eheikes/oscar#readme",
   "scripts": {
     "prepare": "husky",
+    "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "lint-hook": "npm run lint-hook --workspaces --if-present",
     "report-coverage": "npm run report-coverage --workspaces --if-present",

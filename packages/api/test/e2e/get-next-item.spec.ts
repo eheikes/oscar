@@ -37,7 +37,7 @@ describe('GET /items/:typeId', () => {
         title: 'Item 1',
         uri: 'http://example.com',
         type_id: 'task',
-        due: '2024-06-10T00:00:00.000Z',
+        due: new Date('2024-06-10T00:00:00.000Z'),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -46,7 +46,7 @@ describe('GET /items/:typeId', () => {
         title: 'Item 2',
         uri: 'http://example.com/foo',
         type_id: 'task',
-        due: '2024-06-10T00:00:00.000Z',
+        due: new Date('2024-06-10T00:00:00.000Z'),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -55,7 +55,7 @@ describe('GET /items/:typeId', () => {
         title: 'Item 3',
         uri: 'http://example.com/bar',
         type_id: 'task',
-        due: '2024-06-10T00:00:00.000Z',
+        due: new Date('2024-06-10T00:00:00.000Z'),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -64,7 +64,7 @@ describe('GET /items/:typeId', () => {
         title: 'Item 4',
         uri: 'http://example.com/baz',
         type_id: 'task',
-        due: '2024-06-10T00:00:00.000Z',
+        due: new Date('2024-06-10T00:00:00.000Z'),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -103,7 +103,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com',
         type_id: 'task',
         length: 60,
-        due: dueInPast,
+        due: new Date(dueInPast),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z'),
         deleted_at: new Date('2024-05-31T00:00:00.000Z')
@@ -114,7 +114,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/foo',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -124,7 +124,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/bar',
         type_id: 'task',
         length: 10,
-        due: dueDaysAgo,
+        due: new Date(dueDaysAgo),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -134,7 +134,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/baz',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -167,7 +167,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com',
         type_id: 'task',
         length: 5,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z'),
         deleted_at: new Date()
@@ -178,7 +178,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/foo',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -188,7 +188,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/bar',
         type_id: 'task',
         length: 10,
-        due: dueDaysAgo,
+        due: new Date(dueDaysAgo),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -198,7 +198,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/baz',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -232,7 +232,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z'),
         deleted_at: new Date('2024-05-31T00:00:00.000Z')
@@ -243,7 +243,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/foo',
         type_id: 'task',
         length: 30,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z'),
         deleted_at: new Date('2024-05-31T00:00:00.000Z')
@@ -254,7 +254,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/bar',
         type_id: 'task',
         length: 10,
-        due: dueDaysAgo,
+        due: new Date(dueDaysAgo),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -264,7 +264,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/baz',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -274,7 +274,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/qux',
         type_id: 'task',
         length: 10,
-        due: dueInPast,
+        due: new Date(dueInPast),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -305,7 +305,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com',
         type_id: 'task',
         length: 10,
-        due: dueInPast,
+        due: new Date(dueInPast),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z'),
         deleted_at: new Date('2024-05-31T00:00:00.000Z')
@@ -316,7 +316,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/foo',
         type_id: 'task',
         length: 30,
-        due: dueInPast,
+        due: new Date(dueInPast),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z'),
         deleted_at: new Date('2024-05-31T00:00:00.000Z')
@@ -327,7 +327,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/bar',
         type_id: 'task',
         length: 10,
-        due: dueDaysAgo,
+        due: new Date(dueDaysAgo),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -337,7 +337,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/baz',
         type_id: 'task',
         length: 10,
-        due: dueToday,
+        due: new Date(dueToday),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
@@ -347,7 +347,7 @@ describe('GET /items/:typeId', () => {
         uri: 'http://example.com/qux',
         type_id: 'task',
         length: 10,
-        due: dueInPast,
+        due: new Date(dueInPast),
         created_at: new Date('2024-05-31T00:00:00.000Z'),
         updated_at: new Date('2024-05-31T00:00:00.000Z')
       }
