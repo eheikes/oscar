@@ -111,7 +111,7 @@ const addItemRequestSchema = z.object({
 
 const addItemBodySchema = z.object({
   author: z.string().nullish(),
-  due: z.string().datetime().nullish(),
+  due: z.string().datetime({ offset: true }).nullish(),
   expectedRank: z.number().nullish(),
   imageUri: z.string().nullish(),
   labels: z.array(z.string()).nullish(),
@@ -261,7 +261,7 @@ const getItemsRequestSchema = z.object({
   orderDir: z.enum(['asc', 'desc']).default('desc'),
   random: z.coerce.boolean().default(false),
   search: z.string().optional(),
-  since: z.string().datetime().optional(),
+  since: z.string().datetime({ offset: true }).optional(),
   type: z.union([z.array(z.string()), z.string()]).optional()
 })
 
