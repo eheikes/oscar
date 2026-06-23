@@ -147,6 +147,30 @@ describe('PATCH /items/:itemId', () => {
       .expect(400)
   })
 
+  it('should allow setting due to an ISO 8601 value', async () => {
+    await request(app)
+      .patch(`/items/${testItem.id}`)
+      .send({ due: '2024-01-01T00:00:00.000Z' })
+      .expect(200)
+      .then(response => {
+        expect(response.body.due).toBe('2024-01-01T00:00:00.000Z')
+      })
+    const row = await db('items').where({ id: testItem.id }).first()
+    expect(row?.due?.toISOString()).toBe('2024-01-01T00:00:00.000Z')
+  })
+
+  it('should allow setting due to an ISO 8601 value with timezone', async () => {
+    await request(app)
+      .patch(`/items/${testItem.id}`)
+      .send({ due: '2026-06-22T20:12:43-07:00' })
+      .expect(200)
+      .then(response => {
+        expect(response.body.due).toBe('2026-06-23T03:12:43.000Z')
+      })
+    const row = await db('items').where({ id: testItem.id }).first()
+    expect(row?.due?.toISOString()).toBe('2026-06-23T03:12:43.000Z')
+  })
+
   it('should allow setting deletedAt to an ISO 8601 value', async () => {
     await request(app)
       .patch(`/items/${testItem.id}`)
@@ -157,6 +181,18 @@ describe('PATCH /items/:itemId', () => {
       })
     const row = await db('items').where({ id: testItem.id }).first()
     expect(row?.deleted_at?.toISOString()).toBe('2024-01-01T00:00:00.000Z')
+  })
+
+  it('should allow setting deletedAt to an ISO 8601 value with timezone', async () => {
+    await request(app)
+      .patch(`/items/${testItem.id}`)
+      .send({ deletedAt: '2026-06-22T20:12:43-07:00' })
+      .expect(200)
+      .then(response => {
+        expect(response.body.deletedAt).toBe('2026-06-23T03:12:43.000Z')
+      })
+    const row = await db('items').where({ id: testItem.id }).first()
+    expect(row?.deleted_at?.toISOString()).toBe('2026-06-23T03:12:43.000Z')
   })
 
   it('should allow setting deletedAt to null', async () => {
