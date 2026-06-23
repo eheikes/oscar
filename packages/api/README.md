@@ -28,6 +28,7 @@ Query parameters:
 |---|---|---|---|
 | `count` | number | `25` | Maximum number of items to return (capped at 100). |
 | `includeDeleted` | boolean | `false` | Whether to include soft-deleted items. |
+| `label` | string or string[] | — | Filter to items that contain all specified labels. |
 | `maximumRank` | number | — | Filter to items with rank ≤ this value. |
 | `minimumRank` | number | — | Filter to items with rank ≥ this value. |
 | `offset` | number | — | Number of items to skip. |

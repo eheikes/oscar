@@ -41,11 +41,35 @@ describe('GET /items', () => {
     rating: null,
     summary: null
   }
+  const testItem3 = {
+    id: '33333333-3333-4333-8333-333333333333',
+    title: 'Item 3',
+    uri: 'http://example.com/bar',
+    type_id: 'task',
+    created_at: new Date('2024-05-31T06:28:30.000Z'),
+    updated_at: new Date('2024-05-31T06:28:30.000Z'),
+    deleted_at: null,
+    author: null,
+    due: new Date('2024-06-20T09:00:00.000Z'),
+    expected_rank: null,
+    image_uri: null,
+    language: null,
+    length: null,
+    rank: null,
+    rating: null,
+    summary: null
+  }
 
   beforeAll(async () => {
+    await db('item_labels').delete()
     await db('items').delete()
     await db('items').insert(testItem1)
     await db('items').insert(testItem2)
+    await db('items').insert(testItem3)
+    await db('item_labels').insert({ item_id: testItem1.id, label_id: 'work' })
+    await db('item_labels').insert({ item_id: testItem1.id, label_id: 'urgent' })
+    await db('item_labels').insert({ item_id: testItem2.id, label_id: 'work' })
+    await db('item_labels').insert({ item_id: testItem3.id, label_id: 'personal' })
   })
 
   it('should return the items', async () => {
@@ -53,9 +77,10 @@ describe('GET /items', () => {
       .get('/items')
       .expect(200)
       .then(response => {
-        expect(response.body.length).toBe(2)
+        expect(response.body.length).toBe(3)
         expect(response.body[0].id).toBe(testItem1.id)
         expect(response.body[1].id).toBe(testItem2.id)
+        expect(response.body[2].id).toBe(testItem3.id)
       })
   })
 
@@ -81,10 +106,31 @@ describe('GET /items', () => {
 
   it('should filter by type (array)', async () => {
     await request(app)
-      .get('/items?type[]=read&type[]=watch')
+      .get('/items?type=read&type=watch')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
+        expect(response.body.map((item: { id: string }) => item.id)).toEqual([testItem1.id, testItem2.id])
+      })
+  })
+
+  it('should filter by label (string)', async () => {
+    await request(app)
+      .get('/items?label=urgent')
+      .expect(200)
+      .then(response => {
+        expect(response.body.length).toBe(1)
+        expect(response.body[0].id).toBe(testItem1.id)
+      })
+  })
+
+  it('should filter by label (array) requiring all labels', async () => {
+    await request(app)
+      .get('/items?label=work&label=urgent')
+      .expect(200)
+      .then(response => {
+        expect(response.body.length).toBe(1)
+        expect(response.body[0].id).toBe(testItem1.id)
       })
   })
 

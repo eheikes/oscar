@@ -254,6 +254,7 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
 const getItemsRequestSchema = z.object({
   count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
+  label: z.union([z.array(z.string()), z.string()]).optional(),
   maximumRank: z.coerce.number().optional(),
   minimumRank: z.coerce.number().optional(),
   offset: z.coerce.number().optional(),
@@ -290,6 +291,16 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
         builder.orWhere('type_id', type)
       }
     })
+  }
+  if (typeof parsedParams.label !== 'undefined') {
+    const labelParam = parsedParams.label
+    const labels = Array.isArray(labelParam) ? labelParam : [labelParam]
+    for (const label of labels) {
+      query = query.whereExists(function () {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', label)
+      })
+    }
   }
   if (typeof parsedParams.search !== 'undefined') {
     const terms = parsedParams.search.split(/\s+/)
