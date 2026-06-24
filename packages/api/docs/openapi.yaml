@@ -1,0 +1,501 @@
+openapi: 3.0.3
+info:
+  title: OSCAR API Server
+  version: 0.1.0
+  description: API specification for the OSCAR API server.
+servers:
+  - url: /
+paths:
+  /items:
+    get:
+      tags:
+        - Items
+      summary: List items
+      description: Returns a list of items.
+      parameters:
+        - in: query
+          name: count
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+          description: Maximum number of items to return.
+        - in: query
+          name: includeDeleted
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include deleted items.
+        - in: query
+          name: label
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          style: form
+          explode: true
+          description: Filter to items that contain all specified labels.
+        - in: query
+          name: maximumRank
+          schema:
+            type: number
+          description: Filter to items with rank less than or equal to this value.
+        - in: query
+          name: minimumRank
+          schema:
+            type: number
+          description: Filter to items with rank greater than or equal to this value.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+          description: Number of items to skip.
+        - in: query
+          name: orderBy
+          schema:
+            type: string
+            default: due
+          description: Field to sort by. Use random for random order.
+        - in: query
+          name: orderDir
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort direction.
+        - in: query
+          name: random
+          schema:
+            type: boolean
+            default: false
+          description: Whether to randomize result order.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Space-separated case-insensitive terms to match against title.
+        - in: query
+          name: since
+          schema:
+            type: string
+            format: date-time
+          description: Filter to items created on or after this timestamp.
+        - in: query
+          name: type
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          style: form
+          explode: true
+          description: Filter by one or more item types.
+      responses:
+        '200':
+          description: Array of items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      tags:
+        - Items
+      summary: Create item
+      parameters:
+        - in: query
+          name: replace
+          schema:
+            type: string
+            enum: ['true']
+          description: If true, replace non-deleted item with same title and type.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddItemRequest'
+      responses:
+        '201':
+          description: Created item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /items/next:
+    get:
+      tags:
+        - Items
+      summary: Get next recommended items
+      parameters:
+        - in: query
+          name: count
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 1
+          description: Number of items to return.
+        - in: query
+          name: label
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          style: form
+          explode: true
+          description: Filter candidates to items with at least one matching label.
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+          description: Item type to recommend from.
+      responses:
+        '200':
+          description: Array of recommendations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NextItemResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /items/{itemId}:
+    patch:
+      tags:
+        - Items
+      summary: Update item
+      description: Updates an item with partial fields.
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+      responses:
+        '200':
+          description: Updated item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Items
+      summary: Delete item
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Item deleted.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /labels:
+    get:
+      tags:
+        - Labels
+      summary: List labels
+      responses:
+        '200':
+          description: Array of labels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+
+  /types:
+    get:
+      tags:
+        - Types
+      summary: List item types
+      responses:
+        '200':
+          description: Array of item types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Type'
+
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get user profile
+      description: Returns the authenticated user profile.
+      responses:
+        '200':
+          description: User profile payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  responses:
+    BadRequest:
+      description: Invalid request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication is required.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Caller is authenticated but not authorized.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    Item:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - createdAt
+        - updatedAt
+        - labels
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        type:
+          type: string
+        author:
+          type: string
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        due:
+          type: string
+          format: date-time
+          nullable: true
+        expectedRank:
+          type: number
+          nullable: true
+        imageUri:
+          type: string
+          nullable: true
+        labels:
+          type: array
+          items:
+            type: string
+        language:
+          type: string
+          nullable: true
+        length:
+          type: number
+          nullable: true
+        rank:
+          type: number
+          nullable: true
+        rating:
+          type: number
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        uri:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AddItemRequest:
+      type: object
+      required:
+        - title
+        - type
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        author:
+          type: string
+          nullable: true
+        due:
+          type: string
+          format: date-time
+          nullable: true
+        expectedRank:
+          type: number
+          nullable: true
+        imageUri:
+          type: string
+          nullable: true
+        labels:
+          type: array
+          items:
+            type: string
+        language:
+          type: string
+          nullable: true
+        length:
+          type: number
+          nullable: true
+        rank:
+          type: number
+          nullable: true
+        rating:
+          type: number
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        uri:
+          type: string
+          nullable: true
+
+    UpdateItemRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        author:
+          type: string
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        due:
+          type: string
+          format: date-time
+          nullable: true
+        expectedRank:
+          type: number
+          nullable: true
+        imageUri:
+          type: string
+          nullable: true
+        labels:
+          type: array
+          items:
+            type: string
+        language:
+          type: string
+          nullable: true
+        length:
+          type: number
+          nullable: true
+        rank:
+          type: number
+          nullable: true
+        rating:
+          type: number
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        uri:
+          type: string
+          nullable: true
+
+    NextItemResult:
+      type: object
+      required:
+        - item
+        - reason
+      properties:
+        item:
+          $ref: '#/components/schemas/Item'
+        reason:
+          type: string
+
+    Label:
+      type: object
+      required:
+        - id
+        - readable
+      properties:
+        id:
+          type: string
+        readable:
+          type: string
+
+    Type:
+      type: object
+      required:
+        - id
+        - readable
+      properties:
+        id:
+          type: string
+        readable:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
