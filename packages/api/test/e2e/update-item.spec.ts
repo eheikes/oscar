@@ -208,6 +208,82 @@ describe('PATCH /items/:itemId', () => {
     expect(row?.deleted_at).toBe(null)
   })
 
+  it('should allow setting parentId to an existing item', async () => {
+    const parentId = '9e17b4f1-8d43-43bb-ab37-58d315291c1a'
+    await db('items').insert({
+      id: parentId,
+      title: 'Parent Item',
+      type_id: 'task',
+      created_at: new Date('2024-05-31T06:28:47.753Z'),
+      updated_at: new Date('2024-05-31T06:28:47.753Z')
+    })
+
+    await request(app)
+      .patch(`/items/${testItem.id}`)
+      .send({ parentId })
+      .expect(200)
+      .then(response => {
+        expect(response.body.parentId).toBe(parentId)
+      })
+
+    const row = await db('items').where({ id: testItem.id }).first()
+    expect(row?.parent_id).toBe(parentId)
+  })
+
+  it('should return 404 when setting parentId to a non-existent item', async () => {
+    await request(app)
+      .patch(`/items/${testItem.id}`)
+      .send({ parentId: '00000000-0000-0000-0000-000000000000' })
+      .expect(404)
+  })
+
+  it('should return 400 when setting parentId to itself', async () => {
+    await request(app)
+      .patch(`/items/${testItem.id}`)
+      .send({ parentId: testItem.id })
+      .expect(400)
+  })
+
+  it('should return 400 when soft-deleting a parent that has an active child', async () => {
+    const parentId = testItem.id
+    const childId = '1d61f1f8-e0d8-42f7-8af4-e53d95a62801'
+    await db('items').insert({
+      id: childId,
+      title: 'Child Item',
+      type_id: 'task',
+      parent_id: parentId,
+      created_at: new Date('2024-05-31T06:28:34.356Z'),
+      updated_at: new Date('2024-05-31T06:28:34.356Z')
+    })
+
+    await request(app)
+      .patch(`/items/${parentId}`)
+      .send({ deletedAt: '2024-07-01T00:00:00.000Z' })
+      .expect(400)
+  })
+
+  it('should allow soft-deleting a parent after its child is soft-deleted', async () => {
+    const parentId = testItem.id
+    const childId = 'f8bd4c52-f6dd-41d2-a688-bdc8a9553f85'
+    await db('items').insert({
+      id: childId,
+      title: 'Child Item',
+      type_id: 'task',
+      parent_id: parentId,
+      deleted_at: new Date('2024-06-30T00:00:00.000Z'),
+      created_at: new Date('2024-05-31T06:28:34.356Z'),
+      updated_at: new Date('2024-05-31T06:28:34.356Z')
+    })
+
+    await request(app)
+      .patch(`/items/${parentId}`)
+      .send({ deletedAt: '2024-07-01T00:00:00.000Z' })
+      .expect(200)
+      .then(response => {
+        expect(response.body.deletedAt).toBe('2024-07-01T00:00:00.000Z')
+      })
+  })
+
   it('should return 400 when a non-UUID is provided for itemId', async () => {
     await request(app)
       .patch('/items/not-a-uuid')

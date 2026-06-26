@@ -66,4 +66,54 @@ describe('DELETE /items/:itemId', () => {
       .delete(`/items/${testItem1.id}`)
       .expect(404)
   })
+
+  it('should return 400 when deleting a parent item that has a child', async () => {
+    const parentId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const childId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+    await db('items').insert({
+      id: parentId,
+      title: 'Parent Item',
+      type_id: 'task',
+      created_at: new Date('2024-05-31T06:28:47.753Z'),
+      updated_at: new Date('2024-05-31T06:28:47.753Z')
+    })
+    await db('items').insert({
+      id: childId,
+      title: 'Child Item',
+      type_id: 'task',
+      parent_id: parentId,
+      created_at: new Date('2024-05-31T06:28:34.356Z'),
+      updated_at: new Date('2024-05-31T06:28:34.356Z')
+    })
+
+    await request(app)
+      .delete(`/items/${parentId}`)
+      .expect(400)
+  })
+
+  it('should allow deleting a child item', async () => {
+    const parentId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+    const childId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+    await db('items').insert({
+      id: parentId,
+      title: 'Parent Item',
+      type_id: 'task',
+      created_at: new Date('2024-05-31T06:28:47.753Z'),
+      updated_at: new Date('2024-05-31T06:28:47.753Z')
+    })
+    await db('items').insert({
+      id: childId,
+      title: 'Child Item',
+      type_id: 'task',
+      parent_id: parentId,
+      created_at: new Date('2024-05-31T06:28:34.356Z'),
+      updated_at: new Date('2024-05-31T06:28:34.356Z')
+    })
+
+    await request(app)
+      .delete(`/items/${childId}`)
+      .expect(204)
+    const item = await db('items').where({ id: childId }).first()
+    expect(item).toBeUndefined()
+  })
 })

@@ -22,6 +22,16 @@ The API is documented as an OpenAPI (Swagger) YAML file at [docs/openapi.yaml](d
 
 You can import this file into Swagger UI, Redoc, or other OpenAPI-compatible tooling.
 
+### Subtasks
+
+Items support an optional `parentId` field (`parent_id` in the database) for parent/child relationships.
+
+- `parentId` defaults to `null`.
+- `parentId` can be provided on create or update only when the parent item exists.
+- Parent items cannot be hard-deleted while they still have child items.
+- Parent items cannot be soft-deleted (`deletedAt` set) until all child items are soft-deleted.
+- `/items/next` ignores parent items while any child is still active (not soft-deleted).
+
 ## Development
 
 Remember to set your environment variables (using `.env` or other method) to configure the app. Set a `NODE_ENV` environment variable to `development` for debugging.
