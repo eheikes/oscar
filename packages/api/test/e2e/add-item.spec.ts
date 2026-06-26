@@ -109,11 +109,49 @@ describe('POST /items', () => {
         expect(response.body.labels).toEqual([])
         expect(response.body.language).toBe(null)
         expect(response.body.length).toBe(null)
+        expect(response.body.parentId).toBe(null)
         expect(response.body.rank).toBe(null)
         expect(response.body.rating).toBe(null)
         expect(response.body.summary).toBe(null)
         expect(response.body.uri).toBe(null)
       })
+  })
+
+  it('should allow creating an item with a valid parentId', async () => {
+    const parentId = 'd8d84ccf-0540-4ba4-8c0d-1a3cc3a20111'
+    await db('items').insert({
+      id: parentId,
+      title: 'Parent Item',
+      type_id: 'task',
+      created_at: new Date('2024-05-31T06:28:47.753Z'),
+      updated_at: new Date('2024-05-31T06:28:47.753Z')
+    })
+
+    await request(app)
+      .post('/items')
+      .send({
+        title: 'Child Item',
+        type: 'task',
+        parentId
+      })
+      .expect(201)
+      .then(response => {
+        expect(response.body.parentId).toBe(parentId)
+      })
+
+    const child = await db('items').where({ title: 'Child Item' }).first()
+    expect(child?.parent_id).toBe(parentId)
+  })
+
+  it('should return 404 when parentId does not exist', async () => {
+    await request(app)
+      .post('/items')
+      .send({
+        title: 'Child Item',
+        type: 'task',
+        parentId: '00000000-0000-0000-0000-000000000000'
+      })
+      .expect(404)
   })
 
   it('should delete existing items with the same name when "replace" parameter is "true"', async () => {

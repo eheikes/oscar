@@ -433,5 +433,70 @@ describe('GET /items/:typeId', () => {
           expect(response.body[0].item.labels).toEqual(['work'])
         })
     })
+
+    it('should ignore parent items while they have active children', async () => {
+      const parent = {
+        id: '78328e34-9ec0-44de-9d00-d127d0f7f701',
+        title: 'Parent Item',
+        uri: 'http://example.com/parent',
+        type_id: 'play',
+        rank: 10,
+        created_at: new Date('2024-05-31T06:28:47.753Z'),
+        updated_at: new Date('2024-05-31T06:28:47.753Z')
+      }
+      const child = {
+        id: 'd0730f03-1d94-43d6-aa8c-e0e183da8022',
+        title: 'Child Item',
+        uri: 'http://example.com/child',
+        type_id: 'play',
+        rank: 1,
+        parent_id: parent.id,
+        created_at: new Date('2024-05-30T06:28:34.356Z'),
+        updated_at: new Date('2024-05-30T06:28:34.356Z')
+      }
+
+      await db('items').insert(parent)
+      await db('items').insert(child)
+
+      await request(app)
+        .get('/items/next?type=play&count=2')
+        .expect(200)
+        .then(response => {
+          expect(response.body.map((entry: { item: { id: string } }) => entry.item.id)).not.toContain(parent.id)
+          expect(response.body.map((entry: { item: { id: string } }) => entry.item.id)).toContain(child.id)
+        })
+    })
+
+    it('should include parent items after all children are soft-deleted', async () => {
+      const parent = {
+        id: '666b2db5-326a-4b1f-9b0d-2f8146ea3dc8',
+        title: 'Parent Item',
+        uri: 'http://example.com/parent-2',
+        type_id: 'play',
+        rank: 9,
+        created_at: new Date('2024-05-31T06:28:47.753Z'),
+        updated_at: new Date('2024-05-31T06:28:47.753Z')
+      }
+      const child = {
+        id: 'e5db2917-6afe-4c02-9654-18f7f8c658b4',
+        title: 'Child Item',
+        uri: 'http://example.com/child-2',
+        type_id: 'play',
+        parent_id: parent.id,
+        deleted_at: new Date('2024-06-01T00:00:00.000Z'),
+        created_at: new Date('2024-05-30T06:28:34.356Z'),
+        updated_at: new Date('2024-05-30T06:28:34.356Z')
+      }
+
+      await db('items').insert(parent)
+      await db('items').insert(child)
+
+      await request(app)
+        .get('/items/next?type=play&count=1')
+        .expect(200)
+        .then(response => {
+          expect(response.body[0].item.id).toBe(parent.id)
+        })
+    })
   })
 })

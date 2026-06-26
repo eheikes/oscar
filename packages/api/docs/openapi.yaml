@@ -348,6 +348,10 @@ components:
         length:
           type: number
           nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
         rank:
           type: number
           nullable: true
@@ -400,6 +404,10 @@ components:
         length:
           type: number
           nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
         rank:
           type: number
           nullable: true
@@ -447,6 +455,10 @@ components:
           nullable: true
         length:
           type: number
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
           nullable: true
         rank:
           type: number

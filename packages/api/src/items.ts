@@ -19,6 +19,7 @@ export interface DatabaseItem {
   image_uri: string | null
   language: string | null
   length: number | null
+  parent_id: string | null
   rank: number | null
   rating: number | null
   summary: string | null
@@ -48,6 +49,7 @@ export interface Item {
   imageUri: string | null
   language: string | null
   length: number | null
+  parentId: string | null
   rank: number | null
   rating: number | null
   summary: string | null
@@ -71,6 +73,7 @@ const itemFieldMapping: Record<keyof Item, keyof DatabaseItem> = {
   imageUri: 'image_uri',
   language: 'language',
   length: 'length',
+  parentId: 'parent_id',
   rank: 'rank',
   rating: 'rating',
   summary: 'summary',
@@ -96,6 +99,7 @@ const mapItemFromDatabase = (row: DatabaseItem, labels: string[] = []): ItemWith
     labels,
     language: row.language,
     length: row.length,
+    parentId: row.parent_id,
     rank: row.rank,
     rating: row.rating,
     summary: row.summary,
@@ -118,6 +122,7 @@ const addItemBodySchema = z.object({
   labels: z.array(z.string()).nullish(),
   language: z.string().nullish(),
   length: z.number().nullish(),
+  parentId: z.string().uuid().nullable().optional(),
   rank: z.number().nullish(),
   rating: z.number().nullish(),
   summary: z.string().nullish(),
@@ -138,6 +143,12 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
       type_id: parsedItemData.type
     }).whereNull('deleted_at').delete()
   }
+  if (parsedItemData.parentId !== undefined && parsedItemData.parentId !== null) {
+    const parent = await db.select('*').from('items').where({ id: parsedItemData.parentId }).first()
+    if (parent === undefined) {
+      throw new NotFoundError('Parent item not found')
+    }
+  }
   const id = uuidv4()
   const now = new Date()
   await db('items').insert({
@@ -150,6 +161,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     image_uri: parsedItemData.imageUri,
     language: parsedItemData.language,
     length: parsedItemData.length,
+    parent_id: parsedItemData.parentId ?? null,
     rank: parsedItemData.rank,
     rating: parsedItemData.rating,
     summary: parsedItemData.summary,
@@ -172,6 +184,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     labels: parsedItemData.labels ?? [],
     language: parsedItemData.language ?? null,
     length: parsedItemData.length ?? null,
+    parentId: parsedItemData.parentId ?? null,
     rank: parsedItemData.rank ?? null,
     rating: parsedItemData.rating ?? null,
     summary: parsedItemData.summary ?? null,
@@ -194,6 +207,10 @@ export const deleteItem = async (itemId: string): Promise<void> => {
   if (result === undefined) {
     throw new NotFoundError('Item not found')
   }
+  const child = await db.select('*').from('items').where({ parent_id: itemId }).first()
+  if (child !== undefined) {
+    throw new ClientError('Cannot delete an item that has child items')
+  }
   await db('items').where({ id: itemId }).delete()
 }
 
@@ -210,6 +227,7 @@ const updateItemBodySchema = z.object({
   labels: z.array(z.string()).optional(),
   language: z.string().nullable().optional(),
   length: z.number().nullable().optional(),
+  parentId: z.string().uuid().nullable().optional(),
   rank: z.number().nullable().optional(),
   rating: z.number().nullable().optional(),
   summary: z.string().nullable().optional(),
@@ -227,6 +245,23 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (existing === undefined) {
     throw new NotFoundError('Item not found')
   }
+  if (parsedItemData.parentId !== undefined) {
+    if (parsedItemData.parentId === itemId) {
+      throw new ClientError('An item cannot be its own parent')
+    }
+    if (parsedItemData.parentId !== null) {
+      const parent = await db.select('*').from('items').where({ id: parsedItemData.parentId }).first()
+      if (parent === undefined) {
+        throw new NotFoundError('Parent item not found')
+      }
+    }
+  }
+  if (parsedItemData.deletedAt !== undefined && parsedItemData.deletedAt !== null) {
+    const activeChild = await db.select('*').from('items').where({ parent_id: itemId }).whereNull('deleted_at').first()
+    if (activeChild !== undefined) {
+      throw new ClientError('Cannot soft-delete an item with active child items')
+    }
+  }
   const now = new Date()
   const dbUpdates: Partial<DatabaseItem> = { updated_at: now }
   if (parsedItemData.author !== undefined) dbUpdates.author = parsedItemData.author
@@ -238,6 +273,7 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (parsedItemData.imageUri !== undefined) dbUpdates.image_uri = parsedItemData.imageUri
   if (parsedItemData.language !== undefined) dbUpdates.language = parsedItemData.language
   if (parsedItemData.length !== undefined) dbUpdates.length = parsedItemData.length
+  if (parsedItemData.parentId !== undefined) dbUpdates.parent_id = parsedItemData.parentId
   if (parsedItemData.rank !== undefined) dbUpdates.rank = parsedItemData.rank
   if (parsedItemData.rating !== undefined) dbUpdates.rating = parsedItemData.rating
   if (parsedItemData.summary !== undefined) dbUpdates.summary = parsedItemData.summary
@@ -368,6 +404,10 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
     .from('items')
     .where('type_id', parsedParams.type)
     .whereNull('deleted_at')
+    .whereNotExists(function () {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.select(raw('1')).from('items as child').whereRaw('child.parent_id = items.id').whereNull('child.deleted_at')
+    })
     .limit(limit + 10) // get some extra items in case of weight adjustments
   if (labels.length > 0) {
     query = query.whereExists(function () {
