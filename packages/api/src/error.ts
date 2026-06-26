@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { fromZodError } from 'zod-validation-error'
-import { isDevelopment, isTest } from './config.js'
 
 export class AuthorizationError extends Error {}
 
@@ -11,7 +10,7 @@ export class MissingRouteError extends Error {}
 
 export class NotFoundError extends Error {}
 
-export const errorHandler = (err: Error, _req: Request, res: Response, next: NextFunction): void => {
+export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
   // Delegate to the default Express handler if headers have been sent.
   if (res.headersSent) {
     return next(err)
@@ -43,9 +42,7 @@ export const errorHandler = (err: Error, _req: Request, res: Response, next: Nex
   }
 
   // All other errors can be a 500.
-  if (isDevelopment() || isTest()) {
-    console.log('Error!', err)
-  }
+  req.log.error({ err }, 'Unhandled error')
   res.status(500)
   res.send({ error: err.message })
 }

@@ -17,10 +17,13 @@ import {
 } from './controllers.js'
 import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
+import { httpLogger } from './logger.js'
 
 await migrateDatabase()
 
 export const app = express()
+
+app.use(httpLogger)
 
 app.use(bodyParser.json())
 
