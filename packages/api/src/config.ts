@@ -36,9 +36,14 @@ export const getConfig = (): Config => {
   return config
 }
 
+export const isLocal = (): boolean => {
+  const config = getConfig()
+  return config.NODE_ENV === 'local'
+}
+
 export const isDevelopment = (): boolean => {
   const config = getConfig()
-  return config.NODE_ENV === 'development' || config.NODE_ENV === 'local'
+  return config.NODE_ENV === 'development' || isLocal()
 }
 
 export const isTest = (): boolean => {

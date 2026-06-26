@@ -5,6 +5,7 @@ import { getConfig } from './config.js'
 import { getDatabaseConnection, raw } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
 import { addItemLabels, getItemLabels } from './labels.js'
+import { logger } from './logger.js'
 
 const config = getConfig()
 
@@ -126,6 +127,7 @@ const addItemBodySchema = z.object({
 })
 
 export const addItem = async (params: ParsedQs, itemData: unknown): Promise<ItemWithLabels> => {
+  logger.info({ params, itemData }, 'addItem')
   const parsedParams = addItemRequestSchema.parse(params)
   const parsedItemData = addItemBodySchema.parse(itemData)
   const db = getDatabaseConnection()
@@ -185,6 +187,7 @@ const removeItemRequestSchema = z.object({
 })
 
 export const deleteItem = async (itemId: string): Promise<void> => {
+  logger.info({ itemId }, 'deleteItem')
   removeItemRequestSchema.parse({ itemId })
   const db = getDatabaseConnection()
   const result = await db.select('*').from('items').where({ id: itemId }).first()
@@ -216,6 +219,7 @@ const updateItemBodySchema = z.object({
 }).strict()
 
 export const updateItem = async (itemId: string, itemData: unknown): Promise<ItemWithLabels> => {
+  logger.info({ itemId, itemData }, 'updateItem')
   updateItemParamsSchema.parse({ itemId })
   const parsedItemData = updateItemBodySchema.parse(itemData)
   const db = getDatabaseConnection()
@@ -267,6 +271,7 @@ const getItemsRequestSchema = z.object({
 })
 
 export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
+  logger.info({ params }, 'getItems')
   const parsedParams = getItemsRequestSchema.parse(params)
   const db = getDatabaseConnection()
   let query = db.select('*').from('items')
@@ -348,6 +353,7 @@ interface NextItemWithWeight {
 }
 
 export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
+  logger.info({ params }, 'getNextItem')
   const db = getDatabaseConnection()
   const parsedParams = getNextItemRequestSchema.parse(params)
   const WORK_CHUNK_SIZE = config.WORK_CHUNK_SIZE
@@ -392,7 +398,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
       })
     }
     const completedItems = await completedQuery
-    console.log('**** completed items:', JSON.stringify(completedItems, null, 2)) // TODO: convert to log
+    logger.debug({ completedItems }, 'Completed items for next-item selection')
 
     // Rotate through these types of tasks:
     // * overdue busywork
@@ -522,7 +528,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
     // For non-task items, rank is the primary ordering factor, with created_at as a tiebreaker.
     query = query.orderBy('rank', 'DESC', 'last').orderBy('created_at', 'ASC')
   }
-  console.log('*** query:', query.toSQL()) // TODO: convert to log
+  logger.debug({ query: query.toSQL() }, 'Next-item query')
 
   // Execute the query and check the results.
   const result = await query
@@ -584,7 +590,7 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
     item: { ...item, weight: undefined },
     reason
   }))
-  console.log('**** results post-calc:', JSON.stringify(response, null, 2)) // TODO: convert to log
+  logger.debug({ response }, 'Next-item results post-calc')
 
   return response
 }
