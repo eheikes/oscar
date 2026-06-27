@@ -300,4 +300,15 @@ describe('POST /items', () => {
       })
       .expect(400)
   })
+
+  it('should return 400 when an unknown field is provided', async () => {
+    await request(app)
+      .post('/items')
+      .send({
+        title: 'Strict Item',
+        type: 'task',
+        unknownField: 'nope'
+      })
+      .expect(400)
+  })
 })

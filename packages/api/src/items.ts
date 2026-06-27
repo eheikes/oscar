@@ -112,7 +112,7 @@ const mapItemFromDatabase = (row: DatabaseItem, labels: string[] = []): ItemWith
 
 const addItemRequestSchema = z.object({
   replace: z.string().optional()
-})
+}).strict()
 
 const addItemBodySchema = z.object({
   author: z.string().nullish(),
@@ -129,7 +129,7 @@ const addItemBodySchema = z.object({
   title: z.string(),
   type: z.string(),
   uri: z.string().nullish()
-})
+}).strict()
 
 export const addItem = async (params: ParsedQs, itemData: unknown): Promise<ItemWithLabels> => {
   logger.info({ params, itemData }, 'addItem')
@@ -197,7 +197,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
 
 const removeItemRequestSchema = z.object({
   itemId: z.string().uuid()
-})
+}).strict()
 
 export const deleteItem = async (itemId: string): Promise<void> => {
   logger.info({ itemId }, 'deleteItem')
@@ -216,7 +216,7 @@ export const deleteItem = async (itemId: string): Promise<void> => {
 
 const updateItemParamsSchema = z.object({
   itemId: z.string().uuid()
-})
+}).strict()
 
 const updateItemBodySchema = z.object({
   author: z.string().nullable().optional(),
@@ -304,7 +304,7 @@ const getItemsRequestSchema = z.object({
   search: z.string().optional(),
   since: z.string().datetime({ offset: true }).optional(),
   type: z.union([z.array(z.string()), z.string()]).optional()
-})
+}).strict()
 
 export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
   logger.info({ params }, 'getItems')
@@ -372,7 +372,7 @@ const getNextItemRequestSchema = z.object({
   count: z.coerce.number().default(1),
   label: z.union([z.array(z.string()), z.string()]).optional(),
   type: z.string()
-})
+}).strict()
 
 interface ItemWithLabelsAndWeight extends ItemWithLabels {
   weight?: number

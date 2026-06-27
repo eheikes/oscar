@@ -26,6 +26,15 @@ describe('GET /items/:typeId', () => {
       })
   })
 
+  it('should return 400 when given an unknown query param', async () => {
+    await request(app)
+      .get('/items/next?type=task&unknownParam=1')
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toEqual(expect.any(String))
+      })
+  })
+
   describe('for task items', () => {
     const dueInPast = '2024-06-01T00:00:00.000Z'
     const dueToday = new Date(Date.now() + 1000 * 60 * 10).toISOString()

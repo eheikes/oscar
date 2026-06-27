@@ -143,6 +143,15 @@ describe('GET /items', () => {
       })
   })
 
+  it('should return 400 when given an unknown query param', async () => {
+    await request(app)
+      .get('/items?unknownParam=1')
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toEqual(expect.any(String))
+      })
+  })
+
   it('should exclude deleted items by default', async () => {
     const deletedItemId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
     await db('items').insert({
