@@ -178,6 +178,53 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /items/retro:
+    get:
+      tags:
+        - Items
+      summary: List retrospective items
+      description: Returns items soft-deleted within a time range, sorted by type then deletion time ascending.
+      parameters:
+        - in: query
+          name: label
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          style: form
+          explode: true
+          description: Filter to items with at least one matching label.
+        - in: query
+          name: since
+          schema:
+            type: string
+            format: date-time
+          description: Start of the deleted_at range. Defaults to 1 week before the current time.
+        - in: query
+          name: type
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          style: form
+          explode: true
+          description: Filter by one or more item types.
+      responses:
+        '200':
+          description: Array of soft-deleted items within the range.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
   /items/{itemId}:
     patch:
       tags:

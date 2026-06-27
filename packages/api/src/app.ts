@@ -11,6 +11,7 @@ import {
   getLabelsController,
   getNextItemController,
   getProfileController,
+  getRetroItemsController,
   getTypesController,
   getWebpageController,
   updateItemController
@@ -40,6 +41,7 @@ if (isDevelopment()) {
   app.get('/', getWebpageController)
 }
 app.get('/items/next', getNextItemController)
+app.get('/items/retro', getRetroItemsController)
 app.delete('/items/:itemId', deleteItemController)
 app.patch('/items/:itemId', updateItemController)
 app.get('/items', getItemsController)
