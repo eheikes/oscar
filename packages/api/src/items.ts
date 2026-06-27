@@ -368,6 +368,53 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
   return items
 }
 
+const getRetroItemsRequestSchema = z.object({
+  label: z.union([z.array(z.string()), z.string()]).optional(),
+  since: z.string().datetime({ offset: true }).optional(),
+  type: z.union([z.array(z.string()), z.string()]).optional()
+}).strict()
+
+export const getRetroItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
+  logger.info({ params }, 'getRetroItems')
+  const parsedParams = getRetroItemsRequestSchema.parse(params)
+  const now = new Date()
+  const since = parsedParams.since !== undefined
+    ? new Date(parsedParams.since)
+    : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const db = getDatabaseConnection()
+  let query = db.select('*').from('items')
+    .whereNotNull('deleted_at')
+    .where('deleted_at', '>=', since.toISOString())
+    .where('deleted_at', '<=', now.toISOString())
+  if (parsedParams.type !== undefined) {
+    query = query.andWhere((builder) => {
+      const typeParam = parsedParams.type as string | string[]
+      const types = Array.isArray(typeParam) ? typeParam : [typeParam]
+      for (const type of types) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        builder.orWhere('type_id', type)
+      }
+    })
+  }
+  if (parsedParams.label !== undefined) {
+    const labelParam = parsedParams.label
+    const labels = Array.isArray(labelParam) ? labelParam : [labelParam]
+    for (const label of labels) {
+      query = query.whereExists(function () {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', label)
+      })
+    }
+  }
+  query = query.orderBy('type_id', 'asc').orderBy('deleted_at', 'asc')
+  const result = await query
+  const items: ItemWithLabels[] = await Promise.all(result.map(async item => {
+    const labels = await getItemLabels(item.id)
+    return mapItemFromDatabase(item, labels.map(label => label.labelId))
+  }))
+  return items
+}
+
 const getNextItemRequestSchema = z.object({
   count: z.coerce.number().default(1),
   label: z.union([z.array(z.string()), z.string()]).optional(),
