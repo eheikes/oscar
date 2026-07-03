@@ -2,13 +2,13 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { createItem } from '$lib/api.js';
-  import { localDateTimeToISO } from '$lib/utils.js';
+  import { localDateTimeToISO, getCurrentDateTimeLocal } from '$lib/utils.js';
 
   let { data }: { data: PageData } = $props();
 
   let title = $state('');
   let type = $state('');
-  let due = $state('');
+  let due = $state(getCurrentDateTimeLocal());
   let length = $state('');
   let summary = $state('');
   let uri = $state('');
