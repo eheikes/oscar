@@ -42,7 +42,8 @@ export async function getItems(params: GetItemsParams = {}): Promise<Item[]> {
   }
   if (params.search) qs.set('search', params.search);
   if (params.since) qs.set('since', params.since);
-  if (params.includeDeleted != null) qs.set('includeDeleted', String(params.includeDeleted));
+  // Only include includeDeleted in query if explicitly true; API defaults to false
+  if (params.includeDeleted === true) qs.set('includeDeleted', 'true');
   return apiFetch<Item[]>(`/items?${qs}`);
 }
 
