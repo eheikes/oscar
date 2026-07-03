@@ -13,7 +13,7 @@
 
   // Filter state with defaults
   let filterType = $state('');
-  let filterLabel = $state('');
+  let filterLabels = $state<string[]>([]);
   let filterSearch = $state('');
   let filterIncludeDeleted = $state(false);
   let filterOrderBy = $state<'due' | 'createdAt'>('due');
@@ -29,7 +29,7 @@
         orderBy: filterOrderBy,
         orderDir: filterOrderDir,
         type: filterType || undefined,
-        label: filterLabel || undefined,
+        label: filterLabels.length > 0 ? filterLabels : undefined,
         search: filterSearch || undefined,
         includeDeleted: filterIncludeDeleted,
       });
@@ -77,12 +77,20 @@
 
     <label>
       Label
-      <select bind:value={filterLabel}>
-        <option value="">All labels</option>
+      <select
+        multiple
+        size="4"
+        onchange={(e) => {
+          filterLabels = [...e.currentTarget.selectedOptions].map(o => o.value);
+        }}
+      >
         {#each labels as l}
-          <option value={l.id}>{l.readable}</option>
+          <option value={l.id} selected={filterLabels.includes(l.id)}>
+            {l.readable}
+          </option>
         {/each}
       </select>
+      <span class="hint">Hold Ctrl/Cmd to select multiple</span>
     </label>
 
     <label>
@@ -207,5 +215,11 @@
 
   .error {
     color: #c00;
+  }
+
+  .hint {
+    font-size: 0.75em;
+    font-weight: normal;
+    color: #666;
   }
 </style>

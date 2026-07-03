@@ -16,12 +16,12 @@
 
   let formType = $state(untrack(() => data.selectedType));
   let formCount = $state(untrack(() => data.selectedCount));
-  let formLabel = $state(untrack(() => data.selectedLabel));
+  let formLabels = $state(untrack(() => data.selectedLabels ?? []));
 
   $effect(() => {
     formType = data.selectedType;
     formCount = data.selectedCount;
-    formLabel = data.selectedLabel;
+    formLabels = data.selectedLabels ?? [];
   });
 
   function updateItem(updated: Item) {
@@ -29,14 +29,23 @@
       r.item.id === updated.id ? { ...r, item: updated } : r
     );
   }
+
+  function handleFormSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    const qs = new URLSearchParams();
+    if (formType) qs.set('type', formType);
+    if (formCount) qs.set('count', String(formCount));
+    formLabels.forEach(label => qs.append('label', label));
+    window.location.search = qs.toString();
+  }
 </script>
 
 <h1>Choose Next Item</h1>
 
-<form method="get" class="choose-form">
+<form onsubmit={handleFormSubmit} class="choose-form">
   <label>
     Type <span class="required">*</span>
-    <select name="type" required bind:value={formType}>
+    <select required bind:value={formType}>
       <option value="">— select type —</option>
       {#each data.types as t}
         <option value={t.id}>{t.readable}</option>
@@ -46,17 +55,25 @@
 
   <label>
     Count
-    <input type="number" name="count" min="1" max="100" bind:value={formCount} />
+    <input type="number" min="1" max="100" bind:value={formCount} />
   </label>
 
   <label>
     Label
-    <select name="label" bind:value={formLabel}>
-      <option value="">— any —</option>
+    <select
+      multiple
+      size="4"
+      onchange={(e) => {
+        formLabels = [...e.currentTarget.selectedOptions].map(o => o.value);
+      }}
+    >
       {#each data.labels as l}
-        <option value={l.id}>{l.readable}</option>
+        <option value={l.id} selected={formLabels.includes(l.id)}>
+          {l.readable}
+        </option>
       {/each}
     </select>
+    <span class="hint">Hold Ctrl/Cmd to select multiple</span>
   </label>
 
   <button type="submit">Get Items</button>
@@ -151,5 +168,11 @@
 
   .error {
     color: #c00;
+  }
+
+  .hint {
+    font-size: 0.75em;
+    font-weight: normal;
+    color: #666;
   }
 </style>

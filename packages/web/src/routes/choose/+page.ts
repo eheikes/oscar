@@ -5,7 +5,7 @@ import type { NextItemResult, ItemType, Label } from '$lib/types.js';
 export const load: PageLoad = async ({ url }) => {
   const selectedType = url.searchParams.get('type') ?? '';
   const selectedCount = parseInt(url.searchParams.get('count') ?? '1', 10) || 1;
-  const selectedLabel = url.searchParams.get('label') ?? '';
+  const selectedLabels = url.searchParams.getAll('label');
 
   let types: ItemType[] = [];
   let labels: Label[] = [];
@@ -19,15 +19,16 @@ export const load: PageLoad = async ({ url }) => {
   let resultsError = '';
   if (selectedType) {
     try {
+      // For getNextItems, the API expects a single label, so we pass the first one if multiple selected
       results = await getNextItems({
         type: selectedType,
         count: selectedCount,
-        label: selectedLabel || undefined,
+        label: selectedLabels.length > 0 ? selectedLabels[0] : undefined,
       });
     } catch (err) {
       resultsError = err instanceof Error ? err.message : 'Failed to fetch items';
     }
   }
 
-  return { types, labels, results, resultsError, selectedType, selectedCount, selectedLabel };
+  return { types, labels, results, resultsError, selectedType, selectedCount, selectedLabels };
 };
