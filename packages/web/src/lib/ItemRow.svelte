@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Item, ItemType, Label } from './types.js';
   import { updateItem } from './api.js';
+  import { localDateTimeToISO } from './utils.js';
 
   let {
     item,
@@ -52,7 +53,7 @@
       const updated = await updateItem(item.id, {
         title: editTitle,
         type: editType,
-        due: editDue ? new Date(editDue).toISOString() : null,
+        due: localDateTimeToISO(editDue),
         length: editLength !== '' ? Number(editLength) : null,
         summary: editSummary || null,
         uri: editUri || null,

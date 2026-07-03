@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { createItem } from '$lib/api.js';
+  import { localDateTimeToISO } from '$lib/utils.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -25,7 +26,7 @@
       await createItem({
         title: title.trim(),
         type,
-        due: due ? new Date(due).toISOString() : null,
+        due: localDateTimeToISO(due),
         length: length !== '' ? Number(length) : null,
         summary: summary.trim() || null,
         uri: uri.trim() || null,
