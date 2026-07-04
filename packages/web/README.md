@@ -39,6 +39,7 @@ cp .env.example .env
 
 ```bash
 npm run dev
+npm run dev -- --host  # listen on LAN and public addresses too
 ```
 
 Starts a dev server at `http://localhost:5173`. Hot module reloading enabled.
