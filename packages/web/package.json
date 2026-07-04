@@ -10,8 +10,8 @@
     "prepare": "husky",
     "dev": "vite dev",
     "build": "vite build",
-    "lint": "ts-standard --fix --verbose",
-    "lint-hook": "ts-standard --verbose",
+    "lint": "svelte-kit sync && ts-standard --fix --verbose",
+    "lint-hook": "svelte-kit sync && ts-standard --verbose",
     "preview": "vite preview"
   },
   "repository": {
