@@ -2,6 +2,10 @@
   "name": "@eheikes/oscar-web",
   "version": "0.1.0",
   "type": "module",
+  "files": [
+    "build/*",
+    ".env.example"
+  ],
   "scripts": {
     "prepare": "husky",
     "dev": "vite dev",
@@ -10,6 +14,21 @@
     "lint-hook": "ts-standard --verbose",
     "preview": "vite preview"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eheikes/oscar.git"
+  },
+  "keywords": [
+    "web",
+    "assistant",
+    "productivity"
+  ],
+  "author": "Eric Heikes <eheikes@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/eheikes/oscar/issues"
+  },
+  "homepage": "https://github.com/eheikes/oscar/tree/master/packages/web#readme",
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",
