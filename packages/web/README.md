@@ -6,7 +6,7 @@ A Svelte + SvelteKit SPA for the OSCAR assistant. Client-side only with static d
 
 - **Node.js** 18+ 
 - **npm** 9+
-- **API server** running at the configured `API_BASE_URL` (default: `http://localhost:8080`)
+- **API server** running at the configured `VITE_API_BASE_URL` (default: `http://localhost:3000`)
 
 ## Setup
 
@@ -24,14 +24,14 @@ npm install
 
 ### 2. Configure API endpoint
 
-Copy `.env.example` to `.env` and set the API base URL (or leave as default for localhost):
+Copy `.env.example` to `.env` and set the API base URL:
 
 ```bash
 cp .env.example .env
-# Edit .env if needed
+# Edit .env if needed (or leave as-is for http://localhost:3000)
 ```
 
-**During build**, the `API_BASE_URL` env var is injected into the bundle by Vite's `define` config, so it's baked into the compiled app. No runtime env vars needed.
+**Note:** Vite automatically loads `.env` files. The `VITE_` prefix is required for variables to be accessible in client code.
 
 ## Running
 
