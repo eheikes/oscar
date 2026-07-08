@@ -162,8 +162,8 @@
     gap: 0.75em 1.25em;
     align-items: flex-end;
     padding: 0.75em;
-    background: #f3f3f3;
-    border: 1px solid #ddd;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 4px;
     margin-bottom: 1em;
   }
@@ -174,14 +174,14 @@
     gap: 0.2em;
     font-size: 0.85em;
     font-weight: 600;
-    color: #444;
+    color: var(--muted-strong);
   }
 
   .filters input,
   .filters select {
     font-size: 1em;
     padding: 0.25em 0.4em;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 3px;
   }
 
@@ -201,7 +201,7 @@
 
   .item-list li {
     padding: 0.35em 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .item-list li:last-child {
@@ -209,17 +209,17 @@
   }
 
   .status {
-    color: #666;
+    color: var(--muted);
     font-size: 0.9em;
   }
 
   .error {
-    color: #c00;
+    color: var(--danger);
   }
 
   .hint {
     font-size: 0.75em;
     font-weight: normal;
-    color: #666;
+    color: var(--muted);
   }
 </style>
