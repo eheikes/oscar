@@ -149,11 +149,6 @@
     />
     <div class="item-content">
       <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
-      {#if item.summary}
-        <div class="item-summary">
-          <MarkdownText value={item.summary} mode="block" />
-        </div>
-      {/if}
       <div class="item-meta-row">
         <span class="item-meta">({getTypeReadable(item.type)})</span>
         {#if item.due}<span class="item-meta">due: {formatDate(item.due)}</span>{/if}
@@ -162,6 +157,11 @@
         {/if}
         {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
       </div>
+      {#if item.summary}
+        <div class="item-summary">
+          <MarkdownText value={item.summary} mode="block" />
+        </div>
+      {/if}
     </div>
     {#if item.uri}
       <a href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
