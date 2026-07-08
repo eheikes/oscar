@@ -234,9 +234,7 @@
   }
 
   .item-summary {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.3em;
+    display: block;
     font-size: 0.85em;
     color: var(--muted);
   }
