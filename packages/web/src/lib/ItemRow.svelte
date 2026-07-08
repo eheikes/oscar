@@ -2,6 +2,7 @@
   import type { Item, ItemType, Label } from './types.js';
   import { updateItem } from './api.js';
   import { localDateTimeToISO } from './utils.js';
+  import MarkdownText from './MarkdownText.svelte';
 
   let {
     item,
@@ -138,7 +139,7 @@
     </div>
   </div>
 {:else}
-  <span class="item-display" class:deleted={item.deletedAt !== null}>
+  <div class="item-display" class:deleted={item.deletedAt !== null}>
     <input
       type="checkbox"
       checked={item.deletedAt !== null}
@@ -146,29 +147,46 @@
       title={item.deletedAt !== null ? 'Restore item' : 'Mark as done'}
       onchange={(e) => toggleDelete(e.currentTarget.checked)}
     />
-    <span class="item-title">{item.title}</span>
-    <span class="item-meta">({getTypeReadable(item.type)})</span>
-    {#if item.due}<span class="item-meta">due: {formatDate(item.due)}</span>{/if}
-    {#if item.labels.length}
-      <span class="item-meta">labels: {item.labels.map(getLabelReadable).join(', ')}</span>
-    {/if}
-    {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
-    {#if item.summary}<span class="item-summary">— {item.summary}</span>{/if}
-    {#if item.uri}
-      <a href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
-    {/if}
+    <div class="item-content">
+      <div class="item-title-row">
+        <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
+        {#if item.uri}
+          <a class="item-link" href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
+        {/if}
+      </div>
+      <div class="item-meta-row">
+        <span class="item-meta">({getTypeReadable(item.type)})</span>
+        {#if item.due}<span class="item-meta">due: {formatDate(item.due)}</span>{/if}
+        {#if item.labels.length}
+          <span class="item-meta">labels: {item.labels.map(getLabelReadable).join(', ')}</span>
+        {/if}
+        {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
+      </div>
+      {#if item.summary}
+        <div class="item-summary">
+          <MarkdownText value={item.summary} mode="block" />
+        </div>
+      {/if}
+    </div>
     {#if error}<span class="error">{error}</span>{/if}
     <button class="edit-btn" onclick={startEdit} disabled={saving}>Edit</button>
-  </span>
+  </div>
 {/if}
 
 <style>
   .item-display {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     gap: 0.4em;
-    flex-wrap: wrap;
     width: 100%;
+  }
+
+  .item-content {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.2em;
   }
 
   .deleted .item-title {
@@ -176,8 +194,32 @@
     opacity: 0.55;
   }
 
+  .item-title-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.35em;
+  }
+
   .item-title {
     font-weight: 500;
+  }
+
+  .item-link {
+    font-size: 0.85em;
+    color: var(--muted);
+  }
+
+  .item-title :global(a) {
+    color: inherit;
+  }
+
+  .item-title :global(code) {
+    font-size: 0.9em;
+    padding: 0.05em 0.25em;
+    border-radius: 3px;
+    background: var(--surface);
+    border: 1px solid var(--border);
   }
 
   .item-meta {
@@ -185,10 +227,42 @@
     font-size: 0.85em;
   }
 
+  .item-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+  }
+
   .item-summary {
-    font-style: italic;
+    display: block;
     font-size: 0.85em;
     color: var(--muted);
+  }
+
+  .item-summary :global(p) {
+    margin: 0;
+  }
+
+  .item-summary :global(p + p) {
+    margin-top: 0.4em;
+  }
+
+  .item-summary :global(ul),
+  .item-summary :global(ol) {
+    margin: 0.2em 0 0 1.25em;
+    padding: 0;
+  }
+
+  .item-summary :global(code) {
+    font-size: 0.95em;
+    padding: 0.05em 0.25em;
+    border-radius: 3px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+
+  .item-summary :global(a) {
+    color: inherit;
   }
 
   .edit-btn {
