@@ -148,7 +148,12 @@
       onchange={(e) => toggleDelete(e.currentTarget.checked)}
     />
     <div class="item-content">
-      <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
+      <div class="item-title-row">
+        <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
+        {#if item.uri}
+          <a class="item-link" href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
+        {/if}
+      </div>
       <div class="item-meta-row">
         <span class="item-meta">({getTypeReadable(item.type)})</span>
         {#if item.due}<span class="item-meta">due: {formatDate(item.due)}</span>{/if}
@@ -163,9 +168,6 @@
         </div>
       {/if}
     </div>
-    {#if item.uri}
-      <a href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
-    {/if}
     {#if error}<span class="error">{error}</span>{/if}
     <button class="edit-btn" onclick={startEdit} disabled={saving}>Edit</button>
   </div>
@@ -192,8 +194,20 @@
     opacity: 0.55;
   }
 
+  .item-title-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.35em;
+  }
+
   .item-title {
     font-weight: 500;
+  }
+
+  .item-link {
+    font-size: 0.85em;
+    color: var(--muted);
   }
 
   .item-title :global(a) {
