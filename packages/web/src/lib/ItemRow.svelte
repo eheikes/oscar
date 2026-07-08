@@ -139,7 +139,7 @@
     </div>
   </div>
 {:else}
-  <span class="item-display" class:deleted={item.deletedAt !== null}>
+  <div class="item-display" class:deleted={item.deletedAt !== null}>
     <input
       type="checkbox"
       checked={item.deletedAt !== null}
@@ -147,34 +147,44 @@
       title={item.deletedAt !== null ? 'Restore item' : 'Mark as done'}
       onchange={(e) => toggleDelete(e.currentTarget.checked)}
     />
-    <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
-    <span class="item-meta">({getTypeReadable(item.type)})</span>
-    {#if item.due}<span class="item-meta">due: {formatDate(item.due)}</span>{/if}
-    {#if item.labels.length}
-      <span class="item-meta">labels: {item.labels.map(getLabelReadable).join(', ')}</span>
-    {/if}
-    {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
-    {#if item.summary}
-      <div class="item-summary">
-        <span class="item-summary-prefix">—</span>
-        <MarkdownText value={item.summary} mode="block" />
+    <div class="item-content">
+      <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
+      {#if item.summary}
+        <div class="item-summary">
+          <MarkdownText value={item.summary} mode="block" />
+        </div>
+      {/if}
+      <div class="item-meta-row">
+        <span class="item-meta">({getTypeReadable(item.type)})</span>
+        {#if item.due}<span class="item-meta">due: {formatDate(item.due)}</span>{/if}
+        {#if item.labels.length}
+          <span class="item-meta">labels: {item.labels.map(getLabelReadable).join(', ')}</span>
+        {/if}
+        {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
       </div>
-    {/if}
+    </div>
     {#if item.uri}
       <a href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
     {/if}
     {#if error}<span class="error">{error}</span>{/if}
     <button class="edit-btn" onclick={startEdit} disabled={saving}>Edit</button>
-  </span>
+  </div>
 {/if}
 
 <style>
   .item-display {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     gap: 0.4em;
-    flex-wrap: wrap;
     width: 100%;
+  }
+
+  .item-content {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.2em;
   }
 
   .deleted .item-title {
@@ -203,15 +213,16 @@
     font-size: 0.85em;
   }
 
+  .item-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+  }
+
   .item-summary {
     display: inline-flex;
     align-items: baseline;
     gap: 0.3em;
-    font-size: 0.85em;
-    color: var(--muted);
-  }
-
-  .item-summary-prefix {
     font-size: 0.85em;
     color: var(--muted);
   }
