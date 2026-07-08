@@ -131,7 +131,7 @@
     gap: 0.25em;
     font-size: 0.9em;
     font-weight: 600;
-    color: #333;
+    color: var(--muted-strong);
   }
 
   .add-form input,
@@ -140,7 +140,7 @@
     font-size: 1em;
     font-weight: normal;
     padding: 0.3em 0.5em;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 3px;
   }
 
@@ -151,11 +151,11 @@
   .hint {
     font-size: 0.8em;
     font-weight: normal;
-    color: #888;
+    color: var(--hint);
   }
 
   .required {
-    color: #c00;
+    color: var(--danger);
   }
 
   .form-actions {
@@ -166,12 +166,12 @@
   }
 
   .form-actions a {
-    color: #555;
+    color: var(--muted);
     font-size: 0.9em;
   }
 
   .error {
-    color: #c00;
+    color: var(--danger);
     margin: 0;
   }
 </style>

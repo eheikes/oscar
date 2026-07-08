@@ -181,14 +181,14 @@
   }
 
   .item-meta {
-    color: #666;
+    color: var(--muted);
     font-size: 0.85em;
   }
 
   .item-summary {
     font-style: italic;
     font-size: 0.85em;
-    color: #555;
+    color: var(--muted);
   }
 
   .edit-btn {
@@ -202,8 +202,8 @@
     flex-direction: column;
     gap: 0.5em;
     padding: 0.6em 0.8em;
-    border: 1px solid #bbb;
-    background: #f7f7f7;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-alt);
     border-radius: 4px;
   }
 
@@ -220,7 +220,7 @@
   .item-edit textarea {
     font-size: 1em;
     padding: 0.2em 0.4em;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 3px;
   }
 
@@ -231,7 +231,7 @@
   }
 
   .error {
-    color: #c00;
+    color: var(--danger);
     font-size: 0.85em;
   }
 </style>
