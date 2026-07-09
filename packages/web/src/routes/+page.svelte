@@ -1,53 +1,56 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getItems, getTypes, getLabels } from '$lib/api.js';
+  import { untrack } from 'svelte';
   import ItemRow from '$lib/ItemRow.svelte';
+  import type { PageData } from './$types';
   import type { Item, ItemType, Label } from '$lib/types.js';
 
-  let items = $state<Item[]>([]);
-  let types = $state<ItemType[]>([]);
-  let labels = $state<Label[]>([]);
-  let loading = $state(false);
-  let error = $state('');
-  let showFilters = $state(false);
+  let { data }: { data: PageData } = $props();
+
+  let items = $state<Item[]>(untrack(() => data.items ?? []));
+  let types = $state<ItemType[]>(untrack(() => data.types ?? []));
+  let labels = $state<Label[]>(untrack(() => data.labels ?? []));
+  let error = $state(untrack(() => data.itemsError ?? ''));
+  let showFilters = $state(untrack(() => data.hasFilters ?? false));
 
   // Filter state with defaults
-  let filterType = $state('');
-  let filterLabels = $state<string[]>([]);
-  let filterSearch = $state('');
-  let filterIncludeDeleted = $state(false);
-  let filterOrderBy = $state<'due' | 'createdAt'>('due');
-  let filterOrderDir = $state<'asc' | 'desc'>('asc');
-  let filterCount = $state(25);
+  let filterType = $state(untrack(() => data.selectedType ?? ''));
+  let filterLabels = $state<string[]>(untrack(() => data.selectedLabels ?? []));
+  let filterSearch = $state(untrack(() => data.selectedSearch ?? ''));
+  let filterIncludeDeleted = $state(untrack(() => data.selectedIncludeDeleted ?? false));
+  let filterOrderBy = $state<'due' | 'createdAt'>(untrack(() => data.selectedOrderBy ?? 'due'));
+  let filterOrderDir = $state<'asc' | 'desc'>(untrack(() => data.selectedOrderDir ?? 'asc'));
+  let filterCount = $state(untrack(() => data.selectedCount ?? 25));
 
-  async function fetchItems() {
-    loading = true;
-    error = '';
-    try {
-      items = await getItems({
-        count: filterCount,
-        orderBy: filterOrderBy,
-        orderDir: filterOrderDir,
-        type: filterType || undefined,
-        label: filterLabels.length > 0 ? filterLabels : undefined,
-        search: filterSearch || undefined,
-        includeDeleted: filterIncludeDeleted,
-      });
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load items';
-    } finally {
-      loading = false;
-    }
-  }
+  $effect(() => {
+    items = data.items ?? [];
+    types = data.types ?? [];
+    labels = data.labels ?? [];
+    error = data.itemsError ?? '';
+    showFilters = data.hasFilters ?? false;
 
-  onMount(async () => {
-    try {
-      [types, labels] = await Promise.all([getTypes(), getLabels()]);
-    } catch {
-      // non-fatal; filters still work without option lists
-    }
-    await fetchItems();
+    filterType = data.selectedType ?? '';
+    filterLabels = data.selectedLabels ?? [];
+    filterSearch = data.selectedSearch ?? '';
+    filterIncludeDeleted = data.selectedIncludeDeleted ?? false;
+    filterOrderBy = data.selectedOrderBy ?? 'due';
+    filterOrderDir = data.selectedOrderDir ?? 'asc';
+    filterCount = data.selectedCount ?? 25;
   });
+
+  function applyFilters(e?: SubmitEvent) {
+    if (e) e.preventDefault();
+
+    const qs = new URLSearchParams();
+    if (filterType) qs.set('type', filterType);
+    if (filterCount > 0) qs.set('count', String(filterCount));
+    if (filterOrderBy !== 'due') qs.set('orderBy', filterOrderBy);
+    if (filterOrderDir !== 'asc') qs.set('orderDir', filterOrderDir);
+    if (filterSearch.trim() !== '') qs.set('search', filterSearch.trim());
+    if (filterIncludeDeleted) qs.set('includeDeleted', 'true');
+    filterLabels.forEach(label => qs.append('label', label));
+
+    window.location.search = qs.toString();
+  }
 
   function updateItem(updated: Item) {
     items = items.map(i => (i.id === updated.id ? updated : i));
@@ -60,11 +63,11 @@
   <button onclick={() => (showFilters = !showFilters)}>
     {showFilters ? '▲ Hide Filters' : '▼ Show Filters'}
   </button>
-  <button onclick={fetchItems} disabled={loading}>↺ Refresh</button>
+  <button onclick={() => applyFilters()}>↺ Refresh</button>
 </div>
 
 {#if showFilters}
-  <div class="filters">
+  <form class="filters" onsubmit={applyFilters}>
     <label>
       Type
       <select bind:value={filterType}>
@@ -124,13 +127,11 @@
       <input type="number" bind:value={filterCount} min="1" max="100" />
     </label>
 
-    <button onclick={fetchItems}>Apply Filters</button>
-  </div>
+    <button type="submit">Apply Filters</button>
+  </form>
 {/if}
 
-{#if loading}
-  <p class="status">Loading…</p>
-{:else if error}
+{#if error}
   <p class="error">{error}</p>
 {:else if items.length === 0}
   <p class="status">No items found.</p>
