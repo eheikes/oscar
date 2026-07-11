@@ -55,6 +55,15 @@
   function updateItem(updated: Item) {
     items = items.map(i => (i.id === updated.id ? updated : i));
   }
+
+  function getParentItem(item: Item): Item | null {
+    if (item.parentId === null) return null;
+    return items.find(candidate => candidate.id === item.parentId) ?? null;
+  }
+
+  function getChildItems(item: Item): Item[] {
+    return items.filter(candidate => candidate.parentId === item.id);
+  }
 </script>
 
 <h1>Items</h1>
@@ -140,7 +149,14 @@
   <ul class="item-list">
     {#each items as item (item.id)}
       <li>
-        <ItemRow {item} {types} {labels} onUpdate={updateItem} />
+        <ItemRow
+          {item}
+          {types}
+          {labels}
+          parentItem={getParentItem(item)}
+          childItems={getChildItems(item)}
+          onUpdate={updateItem}
+        />
       </li>
     {/each}
   </ul>

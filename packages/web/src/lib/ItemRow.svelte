@@ -8,11 +8,15 @@
     item,
     types,
     labels,
+    parentItem = null,
+    childItems = [],
     onUpdate,
   }: {
     item: Item;
     types: ItemType[];
     labels: Label[];
+    parentItem?: Item | null;
+    childItems?: Item[];
     onUpdate: (updated: Item) => void;
   } = $props();
 
@@ -161,7 +165,28 @@
           <span class="item-meta">labels: {item.labels.map(getLabelReadable).join(', ')}</span>
         {/if}
         {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
+        {#if parentItem}
+          <span class="item-meta parent-meta">
+            ⮤
+            <span class:completed-task={parentItem.deletedAt !== null}>
+              <MarkdownText value={parentItem.title} mode="inline" />
+            </span>
+          </span>
+        {/if}
       </div>
+      {#if childItems.length > 0}
+        <div class="item-children-row item-meta">
+          <span class="item-children-prefix">⤷</span>
+          {#each childItems as child, i (child.id)}
+            <span class:completed-task={child.deletedAt !== null}>
+              <MarkdownText value={child.title} mode="inline" />
+            </span>
+            {#if i < childItems.length - 1}
+              <span class="comma-separator">,</span>
+            {/if}
+          {/each}
+        </div>
+      {/if}
       {#if item.summary}
         <div class="item-summary">
           <MarkdownText value={item.summary} mode="block" />
@@ -231,6 +256,23 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.4em;
+  }
+
+  .item-children-row {
+    display: block;
+  }
+
+  .item-children-prefix {
+    margin-right: 0.25em;
+  }
+
+  .comma-separator {
+    margin-left: -0.25em;
+    margin-right: 0.25em;
+  }
+
+  .completed-task {
+    text-decoration: line-through;
   }
 
   .item-summary {
