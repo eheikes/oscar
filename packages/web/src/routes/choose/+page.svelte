@@ -89,7 +89,7 @@
         <li>
           <ItemRow item={result.item} types={data.types} labels={data.labels} onUpdate={updateItem} />
           {#if result.reason}
-            <div class="reason">↳ {result.reason}</div>
+            <div class="reason">✧ {result.reason}</div>
           {/if}
         </li>
       {/each}
