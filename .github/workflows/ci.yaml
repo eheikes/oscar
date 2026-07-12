@@ -45,7 +45,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright browser
-        run: npm exec --workspace=@eheikes/oscar-web playwright install --with-deps chromium
+        run: npm exec --workspace=@eheikes/oscar-web playwright install
       - name: Start API server for web tests
         run: |
           NODE_ENV=test PORT=3000 npm run start --workspace=@eheikes/oscar-api > /tmp/oscar-api.log 2>&1 &
