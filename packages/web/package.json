@@ -12,7 +12,9 @@
     "build": "vite build",
     "lint": "svelte-kit sync && ts-standard --fix --verbose",
     "lint-hook": "svelte-kit sync && ts-standard --verbose",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm run test:e2e",
+    "test:e2e": "playwright test --config playwright.config.mjs"
   },
   "repository": {
     "type": "git",
@@ -30,6 +32,7 @@
   },
   "homepage": "https://github.com/eheikes/oscar/tree/master/packages/web#readme",
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",
     "husky": "^9.0.11",
