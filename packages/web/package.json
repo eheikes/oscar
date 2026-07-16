@@ -31,7 +31,7 @@
   "homepage": "https://github.com/eheikes/oscar/tree/master/packages/web#readme",
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
-    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/kit": "^2.69.3",
     "husky": "^9.0.11",
     "markdown-it": "^14.3.0",
     "svelte": "^5.0.0",
