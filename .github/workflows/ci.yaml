@@ -44,6 +44,19 @@ jobs:
           echo "OPENID_URL=https://dev-xsabpsprsxx67nah.us.auth0.com" >>./packages/api/.env
       - name: Install dependencies
         run: npm ci
+      - name: Install Playwright browser
+        run: npm exec --workspace=@eheikes/oscar-web playwright install
+      - name: Start API server for web tests
+        run: |
+          NODE_ENV=test PORT=3000 npm run start --workspace=@eheikes/oscar-api > /tmp/oscar-api.log 2>&1 &
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000/items > /dev/null; then
+              echo "API is ready"
+              break
+            fi
+            sleep 1
+          done
+          curl -sSf http://localhost:3000/items > /dev/null
       - name: Run linter
         run: npm run lint --if-present
       - name: Run build

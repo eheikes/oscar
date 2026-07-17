@@ -57,6 +57,28 @@ To preview the production build locally:
 npm run preview
 ```
 
+## Testing
+
+Web tests live under `test/e2e` and uses `playwright` for browser end-to-end checks.
+
+### Commands
+
+```bash
+npm run test
+```
+
+### Test environment guard
+
+Before tests run, a startup guard calls `GET /items` on the API base URL (`VITE_API_BASE_URL`, default `http://localhost:3000`).
+
+- Empty item list: allowed
+- Non-empty item list: allowed only if every returned item has `createdAt` at least one year old
+- Otherwise tests abort with:
+
+`Doesn't seem to be running in a test environment, aborting`
+
+This helps prevent accidentally running browser tests against active/non-test data.
+
 ## Architecture
 
 - **Pages**
