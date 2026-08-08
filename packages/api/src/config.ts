@@ -13,6 +13,8 @@ const fields = {
   DB_PASSWORD: z.string(),
   DB_NAME: z.string(),
   DB_SSL: z.coerce.boolean().default(true),
+  DB_REJECT_UNAUTHORIZED: z.coerce.boolean().default(true),
+  DB_CA_FILE: z.coerce.string().optional(),
   ENCRYPTION_KEY: z.string(),
   NODE_ENV: z.string().optional(),
   OPENID_CLIENT_ID: z.string(),

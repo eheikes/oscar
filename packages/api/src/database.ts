@@ -23,8 +23,8 @@ export const getDatabaseConnection = (): Knex => {
         database: config.DB_NAME,
         ssl: config.DB_SSL
           ? {
-              rejectUnauthorized: true,
-              ca: getCert('./rds-ca-bundle.pem')
+              rejectUnauthorized: config.DB_REJECT_UNAUTHORIZED,
+              ca: typeof config.DB_CA_FILE === 'string' ? getCert(config.DB_CA_FILE) : undefined
             }
           : false
       }
