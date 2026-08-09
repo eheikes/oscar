@@ -2,7 +2,7 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
-import { checkAuthn, checkAuthz, configureAuth } from './auth.js'
+import { checkAllowedUsers, configureAuth, validateJWT } from './auth.js'
 import { isDevelopment } from './config.js'
 import {
   addItemController,
@@ -34,7 +34,11 @@ app.use(cors({
   origin: '*'
 }))
 app.use(cookieParser())
+/* eslint-disable @typescript-eslint/no-misused-promises -- async middleware is supported by Express v5 */
 app.use(configureAuth) // adds /login, /logout, and /callback routes
+app.use(validateJWT) // Validate JWT tokens for API requests
+app.use(checkAllowedUsers) // Check if user is in allowed users list
+/* eslint-enable @typescript-eslint/no-misused-promises */
 
 /* eslint-disable @typescript-eslint/no-misused-promises -- async supported by Express v5 */
 if (isDevelopment()) {
@@ -48,7 +52,7 @@ app.get('/items', getItemsController)
 app.post('/items', addItemController)
 app.get('/types', getTypesController)
 app.get('/labels', getLabelsController)
-app.get('/profile', checkAuthn, checkAuthz, getProfileController)
+app.get('/profile', getProfileController)
 /* eslint-enable @typescript-eslint/no-misused-promises */
 
 app.all('/*any', throw404)

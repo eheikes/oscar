@@ -8,17 +8,38 @@ import type {
   CreateItemData,
   UpdateItemData
 } from './types.js'
+import { getAccessToken } from './auth.js'
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
 
 async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
+  const accessToken = await getAccessToken()
+  if (accessToken === null) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login'
+    }
+    throw new Error('Unauthorized - missing access token')
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options?.headers
+  }
+  headers.Authorization = `Bearer ${accessToken}`
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
-    }
+    headers
   })
+
+  if (res.status === 401) {
+    // Redirect to login on unauthorized
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login'
+    }
+    throw new Error('Unauthorized - redirecting to login')
+  }
+
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`API ${res.status}: ${text}`)

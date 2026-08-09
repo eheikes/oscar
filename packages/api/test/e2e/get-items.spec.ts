@@ -1,6 +1,6 @@
-import request from 'supertest'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('GET /items', () => {
@@ -73,8 +73,7 @@ describe('GET /items', () => {
   })
 
   it('should return the items', async () => {
-    await request(app)
-      .get('/items')
+    await authedRequest(app).get('/items')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(3)
@@ -85,8 +84,7 @@ describe('GET /items', () => {
   })
 
   it('should filter by text search', async () => {
-    await request(app)
-      .get('/items?search=item%202')
+    await authedRequest(app).get('/items?search=item%202')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -95,8 +93,7 @@ describe('GET /items', () => {
   })
 
   it('should filter by type (string)', async () => {
-    await request(app)
-      .get('/items?type=read')
+    await authedRequest(app).get('/items?type=read')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -105,8 +102,7 @@ describe('GET /items', () => {
   })
 
   it('should filter by type (array)', async () => {
-    await request(app)
-      .get('/items?type=read&type=watch')
+    await authedRequest(app).get('/items?type=read&type=watch')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(2)
@@ -115,8 +111,7 @@ describe('GET /items', () => {
   })
 
   it('should filter by label (string)', async () => {
-    await request(app)
-      .get('/items?label=urgent')
+    await authedRequest(app).get('/items?label=urgent')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -125,8 +120,7 @@ describe('GET /items', () => {
   })
 
   it('should filter by label (array) requiring all labels', async () => {
-    await request(app)
-      .get('/items?label=work&label=urgent')
+    await authedRequest(app).get('/items?label=work&label=urgent')
       .expect(200)
       .then(response => {
         expect(response.body.length).toBe(1)
@@ -135,8 +129,7 @@ describe('GET /items', () => {
   })
 
   it('should return 400 when given invalid params', async () => {
-    await request(app)
-      .get('/items?orderDir=foo')
+    await authedRequest(app).get('/items?orderDir=foo')
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(expect.any(String))
@@ -144,8 +137,7 @@ describe('GET /items', () => {
   })
 
   it('should return 400 when given an unknown query param', async () => {
-    await request(app)
-      .get('/items?unknownParam=1')
+    await authedRequest(app).get('/items?unknownParam=1')
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(expect.any(String))
@@ -160,8 +152,7 @@ describe('GET /items', () => {
       title: 'Deleted Item',
       deleted_at: new Date()
     })
-    await request(app)
-      .get('/items')
+    await authedRequest(app).get('/items')
       .expect(200)
       .then(response => {
         expect(response.body).not.toContainEqual(expect.objectContaining({ id: deletedItemId }))
@@ -176,8 +167,7 @@ describe('GET /items', () => {
       title: 'Another Deleted Item',
       deleted_at: new Date()
     })
-    await request(app)
-      .get('/items?includeDeleted=true')
+    await authedRequest(app).get('/items?includeDeleted=true')
       .expect(200)
       .then(response => {
         expect(response.body).toContainEqual(expect.objectContaining({ id: deletedItemId }))

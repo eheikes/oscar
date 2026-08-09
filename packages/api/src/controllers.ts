@@ -37,7 +37,7 @@ export const getRetroItemsController: Controller = async (req, res) => {
 }
 
 export const getProfileController: Controller = async (req, res) => {
-  res.json(req.oidc.user)
+  res.json(req.user ?? {})
 }
 
 export const getTypesController: Controller = async (req, res) => {

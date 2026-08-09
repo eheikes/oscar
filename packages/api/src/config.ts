@@ -7,6 +7,8 @@ type DeepReadonlyObject<T extends Schemas> = ReturnType<typeof parseEnv<T>>
 
 const fields = {
   APP_URL: z.string(),
+  ALLOWED_USERS: z.string().optional(),
+  AUTH0_DOMAIN: z.string().optional(),
   DB_HOST: z.string(),
   DB_PORT: z.coerce.number().default(5432),
   DB_USER: z.string(),
@@ -18,6 +20,7 @@ const fields = {
   ENCRYPTION_KEY: z.string(),
   NODE_ENV: z.string().optional(),
   OPENID_CLIENT_ID: z.string(),
+  OPENID_AUDIENCE: z.string().optional(),
   OPENID_CLIENT_SECRET: z.string(),
   OPENID_URL: z.string(),
   WORK_CHUNK_SIZE: z.coerce.number().default(30)

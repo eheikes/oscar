@@ -1,6 +1,6 @@
-import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('POST /items', () => {
@@ -12,8 +12,7 @@ describe('POST /items', () => {
   })
 
   it('should add the item to the database', async () => {
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         author: 'John Doe',
         due: '2024-06-01T10:00:00.000Z',
@@ -53,8 +52,7 @@ describe('POST /items', () => {
   })
 
   it('should return the new item in the response body', async () => {
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         author: 'John Doe',
         due: '2024-06-01T10:00:00.000Z',
@@ -93,8 +91,7 @@ describe('POST /items', () => {
   })
 
   it('should use null or empty values for optional fields', async () => {
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         title: 'New Item',
         type: 'task'
@@ -127,8 +124,7 @@ describe('POST /items', () => {
       updated_at: new Date('2024-05-31T06:28:47.753Z')
     })
 
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         title: 'Child Item',
         type: 'task',
@@ -144,8 +140,7 @@ describe('POST /items', () => {
   })
 
   it('should return 404 when parentId does not exist', async () => {
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         title: 'Child Item',
         type: 'task',
@@ -195,8 +190,7 @@ describe('POST /items', () => {
     await db('item_labels').insert({ item_id: testItem2.id, label_id: 'urgent' })
     await db('item_labels').insert({ item_id: testItem3.id, label_id: 'trivial' })
 
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .query({ replace: 'true' })
       .send({
         author: 'John Doe',
@@ -263,8 +257,7 @@ describe('POST /items', () => {
     await db('item_labels').insert({ item_id: testItem2.id, label_id: 'urgent' })
     await db('item_labels').insert({ item_id: testItem3.id, label_id: 'trivial' })
 
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .query({ replace: 'false' })
       .send({
         author: 'John Doe',
@@ -291,8 +284,7 @@ describe('POST /items', () => {
   })
 
   it('should return 400 when an invalid value is provided', async () => {
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         title: 'Invalid Item',
         length: 'invalid-length',
@@ -302,8 +294,7 @@ describe('POST /items', () => {
   })
 
   it('should return 400 when an unknown field is provided', async () => {
-    await request(app)
-      .post('/items')
+    await authedRequest(app).post('/items')
       .send({
         title: 'Strict Item',
         type: 'task',

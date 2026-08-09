@@ -1,6 +1,6 @@
-import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('GET /items/retro', () => {
@@ -56,8 +56,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should return items soft-deleted within the past week by default', async () => {
-    await request(app)
-      .get('/items/retro')
+    await authedRequest(app).get('/items/retro')
       .expect(200)
       .then(response => {
         const ids = response.body.map((item: { id: string }) => item.id)
@@ -69,8 +68,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should sort items by type then deleted_at ascending', async () => {
-    await request(app)
-      .get('/items/retro')
+    await authedRequest(app).get('/items/retro')
       .expect(200)
       .then(response => {
         // read sorts alphabetically before task
@@ -80,8 +78,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should include labels with items', async () => {
-    await request(app)
-      .get('/items/retro')
+    await authedRequest(app).get('/items/retro')
       .expect(200)
       .then(response => {
         const task = response.body.find((item: { id: string }) => item.id === taskItem.id)
@@ -92,8 +89,7 @@ describe('GET /items/retro', () => {
 
   it('should respect the since parameter', async () => {
     const sinceTime = new Date(now.getTime() - 36 * 60 * 60 * 1000).toISOString()
-    await request(app)
-      .get(`/items/retro?since=${encodeURIComponent(sinceTime)}`)
+    await authedRequest(app).get(`/items/retro?since=${encodeURIComponent(sinceTime)}`)
       .expect(200)
       .then(response => {
         const ids = response.body.map((item: { id: string }) => item.id)
@@ -103,8 +99,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should filter by type (string)', async () => {
-    await request(app)
-      .get('/items/retro?type=task')
+    await authedRequest(app).get('/items/retro?type=task')
       .expect(200)
       .then(response => {
         const ids = response.body.map((item: { id: string }) => item.id)
@@ -114,8 +109,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should filter by type (array)', async () => {
-    await request(app)
-      .get('/items/retro?type=task&type=read')
+    await authedRequest(app).get('/items/retro?type=task&type=read')
       .expect(200)
       .then(response => {
         const ids = response.body.map((item: { id: string }) => item.id)
@@ -125,8 +119,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should filter by label', async () => {
-    await request(app)
-      .get('/items/retro?label=urgent')
+    await authedRequest(app).get('/items/retro?label=urgent')
       .expect(200)
       .then(response => {
         const ids = response.body.map((item: { id: string }) => item.id)
@@ -137,8 +130,7 @@ describe('GET /items/retro', () => {
 
   it('should return an empty array when no items fall in the range', async () => {
     const futureTime = new Date(now.getTime() + 60 * 1000).toISOString()
-    await request(app)
-      .get(`/items/retro?since=${encodeURIComponent(futureTime)}`)
+    await authedRequest(app).get(`/items/retro?since=${encodeURIComponent(futureTime)}`)
       .expect(200)
       .then(response => {
         expect(response.body).toEqual([])
@@ -146,8 +138,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should return 400 when given an unknown query param', async () => {
-    await request(app)
-      .get('/items/retro?unknownParam=1')
+    await authedRequest(app).get('/items/retro?unknownParam=1')
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(expect.any(String))
@@ -155,8 +146,7 @@ describe('GET /items/retro', () => {
   })
 
   it('should return 400 when since is not a valid datetime', async () => {
-    await request(app)
-      .get('/items/retro?since=notadate')
+    await authedRequest(app).get('/items/retro?since=notadate')
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(expect.any(String))
