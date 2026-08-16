@@ -19,13 +19,33 @@ export function getCurrentDateTimeLocal (): string {
 export function localDateTimeToISO (localDateTimeStr: string | null | undefined): string | null {
   if (localDateTimeStr === null || localDateTimeStr === undefined) return null
 
-  const [datePart, timePart] = localDateTimeStr.split('T')
-  const [year, month, day] = datePart.split('-').map(Number)
-  const [hours, minutes] = timePart.split(':').map(Number)
+  const trimmed = localDateTimeStr.trim()
+  if (trimmed === '') return null
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(trimmed)
+  if (match === null) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const hours = Number(match[4])
+  const minutes = Number(match[5])
+
+  // Build a local date and verify calendar/time values remain intact.
+  const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
+  if (
+    Number.isNaN(localDate.getTime()) ||
+    localDate.getFullYear() !== year ||
+    localDate.getMonth() !== month - 1 ||
+    localDate.getDate() !== day ||
+    localDate.getHours() !== hours ||
+    localDate.getMinutes() !== minutes
+  ) {
+    return null
+  }
 
   // Get local timezone offset
-  const now = new Date()
-  const offset = now.getTimezoneOffset()
+  const offset = localDate.getTimezoneOffset()
   const offsetHours = Math.floor(Math.abs(offset) / 60)
   const offsetMinutes = Math.abs(offset) % 60
   const offsetSign = offset <= 0 ? '+' : '-'
