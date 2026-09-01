@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import createAuth0Client, { type Auth0Client } from '@auth0/auth0-spa-js'
+import { type Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js'
 
 interface AuthState {
   isLoading: boolean
