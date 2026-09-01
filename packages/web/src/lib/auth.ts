@@ -66,7 +66,7 @@ export async function initializeAuth0 (): Promise<void> {
     let user = null
     let accessToken = null
 
-    if (isAuthenticated === true) {
+    if (isAuthenticated) {
       user = await auth0Client.getUser()
       accessToken = await auth0Client.getTokenSilently()
     }
