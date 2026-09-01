@@ -39,6 +39,34 @@ export async function initializeAuth0 (): Promise<void> {
     return
   }
 
+  // Check if returning with an error in query params
+  const searchParams = new URLSearchParams(window.location.search)
+  const errorParam = searchParams.get('error')
+  const errorDescriptionParam = searchParams.get('error_description')
+
+  if (errorParam != null || errorDescriptionParam != null) {
+    const errorMessage = errorParam != null && errorDescriptionParam != null
+      ? `${errorParam}: ${errorDescriptionParam}`
+      : (errorDescriptionParam ?? errorParam ?? 'Authentication failed')
+
+    try {
+      sessionStorage.setItem('auth_error', errorMessage)
+    } catch {
+      // ignore if sessionStorage is unavailable
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname)
+
+    authStore.set({
+      isLoading: false,
+      isAuthenticated: false,
+      user: null,
+      accessToken: null,
+      error: errorMessage
+    })
+    return
+  }
+
   if (auth0Client !== null) {
     return
   }
@@ -71,12 +99,19 @@ export async function initializeAuth0 (): Promise<void> {
       accessToken = await auth0Client.getTokenSilently()
     }
 
+    let savedError: string | null = null
+    try {
+      savedError = sessionStorage.getItem('auth_error')
+    } catch {
+      // ignore
+    }
+
     authStore.set({
       isLoading: false,
       isAuthenticated,
       user,
       accessToken,
-      error: null
+      error: savedError
     })
   } catch (error) {
     authStore.set({
@@ -90,6 +125,12 @@ export async function initializeAuth0 (): Promise<void> {
 }
 
 export async function login (): Promise<void> {
+  try {
+    sessionStorage.removeItem('auth_error')
+  } catch {
+    // ignore
+  }
+
   if (auth0Client === null) {
     await initializeAuth0()
   }

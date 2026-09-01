@@ -15,9 +15,6 @@ const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
 async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   const accessToken = await getAccessToken()
   if (accessToken === null) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login'
-    }
     throw new Error('Unauthorized - missing access token')
   }
 
@@ -33,10 +30,6 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   })
 
   if (res.status === 401) {
-    // Redirect to login on unauthorized
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login'
-    }
     throw new Error('Unauthorized - redirecting to login')
   }
 

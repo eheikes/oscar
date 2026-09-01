@@ -4,10 +4,20 @@
   import { goto } from '$app/navigation';
 
   let isLoading = $state(false);
-  let error = $state('');
+  let error = $state($authStore.error ?? '');
+
+  $effect(() => {
+    if ($authStore.error) {
+      error = $authStore.error;
+    }
+  });
 
   onMount(async () => {
     await initializeAuth0();
+
+    if ($authStore.error) {
+      error = $authStore.error;
+    }
 
     // If already authenticated, redirect to home
     if ($authStore.isAuthenticated) {
@@ -18,6 +28,7 @@
   async function handleLogin() {
     isLoading = true;
     error = '';
+    authStore.update(state => ({ ...state, error: null }));
     try {
       await login();
     } catch (err) {

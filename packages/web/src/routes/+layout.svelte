@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import type { Snippet } from 'svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
   import { authStore, initializeAuth0, logout } from '$lib/auth.js';
 
   let { children }: { children: Snippet } = $props();
@@ -10,15 +11,11 @@
   onMount(async () => {
     await initializeAuth0();
     isBootstrapped = true;
-
-    if (!$authStore.isAuthenticated && window.location.pathname !== '/login') {
-      await goto('/login');
-    }
   });
 
   $effect(() => {
     if (!isBootstrapped) return;
-    if (!$authStore.isAuthenticated && window.location.pathname !== '/login') {
+    if (!$authStore.isAuthenticated && page.url.pathname !== '/login') {
       void goto('/login');
     }
   });
@@ -28,7 +25,7 @@
   }
 </script>
 
-{#if isBootstrapped && ($authStore.isAuthenticated || typeof window !== 'undefined' && window.location.pathname === '/login')}
+{#if isBootstrapped && ($authStore.isAuthenticated || page.url.pathname === '/login')}
   <nav>
     <div class="nav-links">
       <a href="/">Home</a>
