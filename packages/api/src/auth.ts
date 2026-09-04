@@ -167,7 +167,7 @@ export const validateJWT = async (req: Request, _res: Response, next: NextFuncti
         throw new JWTError(`Invalid token: ${err.message}`)
       }
     }
-    throw new JWTError('Invalid token')
+    throw new JWTError(`Invalid token: ${String(err)}`)
   }
 }
 
