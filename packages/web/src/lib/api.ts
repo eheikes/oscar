@@ -8,13 +8,23 @@ import type {
   CreateItemData,
   UpdateItemData
 } from './types.js'
-import { getAccessToken } from './auth.js'
+import { getAccessToken, authStore } from './auth.js'
+import { goto } from '$app/navigation'
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
 
 async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   const accessToken = await getAccessToken()
   if (accessToken === null) {
+    authStore.update(state => ({
+      ...state,
+      isAuthenticated: false,
+      accessToken: null,
+      user: null
+    }))
+    if (typeof window !== 'undefined') {
+      void goto('/login')
+    }
     throw new Error('Unauthorized - missing access token')
   }
 
@@ -30,6 +40,15 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   })
 
   if (res.status === 401) {
+    authStore.update(state => ({
+      ...state,
+      isAuthenticated: false,
+      accessToken: null,
+      user: null
+    }))
+    if (typeof window !== 'undefined') {
+      void goto('/login')
+    }
     throw new Error('Unauthorized - redirecting to login')
   }
 
