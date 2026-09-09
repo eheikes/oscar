@@ -148,7 +148,7 @@ export const validateJWT = async (req: Request, _res: Response, next: NextFuncti
     const client = getJwksClient()
     const key = await client.getSigningKey(header.kid)
     const signingKey = key.getPublicKey()
-    const audience = config.OPENID_AUDIENCE ?? config.OPENID_CLIENT_ID
+    const audience = config.OPENID_AUDIENCE
 
     jwtDecode.verify(token, signingKey, {
       algorithms: ['RS256'],

@@ -91,6 +91,16 @@ async function doInitializeAuth0 (): Promise<void> {
   }
 
   try {
+    if (AUTH0_DOMAIN == null || AUTH0_DOMAIN.trim() === '') {
+      throw new Error('VITE_AUTH0_DOMAIN is not configured.')
+    }
+    if (AUTH0_CLIENT_ID == null || AUTH0_CLIENT_ID.trim() === '') {
+      throw new Error('VITE_AUTH0_CLIENT_ID is not configured.')
+    }
+    if (AUTH0_AUDIENCE == null || AUTH0_AUDIENCE.trim() === '') {
+      throw new Error('VITE_AUTH0_AUDIENCE is not configured. An Auth0 API Identifier is required.')
+    }
+
     auth0Client = await createAuth0Client({
       domain: AUTH0_DOMAIN,
       clientId: AUTH0_CLIENT_ID,

@@ -20,7 +20,7 @@ const fields = {
   ENCRYPTION_KEY: z.string(),
   NODE_ENV: z.string().optional(),
   OPENID_CLIENT_ID: z.string(),
-  OPENID_AUDIENCE: z.string().optional(),
+  OPENID_AUDIENCE: z.string(),
   OPENID_CLIENT_SECRET: z.string(),
   OPENID_URL: z.string(),
   WORK_CHUNK_SIZE: z.coerce.number().default(30)

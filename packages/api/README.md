@@ -42,7 +42,8 @@ Behavior:
 
 - `OPENID_CLIENT_ID`: Auth0 application client ID.
 - `OPENID_CLIENT_SECRET`: Auth0 application client secret.
-- `OPENID_AUDIENCE`: Optional audience expected in access tokens. If omitted, `OPENID_CLIENT_ID` is used.
+- `OPENID_AUDIENCE`: **Required**. The **API Identifier** created under **Auth0 Dashboard > Applications > APIs** (e.g. `https://api.example.com` or `http://localhost:8080`). Must match the `VITE_AUTH0_AUDIENCE` configured in the web app.
+  > **Note:** Do **not** use the Application Client ID. The API Identifier is needed so Auth0 issues signed RS256 JWTs that this API can verify against JWKS.
 - `OPENID_URL`: Auth0 issuer URL (for example, `https://your-tenant.us.auth0.com`).
 - `AUTH0_DOMAIN`: Optional explicit Auth0 domain. If omitted, it is derived from `OPENID_URL`.
 - `ALLOWED_USERS`: Optional comma-separated allowlist of Auth0 user `sub` values and/or email addresses.
