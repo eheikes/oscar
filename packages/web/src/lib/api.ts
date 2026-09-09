@@ -40,16 +40,32 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   })
 
   if (res.status === 401) {
+    let errorMsg = 'Unauthorized - session expired or invalid token'
+    try {
+      const data = await res.json()
+      if (typeof data === 'object' && data !== null && typeof data.error === 'string') {
+        errorMsg = data.error
+      }
+    } catch {
+      // ignore if response is not JSON
+    }
+
     authStore.update(state => ({
       ...state,
       isAuthenticated: false,
       accessToken: null,
-      user: null
+      user: null,
+      error: errorMsg
     }))
+    try {
+      sessionStorage.setItem('auth_error', errorMsg)
+    } catch {
+      // ignore
+    }
     if (typeof window !== 'undefined') {
       void goto('/login')
     }
-    throw new Error('Unauthorized - redirecting to login')
+    throw new Error(errorMsg)
   }
 
   if (!res.ok) {
