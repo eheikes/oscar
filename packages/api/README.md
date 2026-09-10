@@ -22,6 +22,32 @@ The API is documented as an OpenAPI (Swagger) YAML file at [docs/openapi.yaml](d
 
 You can import this file into Swagger UI, Redoc, or other OpenAPI-compatible tooling.
 
+## Authentication
+
+All API endpoints require a valid Auth0 access token in the `Authorization` header.
+
+Example:
+
+```bash
+curl -H "Authorization: Bearer <ACCESS_TOKEN>" http://localhost:3000/items
+```
+
+Behavior:
+
+- Missing or invalid token returns `401`.
+- Authenticated users not in `ALLOWED_USERS` return `403`.
+- CORS preflight (`OPTIONS`) requests are allowed without a token.
+
+### Required authentication environment variables
+
+- `OPENID_CLIENT_ID`: Auth0 application client ID.
+- `OPENID_CLIENT_SECRET`: Auth0 application client secret.
+- `OPENID_AUDIENCE`: **Required**. The **API Identifier** created under **Auth0 Dashboard > Applications > APIs** (e.g. `https://api.example.com` or `http://localhost:8080`). Must match the `VITE_AUTH0_AUDIENCE` configured in the web app.
+  > **Note:** Do **not** use the Application Client ID. The API Identifier is needed so Auth0 issues signed RS256 JWTs that this API can verify against JWKS.
+- `OPENID_URL`: Auth0 issuer URL (for example, `https://your-tenant.us.auth0.com`).
+- `AUTH0_DOMAIN`: Optional explicit Auth0 domain. If omitted, it is derived from `OPENID_URL`.
+- `ALLOWED_USERS`: Optional comma-separated allowlist of Auth0 user `sub` values and/or email addresses.
+
 ### Subtasks
 
 Items support an optional `parentId` field (`parent_id` in the database) for parent/child relationships.

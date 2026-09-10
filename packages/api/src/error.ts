@@ -6,6 +6,8 @@ export class AuthorizationError extends Error {}
 
 export class ClientError extends Error {}
 
+export class JWTError extends Error {}
+
 export class MissingRouteError extends Error {}
 
 export class NotFoundError extends Error {}
@@ -24,6 +26,11 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
   }
 
   // Client errors should return a 4xx.
+  if (err instanceof JWTError) {
+    res.status(401)
+    res.send({ error: err.message })
+    return
+  }
   if (err instanceof AuthorizationError) {
     res.status(403)
     res.send({ error: 'Unauthorized' })

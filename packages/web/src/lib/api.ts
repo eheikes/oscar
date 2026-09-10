@@ -8,17 +8,66 @@ import type {
   CreateItemData,
   UpdateItemData
 } from './types.js'
+import { getAccessToken, authStore } from './auth.js'
+import { goto } from '$app/navigation'
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
 
 async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
+  const accessToken = await getAccessToken()
+  if (accessToken === null) {
+    authStore.update(state => ({
+      ...state,
+      isAuthenticated: false,
+      accessToken: null,
+      user: null
+    }))
+    if (typeof window !== 'undefined') {
+      void goto('/login')
+    }
+    throw new Error('Unauthorized - missing access token')
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options?.headers
+  }
+  headers.Authorization = `Bearer ${accessToken}`
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
-    }
+    headers
   })
+
+  if (res.status === 401) {
+    let errorMsg = 'Unauthorized - session expired or invalid token'
+    try {
+      const data = await res.json()
+      if (typeof data === 'object' && data !== null && typeof data.error === 'string') {
+        errorMsg = data.error
+      }
+    } catch {
+      // ignore if response is not JSON
+    }
+
+    authStore.update(state => ({
+      ...state,
+      isAuthenticated: false,
+      accessToken: null,
+      user: null,
+      error: errorMsg
+    }))
+    try {
+      sessionStorage.setItem('auth_error', errorMsg)
+    } catch {
+      // ignore
+    }
+    if (typeof window !== 'undefined') {
+      void goto('/login')
+    }
+    throw new Error(errorMsg)
+  }
+
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`API ${res.status}: ${text}`)

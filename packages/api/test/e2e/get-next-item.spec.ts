@@ -1,6 +1,6 @@
-import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('GET /items/:typeId', () => {
@@ -12,14 +12,12 @@ describe('GET /items/:typeId', () => {
   })
 
   it('should return 404 when there is no item of the given type', async () => {
-    await request(app)
-      .get('/items/next?type=nonexistent')
+    await authedRequest(app).get('/items/next?type=nonexistent')
       .expect(404)
   })
 
   it('should return 400 when given invalid params', async () => {
-    await request(app)
-      .get('/items/next')
+    await authedRequest(app).get('/items/next')
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(expect.any(String))
@@ -27,8 +25,7 @@ describe('GET /items/:typeId', () => {
   })
 
   it('should return 400 when given an unknown query param', async () => {
-    await request(app)
-      .get('/items/next?type=task&unknownParam=1')
+    await authedRequest(app).get('/items/next?type=task&unknownParam=1')
       .expect(400)
       .then(response => {
         expect(response.body.error).toEqual(expect.any(String))
@@ -86,8 +83,7 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem2.id, label_id: 'urgent' })
       await db('item_labels').insert({ item_id: testItem3.id, label_id: 'trivial' })
 
-      await request(app)
-        .get('/items/next?type=task&count=4')
+      await authedRequest(app).get('/items/next?type=task&count=4')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem2.id)
@@ -161,8 +157,7 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem3.id, label_id: 'personal' })
       await db('item_labels').insert({ item_id: testItem4.id, label_id: 'personal' })
 
-      await request(app)
-        .get('/items/next?type=task&label=personal&count=1')
+      await authedRequest(app).get('/items/next?type=task&label=personal&count=1')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem3.id)
@@ -225,8 +220,7 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem3.id, label_id: 'personal' })
       await db('item_labels').insert({ item_id: testItem4.id, label_id: 'personal' })
 
-      await request(app)
-        .get('/items/next?type=task&label=personal&count=1')
+      await authedRequest(app).get('/items/next?type=task&label=personal&count=1')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem2.id)
@@ -299,8 +293,7 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem4.id, label_id: 'busywork' })
       await db('item_labels').insert({ item_id: testItem5.id, label_id: 'important' })
 
-      await request(app)
-        .get('/items/next?type=task&count=1')
+      await authedRequest(app).get('/items/next?type=task&count=1')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem5.id)
@@ -372,8 +365,7 @@ describe('GET /items/:typeId', () => {
       await db('item_labels').insert({ item_id: testItem4.id, label_id: 'busywork' })
       await db('item_labels').insert({ item_id: testItem5.id, label_id: 'important' })
 
-      await request(app)
-        .get('/items/next?type=task&count=1')
+      await authedRequest(app).get('/items/next?type=task&count=1')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem4.id)
@@ -416,8 +408,7 @@ describe('GET /items/:typeId', () => {
     })
 
     it('should sort by rank, then creation date', async () => {
-      await request(app)
-        .get('/items/next?type=play&count=3')
+      await authedRequest(app).get('/items/next?type=play&count=3')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toEqual(testItem2.id)
@@ -433,8 +424,7 @@ describe('GET /items/:typeId', () => {
     })
 
     it('should filter labels', async () => {
-      await request(app)
-        .get('/items/next?type=play&count=3&label=work')
+      await authedRequest(app).get('/items/next?type=play&count=3&label=work')
         .expect(200)
         .then(response => {
           expect(response.body.length).toEqual(1)
@@ -467,8 +457,7 @@ describe('GET /items/:typeId', () => {
       await db('items').insert(parent)
       await db('items').insert(child)
 
-      await request(app)
-        .get('/items/next?type=play&count=2')
+      await authedRequest(app).get('/items/next?type=play&count=2')
         .expect(200)
         .then(response => {
           expect(response.body.map((entry: { item: { id: string } }) => entry.item.id)).not.toContain(parent.id)
@@ -500,8 +489,7 @@ describe('GET /items/:typeId', () => {
       await db('items').insert(parent)
       await db('items').insert(child)
 
-      await request(app)
-        .get('/items/next?type=play&count=1')
+      await authedRequest(app).get('/items/next?type=play&count=1')
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toBe(parent.id)

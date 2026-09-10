@@ -1,11 +1,10 @@
-import request from 'supertest'
 import { describe, it, expect } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 
 describe('GET /labels', () => {
   it('should return the labels', async () => {
-    const response = await request(app)
-      .get('/labels')
+    const response = await authedRequest(app).get('/labels')
       .expect(200)
 
     expect(response.body).toEqual([

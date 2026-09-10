@@ -1,6 +1,6 @@
-import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('DELETE /items/:itemId', () => {
@@ -31,39 +31,33 @@ describe('DELETE /items/:itemId', () => {
   })
 
   it('should delete an item by ID', async () => {
-    await request(app)
-      .delete(`/items/${testItem1.id}`)
+    await authedRequest(app).delete(`/items/${testItem1.id}`)
       .expect(204)
     const item = await db('items').where({ id: testItem1.id }).first()
     expect(item).toBeUndefined()
   })
 
   it('should delete an item that already has deleted_at set', async () => {
-    await request(app)
-      .delete(`/items/${testItem2.id}`)
+    await authedRequest(app).delete(`/items/${testItem2.id}`)
       .expect(204)
     const item = await db('items').where({ id: testItem2.id }).first()
     expect(item).toBeUndefined()
   })
 
   it('should return 400 when a non-UUID is provided', async () => {
-    await request(app)
-      .delete('/items/invalid-uuid')
+    await authedRequest(app).delete('/items/invalid-uuid')
       .expect(400)
   })
 
   it('should return 404 when trying to delete a non-existent item', async () => {
-    await request(app)
-      .delete('/items/00000000-0000-0000-0000-000000000000')
+    await authedRequest(app).delete('/items/00000000-0000-0000-0000-000000000000')
       .expect(404)
   })
 
   it('should return 404 after the item has already been deleted', async () => {
-    await request(app)
-      .delete(`/items/${testItem1.id}`)
+    await authedRequest(app).delete(`/items/${testItem1.id}`)
       .expect(204)
-    await request(app)
-      .delete(`/items/${testItem1.id}`)
+    await authedRequest(app).delete(`/items/${testItem1.id}`)
       .expect(404)
   })
 
@@ -86,8 +80,7 @@ describe('DELETE /items/:itemId', () => {
       updated_at: new Date('2024-05-31T06:28:34.356Z')
     })
 
-    await request(app)
-      .delete(`/items/${parentId}`)
+    await authedRequest(app).delete(`/items/${parentId}`)
       .expect(400)
   })
 
@@ -110,8 +103,7 @@ describe('DELETE /items/:itemId', () => {
       updated_at: new Date('2024-05-31T06:28:34.356Z')
     })
 
-    await request(app)
-      .delete(`/items/${childId}`)
+    await authedRequest(app).delete(`/items/${childId}`)
       .expect(204)
     const item = await db('items').where({ id: childId }).first()
     expect(item).toBeUndefined()

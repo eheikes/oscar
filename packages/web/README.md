@@ -33,6 +33,18 @@ cp .env.example .env
 
 **Note:** Vite automatically loads `.env` files. The `VITE_` prefix is required for variables to be accessible in client code.
 
+### 3. Configure Auth0
+
+Set the Auth0 values in `.env`:
+
+- `VITE_AUTH0_DOMAIN` (Required): Your Auth0 tenant domain (e.g. `dev-xxxx.us.auth0.com`).
+- `VITE_AUTH0_CLIENT_ID` (Required): Your Auth0 Single Page Application Client ID (from **Auth0 Dashboard > Applications > Applications**).
+- `VITE_AUTH0_AUDIENCE` (Required): The **API Identifier** created under **Auth0 Dashboard > Applications > APIs** (e.g. `https://api.example.com` or `http://localhost:8080`).
+  > **Note:** Do **not** use the SPA Client ID for this value. Using the Client ID or leaving this empty causes Auth0 to issue an opaque/JWE token instead of a signed RS256 JWT, which will cause API calls to fail with `401 Unauthorized`.
+- `VITE_AUTH0_REDIRECT_URI` (Optional): Redirect URI configured in Auth0 (defaults to `window.location.origin`, e.g. `http://localhost:5173`).
+
+The app requires login before any page can be used. After login, API requests include an Auth0 bearer token automatically.
+
 ## Running
 
 ### Development server
@@ -83,3 +95,5 @@ The app calls the OSCAR API (packages/api). Endpoints used:
 - `GET /labels` — fetch labels for choosers
 - `POST /items` — create new item
 - `PATCH /items/:id` — update/soft-delete item
+
+All API requests require authentication. If a request receives `401`, the app redirects to `/login`.

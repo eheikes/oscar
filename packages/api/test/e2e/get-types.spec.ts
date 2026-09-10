@@ -1,11 +1,10 @@
-import request from 'supertest'
 import { describe, it } from 'vitest'
 import { app } from '../../src/app.js'
+import { authedRequest } from './helpers/auth.js'
 
 describe('GET /types', () => {
   it('should return the types', async () => {
-    await request(app)
-      .get('/types')
+    await authedRequest(app).get('/types')
       .expect(200)
       .expect([
         {

@@ -29,6 +29,9 @@
     "url": "https://github.com/eheikes/oscar/issues"
   },
   "homepage": "https://github.com/eheikes/oscar/tree/master/packages/web#readme",
+  "dependencies": {
+    "@auth0/auth0-spa-js": "^2.2.0"
+  },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.69.3",
