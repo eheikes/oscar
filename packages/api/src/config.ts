@@ -33,7 +33,7 @@ let config: Config | null = null
 export const getConfig = (): Config => {
   if (config == null) {
     loadEnvFile({
-      path: [`.env.${process.env.NODE_ENV ?? 'local'}`, '.env'],
+      path: ['.env', `.env.${process.env.NODE_ENV ?? 'local'}`],
       override: true
     })
     config = parseEnv(process.env, fields)
