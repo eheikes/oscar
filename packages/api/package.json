@@ -56,7 +56,7 @@
     "ts-standard": "^12.0.2",
     "tsx": "^4.22.1",
     "typescript": "^5.4.5",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "body-parser": "^2.2.2",
