@@ -23,6 +23,9 @@ const fields = {
   OPENID_AUDIENCE: z.string(),
   OPENID_CLIENT_SECRET: z.string(),
   OPENID_URL: z.string(),
+  RATE_LIMITING_WINDOW: z.coerce.number().default(15 * 60 * 1000), // 15 mins
+  RATE_LIMITING_MAX: z.coerce.number().default(100),
+  RATE_LIMITING_IPV6_SUBNET: z.coerce.number().default(56),
   WORK_CHUNK_SIZE: z.coerce.number().default(30)
 }
 export type Config = DeepReadonlyObject<typeof fields>
