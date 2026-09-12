@@ -46,7 +46,7 @@ app.use(bodyParser.json())
 app.set('x-powered-by', false)
 
 app.use(cors({
-  origin: '*'
+  origin: config.CORS_ALLOWED_ORIGIN === '' ? false : config.CORS_ALLOWED_ORIGIN
 }))
 app.use(cookieParser())
 /* eslint-disable @typescript-eslint/no-misused-promises -- async middleware is supported by Express v5 */

@@ -9,6 +9,7 @@ const fields = {
   APP_URL: z.string(),
   ALLOWED_USERS: z.string().optional(),
   AUTH0_DOMAIN: z.string().optional(),
+  CORS_ALLOWED_ORIGIN: z.string().default(''), // empty string means CORS is disabled
   DB_HOST: z.string(),
   DB_PORT: z.coerce.number().default(5432),
   DB_USER: z.string(),
