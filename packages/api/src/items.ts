@@ -63,6 +63,17 @@ export interface ItemWithLabels extends Item {
   labels: string[]
 }
 
+export interface ItemRef {
+  deletedAt: string | null
+  id: string
+  title: string
+}
+
+export interface ItemWithRelations extends ItemWithLabels {
+  children: ItemRef[]
+  parent: ItemRef | null
+}
+
 const itemFieldMapping: Record<keyof Item, keyof DatabaseItem> = {
   author: 'author',
   createdAt: 'created_at',
@@ -110,6 +121,34 @@ const mapItemFromDatabase = (row: DatabaseItem, labels: string[] = []): ItemWith
   }
 }
 
+const mapItemRefFromDatabase = (row: Pick<DatabaseItem, 'deleted_at' | 'id' | 'title'>): ItemRef => {
+  return {
+    deletedAt: row.deleted_at === null ? null : new Date(row.deleted_at).toISOString(),
+    id: row.id,
+    title: row.title
+  }
+}
+
+// Attaches the parent's and children's IDs/titles to an item, regardless of whether those
+// related items match the current query's filters -- so the UI can always mention a task's
+// parent/children even when they're excluded from the result set (e.g. soft-deleted, out of
+// the current page, filtered out by type/label/search, etc).
+const attachRelations = async (item: ItemWithLabels): Promise<ItemWithRelations> => {
+  const db = getDatabaseConnection()
+  const [parentRow, childRows] = await Promise.all([
+    item.parentId === null
+      /* c8 ignore next */
+      ? Promise.resolve(undefined)
+      : db.select('deleted_at', 'id', 'title').from('items').where({ id: item.parentId }).first(),
+    db.select('deleted_at', 'id', 'title').from('items').where({ parent_id: item.id }).orderBy('created_at', 'asc')
+  ])
+  return {
+    ...item,
+    children: childRows.map(mapItemRefFromDatabase),
+    parent: parentRow === undefined ? null : mapItemRefFromDatabase(parentRow)
+  }
+}
+
 const addItemRequestSchema = z.object({
   replace: z.string().optional()
 }).strict()
@@ -131,7 +170,7 @@ const addItemBodySchema = z.object({
   uri: z.string().nullish()
 }).strict()
 
-export const addItem = async (params: ParsedQs, itemData: unknown): Promise<ItemWithLabels> => {
+export const addItem = async (params: ParsedQs, itemData: unknown): Promise<ItemWithRelations> => {
   logger.info({ params, itemData }, 'addItem')
   const parsedParams = addItemRequestSchema.parse(params)
   const parsedItemData = addItemBodySchema.parse(itemData)
@@ -173,7 +212,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
   if (Array.isArray(parsedItemData.labels)) {
     await addItemLabels(id, parsedItemData.labels)
   }
-  return {
+  return await attachRelations({
     author: parsedItemData.author ?? null,
     createdAt: now.toISOString(),
     deletedAt: null,
@@ -192,7 +231,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     type: parsedItemData.type,
     updatedAt: now.toISOString(),
     uri: parsedItemData.uri ?? null
-  }
+  })
 }
 
 const removeItemRequestSchema = z.object({
@@ -236,7 +275,7 @@ const updateItemBodySchema = z.object({
   uri: z.string().nullable().optional()
 }).strict()
 
-export const updateItem = async (itemId: string, itemData: unknown): Promise<ItemWithLabels> => {
+export const updateItem = async (itemId: string, itemData: unknown): Promise<ItemWithRelations> => {
   logger.info({ itemId, itemData }, 'updateItem')
   updateItemParamsSchema.parse({ itemId })
   const parsedItemData = updateItemBodySchema.parse(itemData)
@@ -288,7 +327,7 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   const updatedRow = await db.select('*').from('items').where({ id: itemId }).first()
   const itemLabels = await getItemLabels(itemId)
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return mapItemFromDatabase(updatedRow!, itemLabels.map(label => label.labelId))
+  return await attachRelations(mapItemFromDatabase(updatedRow!, itemLabels.map(label => label.labelId)))
 }
 
 const getItemsRequestSchema = z.object({
@@ -306,7 +345,7 @@ const getItemsRequestSchema = z.object({
   type: z.union([z.array(z.string()), z.string()]).optional()
 }).strict()
 
-export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
+export const getItems = async (params: ParsedQs): Promise<ItemWithRelations[]> => {
   logger.info({ params }, 'getItems')
   const parsedParams = getItemsRequestSchema.parse(params)
   const db = getDatabaseConnection()
@@ -361,9 +400,9 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
   }
   query = query.limit(Math.min(parsedParams.count, 500))
   const result = await query
-  const items: ItemWithLabels[] = await Promise.all(result.map(async item => {
+  const items: ItemWithRelations[] = await Promise.all(result.map(async item => {
     const labels = await getItemLabels(item.id)
-    return mapItemFromDatabase(item, labels.map(label => label.labelId))
+    return await attachRelations(mapItemFromDatabase(item, labels.map(label => label.labelId)))
   }))
   return items
 }
@@ -374,7 +413,7 @@ const getRetroItemsRequestSchema = z.object({
   type: z.union([z.array(z.string()), z.string()]).optional()
 }).strict()
 
-export const getRetroItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
+export const getRetroItems = async (params: ParsedQs): Promise<ItemWithRelations[]> => {
   logger.info({ params }, 'getRetroItems')
   const parsedParams = getRetroItemsRequestSchema.parse(params)
   const now = new Date()
@@ -408,9 +447,9 @@ export const getRetroItems = async (params: ParsedQs): Promise<ItemWithLabels[]>
   }
   query = query.orderBy('type_id', 'asc').orderBy('deleted_at', 'asc')
   const result = await query
-  const items: ItemWithLabels[] = await Promise.all(result.map(async item => {
+  const items: ItemWithRelations[] = await Promise.all(result.map(async item => {
     const labels = await getItemLabels(item.id)
-    return mapItemFromDatabase(item, labels.map(label => label.labelId))
+    return await attachRelations(mapItemFromDatabase(item, labels.map(label => label.labelId)))
   }))
   return items
 }
@@ -421,12 +460,12 @@ const getNextItemRequestSchema = z.object({
   type: z.string()
 }).strict()
 
-interface ItemWithLabelsAndWeight extends ItemWithLabels {
+interface ItemWithLabelsAndWeight extends ItemWithRelations {
   weight?: number
 }
 
 interface NextItem {
-  item: ItemWithLabels
+  item: ItemWithRelations
   reason: string
 }
 
@@ -665,8 +704,9 @@ export const getNextItem = async (params: ParsedQs): Promise<NextItem[]> => {
         reason = `This item has a rank of ${item.rank}.`
       }
     }
+    const itemWithRelations = await attachRelations(mapItemFromDatabase(item, labels.map(label => label.labelId)))
     response.push({
-      item: { ...mapItemFromDatabase(item, labels.map(label => label.labelId)), weight },
+      item: { ...itemWithRelations, weight },
       reason: reason.trim()
     })
   }

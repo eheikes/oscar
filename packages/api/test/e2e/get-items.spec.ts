@@ -181,4 +181,106 @@ describe('GET /items', () => {
         expect(response.body.length).toBe(2)
       })
   })
+
+  describe('parent/child relations', () => {
+    it("should include the parent's id and title even when the parent is excluded from the results", async () => {
+      const parentId = 'cccccccc-0000-4000-8000-000000000001'
+      const childId = 'cccccccc-0000-4000-8000-000000000002'
+      await db('items').insert({
+        id: parentId,
+        title: 'Excluded Parent',
+        type_id: 'read',
+        created_at: new Date('2024-01-01T00:00:00.000Z'),
+        updated_at: new Date('2024-01-01T00:00:00.000Z')
+      })
+      await db('items').insert({
+        id: childId,
+        title: 'Included Child',
+        type_id: 'task',
+        parent_id: parentId,
+        created_at: new Date('2024-01-02T00:00:00.000Z'),
+        updated_at: new Date('2024-01-02T00:00:00.000Z')
+      })
+
+      await authedRequest(app).get('/items?type=task')
+        .expect(200)
+        .then(response => {
+          const ids = response.body.map((item: { id: string }) => item.id)
+          expect(ids).not.toContain(parentId)
+          expect(ids).toContain(childId)
+          const child = response.body.find((item: { id: string }) => item.id === childId)
+          expect(child.parent).toEqual({ id: parentId, title: 'Excluded Parent', deletedAt: null })
+        })
+    })
+
+    it('should include children ids and titles even when the children are excluded from the results', async () => {
+      const parentId = 'cccccccc-0000-4000-8000-000000000003'
+      const childId = 'cccccccc-0000-4000-8000-000000000004'
+      await db('items').insert({
+        id: parentId,
+        title: 'Included Parent',
+        type_id: 'task',
+        created_at: new Date('2024-01-01T00:00:00.000Z'),
+        updated_at: new Date('2024-01-01T00:00:00.000Z')
+      })
+      await db('items').insert({
+        id: childId,
+        title: 'Excluded Child',
+        type_id: 'read',
+        parent_id: parentId,
+        created_at: new Date('2024-01-02T00:00:00.000Z'),
+        updated_at: new Date('2024-01-02T00:00:00.000Z')
+      })
+
+      await authedRequest(app).get('/items?type=task')
+        .expect(200)
+        .then(response => {
+          const ids = response.body.map((item: { id: string }) => item.id)
+          expect(ids).not.toContain(childId)
+          expect(ids).toContain(parentId)
+          const parent = response.body.find((item: { id: string }) => item.id === parentId)
+          expect(parent.children).toEqual([{ id: childId, title: 'Excluded Child', deletedAt: null }])
+        })
+    })
+
+    it('should mention a soft-deleted child even when deleted items are excluded from the results', async () => {
+      const parentId = 'cccccccc-0000-4000-8000-000000000005'
+      const childId = 'cccccccc-0000-4000-8000-000000000006'
+      await db('items').insert({
+        id: parentId,
+        title: 'Parent With Deleted Child',
+        type_id: 'task',
+        created_at: new Date('2024-01-01T00:00:00.000Z'),
+        updated_at: new Date('2024-01-01T00:00:00.000Z')
+      })
+      await db('items').insert({
+        id: childId,
+        title: 'Deleted Child',
+        type_id: 'task',
+        parent_id: parentId,
+        deleted_at: new Date('2024-01-03T00:00:00.000Z'),
+        created_at: new Date('2024-01-02T00:00:00.000Z'),
+        updated_at: new Date('2024-01-02T00:00:00.000Z')
+      })
+
+      await authedRequest(app).get('/items')
+        .expect(200)
+        .then(response => {
+          const ids = response.body.map((item: { id: string }) => item.id)
+          expect(ids).not.toContain(childId)
+          const parent = response.body.find((item: { id: string }) => item.id === parentId)
+          expect(parent.children).toEqual([{ id: childId, title: 'Deleted Child', deletedAt: '2024-01-03T00:00:00.000Z' }])
+        })
+    })
+
+    it('should return null parent and an empty children array when an item has no relations', async () => {
+      await authedRequest(app).get('/items?type=watch')
+        .expect(200)
+        .then(response => {
+          expect(response.body).toHaveLength(1)
+          expect(response.body[0].parent).toBe(null)
+          expect(response.body[0].children).toEqual([])
+        })
+    })
+  })
 })

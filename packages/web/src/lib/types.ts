@@ -8,6 +8,12 @@ export interface Label {
   readable: string
 }
 
+export interface ItemRef {
+  id: string
+  title: string
+  deletedAt: string | null
+}
+
 export interface Item {
   id: string
   title: string
@@ -15,9 +21,11 @@ export interface Item {
   createdAt: string
   updatedAt: string
   labels: string[]
+  children: ItemRef[]
   deletedAt: string | null
   due: string | null
   length: number | null
+  parent: ItemRef | null
   parentId: string | null
   summary: string | null
   uri: string | null

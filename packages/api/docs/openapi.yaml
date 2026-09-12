@@ -360,6 +360,8 @@ components:
         - createdAt
         - updatedAt
         - labels
+        - parent
+        - children
       properties:
         id:
           type: string
@@ -371,6 +373,13 @@ components:
         author:
           type: string
           nullable: true
+        children:
+          type: array
+          description: >-
+            The item's direct children, always included regardless of whether they match
+            the current request's filters (e.g. soft-deleted, out of the current page, etc).
+          items:
+            $ref: '#/components/schemas/ItemRef'
         deletedAt:
           type: string
           format: date-time
@@ -395,6 +404,13 @@ components:
         length:
           type: number
           nullable: true
+        parent:
+          allOf:
+            - $ref: '#/components/schemas/ItemRef'
+          nullable: true
+          description: >-
+            The item's parent, always included regardless of whether it matches the current
+            request's filters (e.g. soft-deleted, out of the current page, etc).
         parentId:
           type: string
           format: uuid
@@ -417,6 +433,23 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    ItemRef:
+      type: object
+      required:
+        - id
+        - title
+        - deletedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
 
     AddItemRequest:
       type: object

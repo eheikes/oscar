@@ -462,6 +462,8 @@ describe('GET /items/:typeId', () => {
         .then(response => {
           expect(response.body.map((entry: { item: { id: string } }) => entry.item.id)).not.toContain(parent.id)
           expect(response.body.map((entry: { item: { id: string } }) => entry.item.id)).toContain(child.id)
+          const childEntry = response.body.find((entry: { item: { id: string } }) => entry.item.id === child.id)
+          expect(childEntry.item.parent).toEqual({ id: parent.id, title: parent.title, deletedAt: null })
         })
     })
 
@@ -493,6 +495,9 @@ describe('GET /items/:typeId', () => {
         .expect(200)
         .then(response => {
           expect(response.body[0].item.id).toBe(parent.id)
+          expect(response.body[0].item.children).toEqual([
+            { id: child.id, title: child.title, deletedAt: new Date(child.deleted_at).toISOString() }
+          ])
         })
     })
   })

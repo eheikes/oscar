@@ -208,10 +208,30 @@ describe('PATCH /items/:itemId', () => {
       .expect(200)
       .then(response => {
         expect(response.body.parentId).toBe(parentId)
+        expect(response.body.parent).toEqual({ id: parentId, title: 'Parent Item', deletedAt: null })
       })
 
     const row = await db('items').where({ id: testItem.id }).first()
     expect(row?.parent_id).toBe(parentId)
+  })
+
+  it("should include the child items' ids and titles in the response", async () => {
+    const childId = '3d1a9f42-9578-4b8d-8f2e-9e1c7f4a5b10'
+    await db('items').insert({
+      id: childId,
+      title: 'Child Item',
+      type_id: 'task',
+      parent_id: testItem.id,
+      created_at: new Date('2024-05-31T06:28:34.356Z'),
+      updated_at: new Date('2024-05-31T06:28:34.356Z')
+    })
+
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ title: 'Updated Item' })
+      .expect(200)
+      .then(response => {
+        expect(response.body.children).toEqual([{ id: childId, title: 'Child Item', deletedAt: null }])
+      })
   })
 
   it('should return 404 when setting parentId to a non-existent item', async () => {
