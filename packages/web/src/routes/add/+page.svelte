@@ -71,7 +71,7 @@
 
   <label>
     Summary
-    <textarea bind:value={summary} rows="3" disabled={submitting}></textarea>
+    <textarea bind:value={summary} rows="12" disabled={submitting}></textarea>
   </label>
 
   <label>
