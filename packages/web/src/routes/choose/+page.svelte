@@ -62,7 +62,7 @@
     Label
     <select
       multiple
-      size="4"
+      size={data.labels.length ? Math.min(10, Math.max(3, Math.ceil(data.labels.length / 3))) : 10}
       onchange={(e) => {
         formLabels = [...e.currentTarget.selectedOptions].map(o => o.value);
       }}

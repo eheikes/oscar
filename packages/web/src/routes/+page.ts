@@ -7,6 +7,7 @@ export const load: PageLoad = async ({ url }) => {
   const selectedLabels = url.searchParams.getAll('label')
   const selectedSearch = url.searchParams.get('search') ?? ''
   const selectedIncludeDeleted = url.searchParams.get('includeDeleted') === 'true'
+  const selectedIncludeIncompleteParents = url.searchParams.get('includeIncompleteParents') === 'true'
 
   const orderByParam = url.searchParams.get('orderBy')
   const selectedOrderBy = orderByParam === 'createdAt' ? 'createdAt' : 'due'
@@ -53,6 +54,7 @@ export const load: PageLoad = async ({ url }) => {
     selectedLabels,
     selectedSearch,
     selectedIncludeDeleted,
+    selectedIncludeIncompleteParents,
     selectedOrderBy,
     selectedOrderDir,
     selectedCount

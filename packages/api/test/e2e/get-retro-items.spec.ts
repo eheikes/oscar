@@ -152,4 +152,34 @@ describe('GET /items/retro', () => {
         expect(response.body.error).toEqual(expect.any(String))
       })
   })
+
+  it('should include parent id/title even when the parent falls outside the retro window', async () => {
+    await db('items').update({ parent_id: oldItem.id }).where({ id: taskItem.id })
+
+    await authedRequest(app).get('/items/retro')
+      .expect(200)
+      .then(response => {
+        const ids = response.body.map((item: { id: string }) => item.id)
+        expect(ids).not.toContain(oldItem.id)
+        const task = response.body.find((item: { id: string }) => item.id === taskItem.id)
+        expect(task.parent).toEqual({
+          id: oldItem.id,
+          title: oldItem.title,
+          deletedAt: new Date(oldItem.deleted_at).toISOString()
+        })
+      })
+  })
+
+  it('should include child id/title even when the child is excluded from the retro results', async () => {
+    await db('items').update({ parent_id: taskItem.id }).where({ id: activeItem.id })
+
+    await authedRequest(app).get('/items/retro')
+      .expect(200)
+      .then(response => {
+        const ids = response.body.map((item: { id: string }) => item.id)
+        expect(ids).not.toContain(activeItem.id)
+        const task = response.body.find((item: { id: string }) => item.id === taskItem.id)
+        expect(task.children).toEqual([{ id: activeItem.id, title: activeItem.title, deletedAt: null }])
+      })
+  })
 })

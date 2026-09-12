@@ -8,15 +8,11 @@
     item,
     types,
     labels,
-    parentItem = null,
-    childItems = [],
     onUpdate,
   }: {
     item: Item;
     types: ItemType[];
     labels: Label[];
-    parentItem?: Item | null;
-    childItems?: Item[];
     onUpdate: (updated: Item) => void;
   } = $props();
 
@@ -123,7 +119,7 @@
       Labels:
       <select
         multiple
-        size="4"
+        size={labels.length ? Math.min(10, Math.max(3, Math.ceil(labels.length / 3))) : 10}
         disabled={saving}
         onchange={(e) => {
           editLabels = [...e.currentTarget.selectedOptions].map(o => o.value);
@@ -165,23 +161,23 @@
           <span class="item-meta">labels: {item.labels.map(getLabelReadable).join(', ')}</span>
         {/if}
         {#if item.length != null}<span class="item-meta">{item.length} min</span>{/if}
-        {#if parentItem}
+        {#if item.parent}
           <span class="item-meta parent-meta">
             ⮤
-            <span class:completed-task={parentItem.deletedAt !== null}>
-              <MarkdownText value={parentItem.title} mode="inline" />
+            <span class:completed-task={item.parent.deletedAt !== null}>
+              <MarkdownText value={item.parent.title} mode="inline" />
             </span>
           </span>
         {/if}
       </div>
-      {#if childItems.length > 0}
+      {#if item.children.length > 0}
         <div class="item-children-row item-meta">
           <span class="item-children-prefix">⤷</span>
-          {#each childItems as child, i (child.id)}
+          {#each item.children as child, i (child.id)}
             <span class:completed-task={child.deletedAt !== null}>
               <MarkdownText value={child.title} mode="inline" />
             </span>
-            {#if i < childItems.length - 1}
+            {#if i < item.children.length - 1}
               <span class="comma-separator">,</span>
             {/if}
           {/each}

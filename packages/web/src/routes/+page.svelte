@@ -17,6 +17,7 @@
   let filterLabels = $state<string[]>(untrack(() => data.selectedLabels ?? []));
   let filterSearch = $state(untrack(() => data.selectedSearch ?? ''));
   let filterIncludeDeleted = $state(untrack(() => data.selectedIncludeDeleted ?? false));
+  let filterIncludeIncompleteParents = $state(untrack(() => data.selectedIncludeIncompleteParents ?? false));
   let filterOrderBy = $state<'due' | 'createdAt'>(untrack(() => data.selectedOrderBy ?? 'due'));
   let filterOrderDir = $state<'asc' | 'desc'>(untrack(() => data.selectedOrderDir ?? 'asc'));
   let filterCount = $state(untrack(() => data.selectedCount ?? 25));
@@ -32,6 +33,7 @@
     filterLabels = data.selectedLabels ?? [];
     filterSearch = data.selectedSearch ?? '';
     filterIncludeDeleted = data.selectedIncludeDeleted ?? false;
+    filterIncludeIncompleteParents = data.selectedIncludeIncompleteParents ?? false;
     filterOrderBy = data.selectedOrderBy ?? 'due';
     filterOrderDir = data.selectedOrderDir ?? 'asc';
     filterCount = data.selectedCount ?? 25;
@@ -47,6 +49,7 @@
     if (filterOrderDir !== 'asc') qs.set('orderDir', filterOrderDir);
     if (filterSearch.trim() !== '') qs.set('search', filterSearch.trim());
     if (filterIncludeDeleted) qs.set('includeDeleted', 'true');
+    if (filterIncludeIncompleteParents) qs.set('includeIncompleteParents', 'true');
     filterLabels.forEach(label => qs.append('label', label));
 
     window.location.search = qs.toString();
@@ -56,14 +59,13 @@
     items = items.map(i => (i.id === updated.id ? updated : i));
   }
 
-  function getParentItem(item: Item): Item | null {
-    if (item.parentId === null) return null;
-    return items.find(candidate => candidate.id === item.parentId) ?? null;
+  function hasIncompleteChildren(item: Item): boolean {
+    return item.children.some(child => child.deletedAt === null);
   }
 
-  function getChildItems(item: Item): Item[] {
-    return items.filter(candidate => candidate.parentId === item.id);
-  }
+  let visibleItems = $derived(
+    filterIncludeIncompleteParents ? items : items.filter(item => !hasIncompleteChildren(item))
+  );
 </script>
 
 <h1>Items</h1>
@@ -91,7 +93,7 @@
       Label
       <select
         multiple
-        size="4"
+        size={labels.length ? Math.min(10, Math.max(3, Math.ceil(labels.length / 3))) : 10}
         onchange={(e) => {
           filterLabels = [...e.currentTarget.selectedOptions].map(o => o.value);
         }}
@@ -115,6 +117,11 @@
       Include deleted
     </label>
 
+    <label class="checkbox-label">
+      <input type="checkbox" bind:checked={filterIncludeIncompleteParents} />
+      Include incomplete parent tasks
+    </label>
+
     <label>
       Order by
       <select bind:value={filterOrderBy}>
@@ -133,7 +140,7 @@
 
     <label>
       Count
-      <input type="number" bind:value={filterCount} min="1" max="100" />
+      <input type="number" bind:value={filterCount} min="1" max="500" />
     </label>
 
     <button type="submit">Apply Filters</button>
@@ -142,19 +149,17 @@
 
 {#if error}
   <p class="error">{error}</p>
-{:else if items.length === 0}
+{:else if visibleItems.length === 0}
   <p class="status">No items found.</p>
 {:else}
-  <p class="status">{items.length} item{items.length === 1 ? '' : 's'}</p>
+  <p class="status">{visibleItems.length} item{visibleItems.length === 1 ? '' : 's'}</p>
   <ul class="item-list">
-    {#each items as item (item.id)}
+    {#each visibleItems as item (item.id)}
       <li>
         <ItemRow
           {item}
           {types}
           {labels}
-          parentItem={getParentItem(item)}
-          childItems={getChildItems(item)}
           onUpdate={updateItem}
         />
       </li>

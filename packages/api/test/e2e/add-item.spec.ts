@@ -107,6 +107,8 @@ describe('POST /items', () => {
         expect(response.body.language).toBe(null)
         expect(response.body.length).toBe(null)
         expect(response.body.parentId).toBe(null)
+        expect(response.body.parent).toBe(null)
+        expect(response.body.children).toEqual([])
         expect(response.body.rank).toBe(null)
         expect(response.body.rating).toBe(null)
         expect(response.body.summary).toBe(null)
@@ -133,6 +135,8 @@ describe('POST /items', () => {
       .expect(201)
       .then(response => {
         expect(response.body.parentId).toBe(parentId)
+        expect(response.body.parent).toEqual({ id: parentId, title: 'Parent Item', deletedAt: null })
+        expect(response.body.children).toEqual([])
       })
 
     const child = await db('items').where({ title: 'Child Item' }).first()
