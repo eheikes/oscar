@@ -88,7 +88,7 @@
     Labels
     <select
       multiple
-      size="5"
+      size={data.labels.length ? Math.min(10, Math.max(3, Math.ceil(data.labels.length / 3))) : 10}
       disabled={submitting}
       onchange={(e) => {
         selectedLabels = [...e.currentTarget.selectedOptions].map(o => o.value);

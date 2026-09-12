@@ -123,7 +123,7 @@
       Labels:
       <select
         multiple
-        size="4"
+        size={labels.length ? Math.min(10, Math.max(3, Math.ceil(labels.length / 3))) : 10}
         disabled={saving}
         onchange={(e) => {
           editLabels = [...e.currentTarget.selectedOptions].map(o => o.value);
