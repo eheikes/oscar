@@ -2,6 +2,7 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
+import { rateLimit } from 'express-rate-limit'
 import { checkAllowedUsers, configureAuth, validateJWT } from './auth.js'
 import { isDevelopment } from './config.js'
 import {
@@ -18,11 +19,23 @@ import {
 } from './controllers.js'
 import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
-import { httpLogger } from './logger.js'
+import { httpLogger, logger } from './logger.js'
 
 await migrateDatabase()
 
 export const app = express()
+
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true, // return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // disable the `X-RateLimit-*` headers
+  ipv6Subnet: 56,
+  logger: {
+    warn: logger.warn,
+    error: logger.error
+  }
+}))
 
 app.use(httpLogger)
 
