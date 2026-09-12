@@ -46,7 +46,7 @@ Behavior:
   > **Note:** Do **not** use the Application Client ID. The API Identifier is needed so Auth0 issues signed RS256 JWTs that this API can verify against JWKS.
 - `OPENID_URL`: Auth0 issuer URL (for example, `https://your-tenant.us.auth0.com`).
 - `AUTH0_DOMAIN`: Optional explicit Auth0 domain. If omitted, it is derived from `OPENID_URL`.
-- `ALLOWED_USERS`: Optional comma-separated allowlist of Auth0 user `sub` values and/or email addresses.
+- `ALLOWED_USERS`: Optional comma-separated allowlist of Auth0 user `sub` values and/or (case-insensitive) email addresses. If left blank, the server will allow all authenticated users.
 
 ### Subtasks
 
