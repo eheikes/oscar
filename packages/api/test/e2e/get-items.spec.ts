@@ -173,4 +173,12 @@ describe('GET /items', () => {
         expect(response.body).toContainEqual(expect.objectContaining({ id: deletedItemId }))
       })
   })
+
+  it('should limit items by count', async () => {
+    await authedRequest(app).get('/items?count=2')
+      .expect(200)
+      .then(response => {
+        expect(response.body.length).toBe(2)
+      })
+  })
 })

@@ -359,7 +359,7 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithLabels[]> => {
   if (typeof parsedParams.offset !== 'undefined') {
     query = query.offset(parsedParams.offset)
   }
-  query = query.limit(Math.min(parsedParams.count, 100))
+  query = query.limit(Math.min(parsedParams.count, 500))
   const result = await query
   const items: ItemWithLabels[] = await Promise.all(result.map(async item => {
     const labels = await getItemLabels(item.id)

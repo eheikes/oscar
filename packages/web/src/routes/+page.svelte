@@ -133,7 +133,7 @@
 
     <label>
       Count
-      <input type="number" bind:value={filterCount} min="1" max="100" />
+      <input type="number" bind:value={filterCount} min="1" max="500" />
     </label>
 
     <button type="submit">Apply Filters</button>
