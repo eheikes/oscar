@@ -39,7 +39,7 @@ export interface NextItemResult {
 export interface GetItemsParams {
   count?: number
   offset?: number
-  orderBy?: 'due' | 'createdAt'
+  orderBy?: 'due' | 'createdAt' | 'random'
   orderDir?: 'asc' | 'desc'
   type?: string
   label?: string | string[]

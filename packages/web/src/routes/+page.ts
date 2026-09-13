@@ -10,7 +10,7 @@ export const load: PageLoad = async ({ url }) => {
   const selectedIncludeIncompleteParents = url.searchParams.get('includeIncompleteParents') === 'true'
 
   const orderByParam = url.searchParams.get('orderBy')
-  const selectedOrderBy = orderByParam === 'createdAt' ? 'createdAt' : 'due'
+  const selectedOrderBy = orderByParam === 'createdAt' || orderByParam === 'random' ? orderByParam : 'due'
 
   const orderDirParam = url.searchParams.get('orderDir')
   const selectedOrderDir = orderDirParam === 'desc' ? 'desc' : 'asc'
