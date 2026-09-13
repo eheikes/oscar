@@ -18,7 +18,7 @@
   let filterSearch = $state(untrack(() => data.selectedSearch ?? ''));
   let filterIncludeDeleted = $state(untrack(() => data.selectedIncludeDeleted ?? false));
   let filterIncludeIncompleteParents = $state(untrack(() => data.selectedIncludeIncompleteParents ?? false));
-  let filterOrderBy = $state<'due' | 'createdAt'>(untrack(() => data.selectedOrderBy ?? 'due'));
+  let filterOrderBy = $state<'due' | 'createdAt' | 'random'>(untrack(() => data.selectedOrderBy ?? 'due'));
   let filterOrderDir = $state<'asc' | 'desc'>(untrack(() => data.selectedOrderDir ?? 'asc'));
   let filterCount = $state(untrack(() => data.selectedCount ?? 25));
 
@@ -127,12 +127,13 @@
       <select bind:value={filterOrderBy}>
         <option value="due">Due date</option>
         <option value="createdAt">Created</option>
+        <option value="random">Random</option>
       </select>
     </label>
 
     <label>
       Direction
-      <select bind:value={filterOrderDir}>
+      <select bind:value={filterOrderDir} disabled={filterOrderBy === 'random'}>
         <option value="asc">Ascending</option>
         <option value="desc">Descending</option>
       </select>
