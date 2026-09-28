@@ -28,11 +28,9 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
     throw new Error('Unauthorized - missing access token')
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...options?.headers
-  }
-  headers.Authorization = `Bearer ${accessToken}`
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  new Headers(options?.headers).forEach((value, key) => headers.set(key, value))
+  headers.set('Authorization', `Bearer ${accessToken}`)
 
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,

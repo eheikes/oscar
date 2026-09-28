@@ -10,8 +10,9 @@
     "prepare": "husky",
     "dev": "vite dev",
     "build": "vite build",
-    "lint": "svelte-kit sync && ts-standard --fix --verbose",
-    "lint-hook": "svelte-kit sync && ts-standard --verbose",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "lint": "svelte-kit sync && ts-standard --fix --verbose && npm run check",
+    "lint-hook": "svelte-kit sync && ts-standard --verbose && npm run check",
     "preview": "vite preview"
   },
   "repository": {
@@ -35,10 +36,12 @@
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.69.3",
+    "@types/markdown-it": "^14.2.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "husky": "^9.0.11",
     "markdown-it": "^14.3.0",
     "svelte": "^5.0.0",
+    "svelte-check": "^4.7.6",
     "ts-standard": "^12.0.0",
     "typescript": "^5.0.0",
     "vite": "^8.0.0"

@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types'
 import { getItems, getTypes, getLabels } from '$lib/api.js'
-import type { Item, ItemType, Label } from '$lib/types.js'
+import type { GetItemsParams, Item, ItemType, Label } from '$lib/types.js'
 
 export const load: PageLoad = async ({ url }) => {
   const selectedType = url.searchParams.get('type') ?? ''
@@ -10,10 +10,10 @@ export const load: PageLoad = async ({ url }) => {
   const selectedIncludeIncompleteParents = url.searchParams.get('includeIncompleteParents') === 'true'
 
   const orderByParam = url.searchParams.get('orderBy')
-  const selectedOrderBy = orderByParam === 'createdAt' || orderByParam === 'random' ? orderByParam : 'due'
+  const selectedOrderBy: NonNullable<GetItemsParams['orderBy']> = orderByParam === 'createdAt' || orderByParam === 'random' ? orderByParam : 'due'
 
   const orderDirParam = url.searchParams.get('orderDir')
-  const selectedOrderDir = orderDirParam === 'desc' ? 'desc' : 'asc'
+  const selectedOrderDir: NonNullable<GetItemsParams['orderDir']> = orderDirParam === 'desc' ? 'desc' : 'asc'
 
   const parsedCount = parseInt(url.searchParams.get('count') ?? '25', 10)
   const selectedCount = Number.isNaN(parsedCount) || parsedCount <= 0 ? 25 : parsedCount
