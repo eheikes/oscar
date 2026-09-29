@@ -48,6 +48,12 @@ export interface GetItemsParams {
   includeDeleted?: boolean
 }
 
+export interface GetRetroItemsParams {
+  since?: string
+  type?: string | string[]
+  label?: string | string[]
+}
+
 export interface GetNextItemsParams {
   type: string
   count?: number
