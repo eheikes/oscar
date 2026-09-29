@@ -73,7 +73,7 @@ Scripts for local development:
 For running automated tests:
 
 * To run all tests: `npm run test`.
-* You can use the `.env` or `.env.(NODE_ENV value)` files to set the environment values.
+* You can use the `.env` or `.env.(NODE_ENV value)` files to set the environment values. Values in `.env.(NODE_ENV value)` take precedence over `.env`, and variables already set in the environment take precedence over both.
 * To run end-to-end tests:
     1. Start a local Postgres server. You can run a temporary server with Docker using something like `docker run -v ./test/mocks/postgres:/docker-entrypoint-initdb.d -e POSTGRES_PASSWORD=test -d -p 5432:5432 postgres`.
     1. Update `.env.test` to match the database credentials.

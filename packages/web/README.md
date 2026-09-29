@@ -33,6 +33,8 @@ cp .env.example .env
 
 **Note:** Vite automatically loads `.env` files. The `VITE_` prefix is required for variables to be accessible in client code.
 
+You can also use `.env.(NODE_ENV value)` files for different environments, e.g. `NODE_ENV=test npm run dev` loads `.env.test` in addition to `.env`. Values in the environment-specific file take precedence over `.env`. If `NODE_ENV` isn't set, Vite's default mode is used (`.env.development` for `npm run dev`, `.env.production` for `npm run build`).
+
 ### 3. Configure Auth0
 
 Set the Auth0 values in `.env`:
