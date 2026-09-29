@@ -128,6 +128,18 @@ describe('GET /items/retro', () => {
       })
   })
 
+  it('should filter by any of multiple labels', async () => {
+    await db('item_labels').insert({ item_id: readItem.id, label_id: 'personal' })
+    await authedRequest(app).get('/items/retro?label=urgent&label=personal')
+      .expect(200)
+      .then(response => {
+        const ids = response.body.map((item: { id: string }) => item.id)
+        expect(ids).toContain(taskItem.id)
+        expect(ids).toContain(readItem.id)
+        expect(ids).toHaveLength(2)
+      })
+  })
+
   it('should return an empty array when no items fall in the range', async () => {
     const futureTime = new Date(now.getTime() + 60 * 1000).toISOString()
     await authedRequest(app).get(`/items/retro?since=${encodeURIComponent(futureTime)}`)

@@ -438,12 +438,11 @@ export const getRetroItems = async (params: ParsedQs): Promise<ItemWithRelations
   if (parsedParams.label !== undefined) {
     const labelParam = parsedParams.label
     const labels = Array.isArray(labelParam) ? labelParam : [labelParam]
-    for (const label of labels) {
-      query = query.whereExists(function () {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').where('label_id', label)
-      })
-    }
+    // Match items with at least one of the given labels.
+    query = query.whereExists(function () {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.select(raw('1')).from('item_labels').whereRaw('items.id = item_labels.item_id').whereIn('label_id', labels)
+    })
   }
   query = query.orderBy('type_id', 'asc').orderBy('deleted_at', 'asc')
   const result = await query
