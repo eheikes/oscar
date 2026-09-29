@@ -36,9 +36,9 @@ let config: Config | null = null
 // Helper function to allow mocking in tests
 export const getConfig = (): Config => {
   if (config == null) {
+    // First file wins, and existing environment variables are not overridden.
     loadEnvFile({
-      path: ['.env', `.env.${process.env.NODE_ENV ?? 'local'}`],
-      override: true
+      path: [`.env.${process.env.NODE_ENV ?? 'local'}`, '.env']
     })
     config = parseEnv(process.env, fields)
   }
