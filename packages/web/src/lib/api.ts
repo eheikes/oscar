@@ -5,6 +5,7 @@ import type {
   NextItemResult,
   GetItemsParams,
   GetNextItemsParams,
+  GetRetroItemsParams,
   CreateItemData,
   UpdateItemData
 } from './types.js'
@@ -99,6 +100,16 @@ export async function getNextItems (params: GetNextItemsParams): Promise<NextIte
   if (params.count != null) qs.set('count', String(params.count))
   if (params.label !== undefined) qs.set('label', params.label)
   return await apiFetch<NextItemResult[]>(`/items/next?${qs.toString()}`)
+}
+
+export async function getRetroItems (params: GetRetroItemsParams = {}): Promise<Item[]> {
+  const qs = new URLSearchParams()
+  if (params.since !== undefined) qs.set('since', params.since)
+  const types = params.type === undefined ? [] : Array.isArray(params.type) ? params.type : [params.type]
+  types.forEach(t => qs.append('type', t))
+  const labels = params.label === undefined ? [] : Array.isArray(params.label) ? params.label : [params.label]
+  labels.forEach(l => qs.append('label', l))
+  return await apiFetch<Item[]>(`/items/retro?${qs.toString()}`)
 }
 
 export async function getTypes (): Promise<ItemType[]> {

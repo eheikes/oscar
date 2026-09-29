@@ -30,6 +30,7 @@
     <div class="nav-links">
       <a href="/">Home</a>
       <a href="/choose">Choose</a>
+      <a href="/retro">Retrospective</a>
       <a href="/add">Add Item</a>
     </div>
     {#if $authStore.isAuthenticated}
