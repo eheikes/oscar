@@ -126,7 +126,7 @@ async function doInitializeAuth0 (): Promise<void> {
     let accessToken = null
 
     if (isAuthenticated) {
-      user = await auth0Client.getUser()
+      user = (await auth0Client.getUser()) ?? null
       accessToken = await auth0Client.getTokenSilently()
     }
 
