@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import { type Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js'
+import { type Auth0Client, createAuth0Client, GenericError } from '@auth0/auth0-spa-js'
 
 interface AuthState {
   isLoading: boolean
@@ -18,6 +18,11 @@ const initialState: AuthState = {
 }
 
 export const authStore = writable<AuthState>(initialState)
+
+// Shown to the user for any 401-like auth failure (expired session, missing
+// refresh token, rejected access token, etc). The underlying error is logged
+// to the console instead, since it's too cryptic to be useful in the UI.
+export const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please log in again.'
 
 let auth0Client: Auth0Client | null = null
 
@@ -151,12 +156,23 @@ async function doInitializeAuth0 (): Promise<void> {
     // strip them so a refresh doesn't attempt to replay a dead transaction.
     clearRedirectParams()
 
+    console.error('Auth0 initialization failed:', error)
+
+    // Auth0 errors (e.g. "Missing Refresh Token", "login_required") mean the
+    // session is no longer usable; anything else is likely misconfiguration.
+    let errorMsg = 'Failed to initialize Auth0'
+    if (error instanceof GenericError) {
+      errorMsg = SESSION_EXPIRED_MESSAGE
+    } else if (error instanceof Error) {
+      errorMsg = error.message
+    }
+
     authStore.set({
       isLoading: false,
       isAuthenticated: false,
       user: null,
       accessToken: null,
-      error: error instanceof Error ? error.message : 'Failed to initialize Auth0'
+      error: errorMsg
     })
   }
 }
@@ -237,6 +253,7 @@ export async function getAccessToken (): Promise<string | null> {
     authStore.update(state => ({ ...state, accessToken: token }))
     return token
   } catch (error) {
+    console.error('Failed to get access token:', error)
     return null
   }
 }
