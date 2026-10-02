@@ -13,6 +13,7 @@ import { getAccessToken, authStore } from './auth.js'
 import { goto } from '$app/navigation'
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
+const REQUEST_TIMEOUT_MS = 20000
 
 async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   const accessToken = await getAccessToken()
@@ -33,9 +34,16 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   new Headers(options?.headers).forEach((value, key) => headers.set(key, value))
   headers.set('Authorization', `Bearer ${accessToken}`)
 
+  // Don't let the UI wait forever if the API hangs.
+  const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+  const signal = options?.signal != null
+    ? AbortSignal.any([options.signal, timeoutSignal])
+    : timeoutSignal
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers
+    headers,
+    signal
   })
 
   if (res.status === 401) {
