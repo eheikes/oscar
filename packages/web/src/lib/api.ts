@@ -9,7 +9,7 @@ import type {
   CreateItemData,
   UpdateItemData
 } from './types.js'
-import { getAccessToken, authStore } from './auth.js'
+import { getAccessToken, authStore, SESSION_EXPIRED_MESSAGE } from './auth.js'
 import { goto } from '$app/navigation'
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
@@ -22,12 +22,13 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
       ...state,
       isAuthenticated: false,
       accessToken: null,
-      user: null
+      user: null,
+      error: SESSION_EXPIRED_MESSAGE
     }))
     if (typeof window !== 'undefined') {
       void goto('/login')
     }
-    throw new Error('Unauthorized - missing access token')
+    throw new Error(SESSION_EXPIRED_MESSAGE)
   }
 
   const headers = new Headers({ 'Content-Type': 'application/json' })
@@ -56,23 +57,24 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
     } catch {
       // ignore if response is not JSON
     }
+    console.error(`API ${res.status}: ${errorMsg}`)
 
     authStore.update(state => ({
       ...state,
       isAuthenticated: false,
       accessToken: null,
       user: null,
-      error: errorMsg
+      error: SESSION_EXPIRED_MESSAGE
     }))
     try {
-      sessionStorage.setItem('auth_error', errorMsg)
+      sessionStorage.setItem('auth_error', SESSION_EXPIRED_MESSAGE)
     } catch {
       // ignore
     }
     if (typeof window !== 'undefined') {
       void goto('/login')
     }
-    throw new Error(errorMsg)
+    throw new Error(SESSION_EXPIRED_MESSAGE)
   }
 
   if (!res.ok) {
