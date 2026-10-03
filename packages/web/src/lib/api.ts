@@ -9,8 +9,7 @@ import type {
   CreateItemData,
   UpdateItemData
 } from './types.js'
-import { getAccessToken, authStore, SESSION_EXPIRED_MESSAGE } from './auth.js'
-import { goto } from '$app/navigation'
+import { getAccessToken, authStore, redirectToLogin, SESSION_EXPIRED_MESSAGE } from './auth.js'
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
 const REQUEST_TIMEOUT_MS = 20000
@@ -25,9 +24,7 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
       user: null,
       error: SESSION_EXPIRED_MESSAGE
     }))
-    if (typeof window !== 'undefined') {
-      void goto('/login')
-    }
+    redirectToLogin()
     throw new Error(SESSION_EXPIRED_MESSAGE)
   }
 
@@ -71,9 +68,7 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
     } catch {
       // ignore
     }
-    if (typeof window !== 'undefined') {
-      void goto('/login')
-    }
+    redirectToLogin()
     throw new Error(SESSION_EXPIRED_MESSAGE)
   }
 

@@ -3,7 +3,7 @@
   import type { Snippet } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { authStore, initializeAuth0, logout } from '$lib/auth.js';
+  import { authStore, consumeReturnTo, initializeAuth0, logout, redirectToLogin } from '$lib/auth.js';
 
   let { children }: { children: Snippet } = $props();
   let isBootstrapped = $state(false);
@@ -15,8 +15,19 @@
 
   $effect(() => {
     if (!isBootstrapped) return;
-    if (!$authStore.isAuthenticated && page.url.pathname !== '/login') {
-      void goto('/login');
+    if (!$authStore.isAuthenticated) {
+      if (page.url.pathname !== '/login') {
+        redirectToLogin();
+      }
+      return;
+    }
+    // Once logged in, go back to the page (and filters) the user was on
+    // before being sent to the login page.
+    const returnTo = consumeReturnTo();
+    if (returnTo !== null) {
+      void goto(returnTo, { replaceState: true });
+    } else if (page.url.pathname === '/login') {
+      void goto('/', { replaceState: true });
     }
   });
 
