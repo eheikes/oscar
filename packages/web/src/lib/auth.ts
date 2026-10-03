@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store'
 import { type Auth0Client, createAuth0Client, GenericError } from '@auth0/auth0-spa-js'
+import { goto } from '$app/navigation'
 
 interface AuthState {
   isLoading: boolean
@@ -23,6 +24,11 @@ export const authStore = writable<AuthState>(initialState)
 // refresh token, rejected access token, etc). The underlying error is logged
 // to the console instead, since it's too cryptic to be useful in the UI.
 export const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please log in again.'
+
+// sessionStorage key for the page (path + query string, e.g. filters) the
+// user was on when they got sent to the login page, so they can be returned
+// there afterward. sessionStorage survives the round trip through Auth0.
+const RETURN_TO_KEY = 'login_return_to'
 
 let auth0Client: Auth0Client | null = null
 
@@ -256,4 +262,37 @@ export async function getAccessToken (): Promise<string | null> {
     console.error('Failed to get access token:', error)
     return null
   }
+}
+
+// Sends the user to the login page, remembering where they were so
+// consumeReturnTo() can bring them back after they log in.
+export function redirectToLogin (): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+  const { pathname, search, hash } = window.location
+  if (pathname !== '/login') {
+    try {
+      sessionStorage.setItem(RETURN_TO_KEY, `${pathname}${search}${hash}`)
+    } catch {
+      // ignore if sessionStorage is unavailable
+    }
+  }
+  void goto('/login')
+}
+
+// Returns (and forgets) the page saved by redirectToLogin(), if any.
+export function consumeReturnTo (): string | null {
+  let returnTo: string | null = null
+  try {
+    returnTo = sessionStorage.getItem(RETURN_TO_KEY)
+    sessionStorage.removeItem(RETURN_TO_KEY)
+  } catch {
+    // ignore
+  }
+  // Only allow same-origin paths.
+  if (returnTo == null || !returnTo.startsWith('/') || returnTo.startsWith('//')) {
+    return null
+  }
+  return returnTo
 }

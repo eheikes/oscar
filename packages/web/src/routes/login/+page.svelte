@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { authStore, initializeAuth0, login } from '$lib/auth.js';
-  import { goto } from '$app/navigation';
 
   let isLoading = $state(false);
   let error = $state($authStore.error ?? '');
@@ -17,11 +16,6 @@
 
     if ($authStore.error) {
       error = $authStore.error;
-    }
-
-    // If already authenticated, redirect to home
-    if ($authStore.isAuthenticated) {
-      await goto('/');
     }
   });
 
