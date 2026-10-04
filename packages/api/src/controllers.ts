@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { addItem, deleteItem, getItems, getNextItem, getRetroItems, updateItem } from './items.js'
+import { addItem, deleteItem, getItem, getItems, getNextItem, getRetroItems, updateItem } from './items.js'
 import { getLabels } from './labels.js'
 import { getTypes } from './types.js'
 import { render } from './webpage.js'
@@ -19,6 +19,11 @@ export const deleteItemController: Controller = async (req, res) => {
 export const updateItemController: Controller = async (req, res) => {
   const result = await updateItem(req.params.itemId, req.body)
   res.status(200).json(result)
+}
+
+export const getItemController: Controller = async (req, res) => {
+  const result = await getItem(req.params.itemId)
+  res.json(result)
 }
 
 export const getItemsController: Controller = async (req, res) => {

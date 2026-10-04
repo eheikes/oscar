@@ -8,6 +8,7 @@ import { getConfig, isDevelopment } from './config.js'
 import {
   addItemController,
   deleteItemController,
+  getItemController,
   getItemsController,
   getLabelsController,
   getNextItemController,
@@ -61,6 +62,7 @@ if (isDevelopment()) {
 }
 app.get('/items/next', getNextItemController)
 app.get('/items/retro', getRetroItemsController)
+app.get('/items/:itemId', getItemController)
 app.delete('/items/:itemId', deleteItemController)
 app.patch('/items/:itemId', updateItemController)
 app.get('/items', getItemsController)
