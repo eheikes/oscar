@@ -100,6 +100,10 @@ export async function getItems (params: GetItemsParams = {}): Promise<Item[]> {
   return await apiFetch<Item[]>(`/items?${qs.toString()}`)
 }
 
+export async function getItem (id: string): Promise<Item> {
+  return await apiFetch<Item>(`/items/${encodeURIComponent(id)}`)
+}
+
 export async function getNextItems (params: GetNextItemsParams): Promise<NextItemResult[]> {
   const qs = new URLSearchParams({ type: params.type })
   if (params.count != null) qs.set('count', String(params.count))
