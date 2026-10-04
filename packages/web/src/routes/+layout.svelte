@@ -1,12 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Snippet } from 'svelte';
-  import { goto } from '$app/navigation';
+  import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
   import { authStore, consumeReturnTo, initializeAuth0, logout, redirectToLogin } from '$lib/auth.js';
+  import QuickAddOverlay from '$lib/QuickAddOverlay.svelte';
+  import Toasts from '$lib/Toasts.svelte';
 
   let { children }: { children: Snippet } = $props();
   let isBootstrapped = $state(false);
+  let navEl: HTMLElement | undefined = $state();
+  let quickAddOpen = $state(false);
+  let quickAddTop = $state(0);
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -38,16 +43,37 @@
     }
   });
 
+  afterNavigate(() => {
+    quickAddOpen = false;
+  });
+
+  function handleAddClick(e: MouseEvent) {
+    // Let modified clicks (new tab, etc.) and the /add page itself behave normally.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (page.url.pathname === '/add') return;
+    e.preventDefault();
+    if (!quickAddOpen) {
+      // Drop down from just under the nav, or from the top of the viewport if the nav is scrolled away.
+      quickAddTop = Math.max(0, navEl?.getBoundingClientRect().bottom ?? 0);
+    }
+    quickAddOpen = !quickAddOpen;
+  }
+
   async function handleLogout() {
     await logout();
   }
 </script>
 
 {#if isBootstrapped && ($authStore.isAuthenticated || page.url.pathname === '/login')}
-  <nav>
+  <nav bind:this={navEl}>
     <div class="nav-links">
       {#each navLinks as link (link.href)}
-        <a href={link.href} aria-current={page.url.pathname === link.href ? 'page' : undefined}>{link.label}</a>
+        <a
+          href={link.href}
+          aria-current={page.url.pathname === link.href ? 'page' : undefined}
+          aria-expanded={link.href === '/add' && page.url.pathname !== '/add' ? quickAddOpen : undefined}
+          onclick={link.href === '/add' ? handleAddClick : undefined}
+        >{link.label}</a>
       {/each}
     </div>
     {#if $authStore.isAuthenticated}
@@ -61,6 +87,11 @@
   <main>
     {@render children()}
   </main>
+
+  {#if quickAddOpen}
+    <QuickAddOverlay top={quickAddTop} onclose={() => { quickAddOpen = false; }} />
+  {/if}
+  <Toasts />
 {:else}
   <main class="loading">Checking session...</main>
 {/if}
@@ -147,7 +178,8 @@
     border-radius: 4px;
   }
 
-  .nav-links a[aria-current='page'] {
+  .nav-links a[aria-current='page'],
+  .nav-links a[aria-expanded='true'] {
     background: var(--nav-active-bg);
     box-shadow: inset 0 -2px 0 var(--nav-link);
   }
