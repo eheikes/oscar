@@ -199,7 +199,7 @@ export const checkAllowedUsers = (req: Request, _res: Response, next: NextFuncti
   const allowedUsers = config.ALLOWED_USERS.split(',').map(u => u.trim()).filter(Boolean)
   const userSub = (req.user?.sub as string | undefined) ?? ''
   const userEmail = (req.user?.email as string | undefined) ?? ''
-  logger.info({ userEmail, userSub }, 'checkAllowedUsers')
+  logger.debug({ userEmail, userSub }, 'checkAllowedUsers')
   const normalizedEmail = userEmail.toLowerCase()
 
   const isAllowed = allowedUsers.some(allowed =>
