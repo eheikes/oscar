@@ -16,9 +16,17 @@ const stream = usePretty
 
 const level = usePretty ? 'debug' : 'info'
 
+// pino-http logs the request and response headers, so keep credentials out of the logs.
+// Set on the base logger so that child loggers (e.g. req.log) inherit it.
+const redactPaths = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'res.headers["set-cookie"]'
+]
+
 export const logger = stream === undefined
-  ? pino({ level })
-  : pino({ level }, stream)
+  ? pino({ level, redact: redactPaths })
+  : pino({ level, redact: redactPaths }, stream)
 
 export const httpLogger = pinoHttp({ logger })
 
