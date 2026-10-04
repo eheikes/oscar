@@ -10,7 +10,6 @@
   import { fade, fly } from 'svelte/transition';
   import { createItem, getTypes } from '$lib/api.js';
   import { showToast } from '$lib/toasts.js';
-  import { localDateTimeToISO, getCurrentDateTimeLocal } from '$lib/utils.js';
 
   let { top = 0, onclose }: { top?: number; onclose: () => void } = $props();
 
@@ -37,7 +36,7 @@
     const data = {
       title: title.trim(),
       type,
-      due: localDateTimeToISO(getCurrentDateTimeLocal()),
+      due: null,
       labels: [],
     };
     // Close right away so the user can keep working (or add another item)
