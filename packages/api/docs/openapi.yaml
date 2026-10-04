@@ -226,6 +226,29 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
   /items/{itemId}:
+    get:
+      tags:
+        - Items
+      summary: Get item
+      description: Returns a single item by ID, including soft-deleted items.
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
     patch:
       tags:
         - Items

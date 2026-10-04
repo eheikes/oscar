@@ -330,6 +330,22 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   return await attachRelations(mapItemFromDatabase(updatedRow!, itemLabels.map(label => label.labelId)))
 }
 
+const getItemParamsSchema = z.object({
+  itemId: z.string().uuid()
+}).strict()
+
+export const getItem = async (itemId: string): Promise<ItemWithRelations> => {
+  logger.info({ itemId }, 'getItem')
+  getItemParamsSchema.parse({ itemId })
+  const db = getDatabaseConnection()
+  const row = await db.select('*').from('items').where({ id: itemId }).first()
+  if (row === undefined) {
+    throw new NotFoundError('Item not found')
+  }
+  const itemLabels = await getItemLabels(itemId)
+  return await attachRelations(mapItemFromDatabase(row, itemLabels.map(label => label.labelId)))
+}
+
 const getItemsRequestSchema = z.object({
   count: z.coerce.number().default(25),
   includeDeleted: z.coerce.boolean().default(false),
