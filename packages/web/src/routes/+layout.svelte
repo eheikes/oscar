@@ -8,6 +8,13 @@
   let { children }: { children: Snippet } = $props();
   let isBootstrapped = $state(false);
 
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/choose', label: 'Choose' },
+    { href: '/retro', label: 'Retrospective' },
+    { href: '/add', label: 'Add Item' },
+  ];
+
   onMount(async () => {
     await initializeAuth0();
     isBootstrapped = true;
@@ -39,10 +46,9 @@
 {#if isBootstrapped && ($authStore.isAuthenticated || page.url.pathname === '/login')}
   <nav>
     <div class="nav-links">
-      <a href="/">Home</a>
-      <a href="/choose">Choose</a>
-      <a href="/retro">Retrospective</a>
-      <a href="/add">Add Item</a>
+      {#each navLinks as link (link.href)}
+        <a href={link.href} aria-current={page.url.pathname === link.href ? 'page' : undefined}>{link.label}</a>
+      {/each}
     </div>
     {#if $authStore.isAuthenticated}
       <div class="nav-user">
@@ -75,6 +81,7 @@
     --nav-bg: #222222;
     --nav-border: #444444;
     --nav-link: #eeeeee;
+    --nav-active-bg: #444444;
     --danger: #cc0000;
   }
 
@@ -93,6 +100,7 @@
       --nav-bg: #0f1215;
       --nav-border: #313944;
       --nav-link: #f2f4f6;
+    --nav-active-bg: #262d35;
       --danger: #ff7f7f;
     }
   }
@@ -132,6 +140,16 @@
 
   nav a:hover {
     text-decoration: underline;
+  }
+
+  .nav-links a {
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+  }
+
+  .nav-links a[aria-current='page'] {
+    background: var(--nav-active-bg);
+    box-shadow: inset 0 -2px 0 var(--nav-link);
   }
 
   .nav-user {
