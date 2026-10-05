@@ -7,7 +7,7 @@ type DeepReadonlyObject<T extends Schemas> = ReturnType<typeof parseEnv<T>>
 
 const fields = {
   APP_URL: z.string(),
-  ALLOWED_USERS: z.string().optional(),
+  ALLOWED_USERS: z.string().trim().min(1),
   AUTH0_DOMAIN: z.string().optional(),
   CORS_ALLOWED_ORIGIN: z.string().default(''), // empty string means CORS is disabled
   DB_HOST: z.string(),

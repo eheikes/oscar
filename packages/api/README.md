@@ -46,7 +46,7 @@ Behavior:
   > **Note:** Do **not** use the Application Client ID. The API Identifier is needed so Auth0 issues signed RS256 JWTs that this API can verify against JWKS.
 - `OPENID_URL`: Auth0 issuer URL (for example, `https://your-tenant.us.auth0.com`).
 - `AUTH0_DOMAIN`: Optional explicit Auth0 domain. If omitted, it is derived from `OPENID_URL`.
-- `ALLOWED_USERS`: Optional comma-separated allowlist of Auth0 user IDs (the token's `sub` claim, e.g. `google-oauth2|1234567890`). You can find a user's ID under **Auth0 Dashboard > User Management > Users**. Email addresses are not accepted, since an unverified account can claim any email. If left blank, the server will allow all authenticated users.
+- `ALLOWED_USERS`: **Required**. Comma-separated allowlist of Auth0 user IDs (the token's `sub` claim, e.g. `google-oauth2|1234567890`). You can find a user's ID under **Auth0 Dashboard > User Management > Users**. Email addresses are not accepted, since an unverified account can claim any email. The server will not start if this is unset or blank, so that it never allows every authenticated user by accident.
 
 ### Subtasks
 

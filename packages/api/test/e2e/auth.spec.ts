@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import request from 'supertest'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
-import { clearConfig } from '../../src/config.js'
+import { clearConfig, getConfig } from '../../src/config.js'
 
 describe('authentication', () => {
   const originalAllowedUsers = process.env.ALLOWED_USERS
@@ -38,6 +38,28 @@ describe('authentication', () => {
       email: 'blocked@example.com',
       sub: 'auth0|blocked-user'
     }, 'test-secret')
+
+    await request(app)
+      .get('/types')
+      .set('mock-token', token)
+      .expect(403)
+      .then(response => {
+        expect(response.body.error).toBe('Unauthorized')
+      })
+  })
+
+  it('should fail to load the config when the allowlist is blank', () => {
+    process.env.ALLOWED_USERS = ' '
+    clearConfig()
+
+    expect(() => getConfig()).toThrow('ALLOWED_USERS')
+  })
+
+  it('should return 403 when the allowlist has no entries', async () => {
+    process.env.ALLOWED_USERS = ' , '
+    clearConfig()
+
+    const token = jwt.sign({ sub: '' }, 'test-secret')
 
     await request(app)
       .get('/types')

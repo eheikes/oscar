@@ -190,12 +190,8 @@ export const checkAllowedUsers = (req: Request, _res: Response, next: NextFuncti
   }
   /* c8 ignore stop */
 
+  // Fail closed: an empty allowlist denies everyone.
   const config = getConfig()
-  if (config.ALLOWED_USERS == null || config.ALLOWED_USERS.trim() === '') {
-    // If no whitelist configured, allow all authenticated users
-    return next()
-  }
-
   const allowedUsers = config.ALLOWED_USERS.split(',').map(u => u.trim()).filter(Boolean)
   // Match on the user ID only. Emails can be claimed by unverified accounts.
   const userSub = (req.user?.sub as string | undefined) ?? ''
