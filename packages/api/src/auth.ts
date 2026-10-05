@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import openidConnect, { auth } from 'express-openid-connect'
 import jwtDecode from 'jsonwebtoken'
 import jwksRsa from 'jwks-rsa'
-import { getConfig, isDevelopment, isTest } from './config.js'
+import { getConfig, isMockAuthEnabled } from './config.js'
 import { AuthorizationError, JWTError } from './error.js'
 import { logger } from './logger.js'
 import { getUserById } from './users.js'
@@ -31,7 +31,7 @@ export const configureAuth = auth(authConfig)
 
 export const checkAuthn = (req: Request, res: Response, next: NextFunction): void => {
   /* c8 ignore start -- not for production use */
-  if ((isDevelopment() || isTest()) && req.cookies[sessionName] === mockSession) {
+  if (isMockAuthEnabled() && req.cookies[sessionName] === mockSession) {
     req.oidc = JSON.parse(typeof req.cookies.oidc === 'string' ? req.cookies.oidc : '{}')
     return next()
   }
@@ -92,7 +92,7 @@ export const validateJWT = async (req: Request, _res: Response, next: NextFuncti
 
   /* c8 ignore start -- not for production use */
   // Check if running in test/dev mode with mock session
-  if ((isDevelopment() || isTest()) && req.cookies[sessionName] === mockSession) {
+  if (isMockAuthEnabled() && req.cookies[sessionName] === mockSession) {
     // Extract user from oidc cookie if available
     if (typeof req.oidc?.user?.sub === 'string' && req.oidc.user.sub.length > 0) {
       req.user = {
@@ -106,7 +106,7 @@ export const validateJWT = async (req: Request, _res: Response, next: NextFuncti
   // Check if running in test/dev mode with mock token header
   const mockTokenHeader = req.headers['mock-token']
   if (
-    (isDevelopment() || isTest()) &&
+    isMockAuthEnabled() &&
     typeof mockTokenHeader === 'string' &&
     mockTokenHeader.trim() !== ''
   ) {
@@ -185,7 +185,7 @@ export const checkAllowedUsers = (req: Request, _res: Response, next: NextFuncti
 
   /* c8 ignore start -- not for production use */
   // Skip check in dev/test if using mock session
-  if ((isDevelopment() || isTest()) && req.cookies[sessionName] === mockSession) {
+  if (isMockAuthEnabled() && req.cookies[sessionName] === mockSession) {
     return next()
   }
   /* c8 ignore stop */

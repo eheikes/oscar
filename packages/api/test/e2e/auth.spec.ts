@@ -48,6 +48,24 @@ describe('authentication', () => {
       })
   })
 
+  it('should reject mock credentials when MOCK_AUTH is disabled', async () => {
+    process.env.MOCK_AUTH = 'false'
+    clearConfig()
+
+    try {
+      await request(app)
+        .get('/types')
+        .set('mock-token', jwt.sign({ sub: 'auth0|e2e-user' }, 'test-secret'))
+        .expect(401)
+      await request(app)
+        .get('/types')
+        .set('Cookie', 'appSession=mock_session_data')
+        .expect(401)
+    } finally {
+      delete process.env.MOCK_AUTH
+    }
+  })
+
   it('should fail to load the config when the allowlist is blank', () => {
     process.env.ALLOWED_USERS = ' '
     clearConfig()

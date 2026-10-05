@@ -12,7 +12,7 @@ This project contains the API server for the OSCAR assistant. It is written for 
     * Set up an API gateway as the trigger.
 1. Download the [AWS RDS certificate bundle for your region](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates) and replace the `rds-ca-bundle.pem` file in this `api` folder.
 1. Rename `.env.example` to `.env` and update it with your configuration, _or_ set those variables in your environment.
-    * Make sure `NODE_ENV` is _not_ set to `development`.
+    * Make sure `NODE_ENV` is _not_ set to `development`, and `MOCK_AUTH` is _not_ set.
 1. Run `npm install && npm run build:release && ARN=YOUR_ARN npm run release`.
     * Replace `YOUR_ARN` with the ARN of your Lambda instance.
 
@@ -73,7 +73,8 @@ Scripts for local development:
 For running automated tests:
 
 * To run all tests: `npm run test`.
-* You can use the `.env` or `.env.(NODE_ENV value)` files to set the environment values. Values in `.env.(NODE_ENV value)` take precedence over `.env`, and variables already set in the environment take precedence over both.
+* You can use the `.env` or `.env.(NODE_ENV value)` files to set the environment values. Values in `.env.(NODE_ENV value)` take precedence over `.env`, and variables already set in the environment take precedence over both. If `NODE_ENV` is not set, only `.env` is loaded.
+* The tests use mock credentials (a `mock-token` header or a mock session cookie) instead of real Auth0 tokens. Set `MOCK_AUTH=true` in `.env.test` to accept them. The server refuses to start with `MOCK_AUTH` enabled unless `NODE_ENV` is `development`, `local`, or `test` and `APP_URL` is a localhost URL.
 * To run end-to-end tests:
     1. Start a local Postgres server. You can run a temporary server with Docker using something like `docker run -v ./test/mocks/postgres:/docker-entrypoint-initdb.d -e POSTGRES_PASSWORD=test -d -p 5432:5432 postgres`.
     1. Update `.env.test` to match the database credentials.
