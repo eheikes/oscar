@@ -19,6 +19,7 @@ const fields = {
   DB_REJECT_UNAUTHORIZED: z.coerce.boolean().default(true),
   DB_CA_FILE: z.coerce.string().optional(),
   ENCRYPTION_KEY: z.string(),
+  MOCK_AUTH: z.boolean().default(false), // accept mock credentials; for local development & tests only
   NODE_ENV: z.string().optional(),
   OPENID_CLIENT_ID: z.string(),
   OPENID_AUDIENCE: z.string(),
@@ -37,12 +38,34 @@ let config: Config | null = null
 export const getConfig = (): Config => {
   if (config == null) {
     // First file wins, and existing environment variables are not overridden.
+    // Without a NODE_ENV, only load .env, so a stray dev/test file can't change the environment.
     loadEnvFile({
-      path: [`.env.${process.env.NODE_ENV ?? 'local'}`, '.env']
+      path: process.env.NODE_ENV === undefined ? ['.env'] : [`.env.${process.env.NODE_ENV}`, '.env']
     })
-    config = parseEnv(process.env, fields)
+    const parsed = parseEnv(process.env, fields)
+    assertSafeMockAuth(parsed)
+    config = parsed
   }
   return config
+}
+
+const devEnvironments = ['development', 'local', 'test']
+const localHostnames = ['localhost', '127.0.0.1', '[::1]']
+
+// Mock auth bypasses all authentication, so refuse to start if it's enabled outside a local dev/test setup.
+const assertSafeMockAuth = (config: Config): void => {
+  if (!config.MOCK_AUTH) { return }
+  if (!devEnvironments.includes(config.NODE_ENV ?? '')) {
+    throw new Error(`MOCK_AUTH cannot be enabled when NODE_ENV is "${config.NODE_ENV ?? ''}"`)
+  }
+  const hostname = URL.canParse(config.APP_URL) ? new URL(config.APP_URL).hostname : ''
+  if (!localHostnames.includes(hostname)) {
+    throw new Error('MOCK_AUTH can only be enabled when APP_URL is a localhost URL')
+  }
+}
+
+export const isMockAuthEnabled = (): boolean => {
+  return getConfig().MOCK_AUTH
 }
 
 export const isLocal = (): boolean => {
