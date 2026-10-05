@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Item, ItemType, Label } from './types.js';
   import { updateItem } from './api.js';
-  import { localDateTimeToISO } from './utils.js';
+  import { isSafeUri, localDateTimeToISO } from './utils.js';
   import MarkdownText from './MarkdownText.svelte';
 
   let {
@@ -150,7 +150,7 @@
     <div class="item-content">
       <div class="item-title-row">
         <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
-        {#if item.uri}
+        {#if isSafeUri(item.uri)}
           <a class="item-link" href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
         {/if}
       </div>

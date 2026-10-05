@@ -1,3 +1,13 @@
+const allowedUriProtocols = ['http:', 'https:', 'file:', 'data:']
+
+/**
+ * Check whether a URI is safe to use as a link (e.g. not "javascript:").
+ */
+export function isSafeUri (uri: string | null | undefined): uri is string {
+  if (uri === null || uri === undefined || !URL.canParse(uri)) return false
+  return allowedUriProtocols.includes(new URL(uri).protocol)
+}
+
 /**
  * Get the current date and time in datetime-local format (YYYY-MM-DDTHH:mm).
  */

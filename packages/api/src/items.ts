@@ -149,6 +149,14 @@ const attachRelations = async (item: ItemWithLabels): Promise<ItemWithRelations>
   }
 }
 
+// Only allow URL schemes that are safe to use as links (e.g. not "javascript:").
+const allowedUriProtocols = ['http:', 'https:', 'file:', 'data:']
+const uriSchema = z.string().url().refine(
+  // (The refinement still runs if .url() fails, so check that it parses.)
+  uri => URL.canParse(uri) && allowedUriProtocols.includes(new URL(uri).protocol),
+  { message: `URL scheme must be one of: ${allowedUriProtocols.join(', ')}` }
+)
+
 const addItemRequestSchema = z.object({
   replace: z.string().optional()
 }).strict()
@@ -157,7 +165,7 @@ const addItemBodySchema = z.object({
   author: z.string().nullish(),
   due: z.string().datetime({ offset: true }).nullish(),
   expectedRank: z.number().nullish(),
-  imageUri: z.string().nullish(),
+  imageUri: uriSchema.nullish(),
   labels: z.array(z.string()).nullish(),
   language: z.string().nullish(),
   length: z.number().nullish(),
@@ -167,7 +175,7 @@ const addItemBodySchema = z.object({
   summary: z.string().nullish(),
   title: z.string(),
   type: z.string(),
-  uri: z.string().nullish()
+  uri: uriSchema.nullish()
 }).strict()
 
 export const addItem = async (params: ParsedQs, itemData: unknown): Promise<ItemWithRelations> => {
@@ -262,7 +270,7 @@ const updateItemBodySchema = z.object({
   deletedAt: z.string().datetime({ offset: true }).nullable().optional(),
   due: z.string().datetime({ offset: true }).nullable().optional(),
   expectedRank: z.number().nullable().optional(),
-  imageUri: z.string().nullable().optional(),
+  imageUri: uriSchema.nullable().optional(),
   labels: z.array(z.string()).optional(),
   language: z.string().nullable().optional(),
   length: z.number().nullable().optional(),
@@ -272,7 +280,7 @@ const updateItemBodySchema = z.object({
   summary: z.string().nullable().optional(),
   title: z.string().optional(),
   type: z.string().optional(),
-  uri: z.string().nullable().optional()
+  uri: uriSchema.nullable().optional()
 }).strict()
 
 export const updateItem = async (itemId: string, itemData: unknown): Promise<ItemWithRelations> => {

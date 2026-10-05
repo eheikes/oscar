@@ -11,6 +11,32 @@ describe('POST /items', () => {
     await db('items').delete()
   })
 
+  it.each([
+    'http://example.com',
+    'https://example.com',
+    'file:///home/user/notes.txt',
+    'data:image/png;base64,iVBORw0KGgo='
+  ])('should accept a uri and imageUri of %s', async (uri) => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'Linked Item', type: 'task', uri, imageUri: uri })
+      .expect(201)
+  })
+
+  it.each([
+    'javascript:alert(document.domain)',
+    'blob:https://example.com/550e8400-e29b-41d4-a716-446655440000',
+    'vbscript:msgbox(1)',
+    'not a url'
+  ])('should return 400 for a uri or imageUri of %s', async (uri) => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'Linked Item', type: 'task', uri })
+      .expect(400)
+    await authedRequest(app).post('/items')
+      .send({ title: 'Linked Item', type: 'task', imageUri: uri })
+      .expect(400)
+    expect(await db('items').count({ count: '*' }).first()).toEqual({ count: '0' })
+  })
+
   it('should not reveal database error details', async () => {
     await authedRequest(app).post('/items')
       .send({ title: 'Secret Title', type: 'nonexistent' })

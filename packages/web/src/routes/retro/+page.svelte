@@ -3,6 +3,7 @@
   import type { PageData } from './$types';
   import MarkdownText from '$lib/MarkdownText.svelte';
   import type { Item } from '$lib/types.js';
+  import { isSafeUri } from '$lib/utils.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -131,7 +132,7 @@
           <li>
             <div class="item-title-row">
               <span class="item-title"><MarkdownText value={item.title} mode="inline" /></span>
-              {#if item.uri}
+              {#if isSafeUri(item.uri)}
                 <a class="item-link" href={item.uri} target="_blank" rel="noopener noreferrer">[link]</a>
               {/if}
             </div>
