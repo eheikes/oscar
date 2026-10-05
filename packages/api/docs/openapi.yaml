@@ -614,3 +614,6 @@ components:
       properties:
         error:
           type: string
+        requestId:
+          type: string
+          description: Included on server errors (500), for finding the request in the server logs.

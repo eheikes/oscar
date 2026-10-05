@@ -48,6 +48,16 @@ describe('authentication', () => {
       })
   })
 
+  it('should not reveal why a token is invalid', async () => {
+    await request(app)
+      .get('/types')
+      .set('Authorization', 'Bearer not-a-jwt')
+      .expect(401)
+      .then(response => {
+        expect(response.body.error).toBe('Invalid token')
+      })
+  })
+
   it('should reject mock credentials when MOCK_AUTH is disabled', async () => {
     process.env.MOCK_AUTH = 'false'
     clearConfig()

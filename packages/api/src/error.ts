@@ -49,9 +49,10 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
   }
 
   // All other errors can be a 500.
+  // Don't send the error details to the client (e.g. DB errors include the SQL query & values).
   req.log.error({ err }, 'Unhandled error')
   res.status(500)
-  res.send({ error: err.message })
+  res.send({ error: 'Internal server error', requestId: req.id })
 }
 
 export const throw404 = (req: Request): never => {
