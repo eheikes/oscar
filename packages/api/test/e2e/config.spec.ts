@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { clearConfig, getConfig } from '../../src/config.js'
 
@@ -36,7 +39,16 @@ describe('config', () => {
       delete process.env.NODE_ENV
       clearConfig()
 
-      expect(() => getConfig()).toThrow('MOCK_AUTH cannot be enabled')
+      // Run from an empty directory, so a .env file can't set NODE_ENV.
+      const originalCwd = process.cwd()
+      const emptyDir = mkdtempSync(join(tmpdir(), 'oscar-config-'))
+      try {
+        process.chdir(emptyDir)
+        expect(() => getConfig()).toThrow('MOCK_AUTH cannot be enabled when NODE_ENV is ""')
+      } finally {
+        process.chdir(originalCwd)
+        rmSync(emptyDir, { recursive: true })
+      }
     })
 
     it('should not be allowed with a non-localhost APP_URL', () => {
