@@ -197,18 +197,12 @@ export const checkAllowedUsers = (req: Request, _res: Response, next: NextFuncti
   }
 
   const allowedUsers = config.ALLOWED_USERS.split(',').map(u => u.trim()).filter(Boolean)
+  // Match on the user ID only. Emails can be claimed by unverified accounts.
   const userSub = (req.user?.sub as string | undefined) ?? ''
-  const userEmail = (req.user?.email as string | undefined) ?? ''
-  logger.debug({ userEmail, userSub }, 'checkAllowedUsers')
-  const normalizedEmail = userEmail.toLowerCase()
+  logger.debug({ userSub }, 'checkAllowedUsers')
 
-  const isAllowed = allowedUsers.some(allowed =>
-    userSub === allowed || normalizedEmail === allowed.toLowerCase()
-  )
-
-  if (!isAllowed) {
-    const userIdentifier = userEmail !== '' ? userEmail : userSub
-    throw new AuthorizationError(`User ${userIdentifier} is not in allowed users list`)
+  if (!allowedUsers.includes(userSub)) {
+    throw new AuthorizationError(`User ${userSub} is not in allowed users list`)
   }
 
   next()

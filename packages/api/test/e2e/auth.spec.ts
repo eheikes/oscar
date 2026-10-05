@@ -48,13 +48,31 @@ describe('authentication', () => {
       })
   })
 
-  it('should allow an allowlisted user with a valid token', async () => {
+  it('should return 403 when only the email matches the allowlist', async () => {
     process.env.ALLOWED_USERS = 'allowed@example.com,auth0|allowed-user'
     clearConfig()
 
     const token = jwt.sign({
       email: 'allowed@example.com',
       sub: 'auth0|other-user'
+    }, 'test-secret')
+
+    await request(app)
+      .get('/types')
+      .set('mock-token', token)
+      .expect(403)
+      .then(response => {
+        expect(response.body.error).toBe('Unauthorized')
+      })
+  })
+
+  it('should allow an allowlisted user with a valid token', async () => {
+    process.env.ALLOWED_USERS = 'auth0|other-user, auth0|allowed-user'
+    clearConfig()
+
+    const token = jwt.sign({
+      email: 'blocked@example.com',
+      sub: 'auth0|allowed-user'
     }, 'test-secret')
 
     await request(app)
