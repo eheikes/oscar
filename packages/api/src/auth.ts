@@ -161,14 +161,12 @@ export const validateJWT = async (req: Request, _res: Response, next: NextFuncti
     req.user = payload as Record<string, unknown>
     next()
   } catch (err) {
-    if (err instanceof Error) {
-      if (err.name === 'TokenExpiredError') {
-        throw new JWTError('Token has expired')
-      } else if (err.name === 'JsonWebTokenError' || err.name === 'NotBeforeError') {
-        throw new JWTError(`Invalid token: ${err.message}`)
-      }
+    if (err instanceof Error && err.name === 'TokenExpiredError') {
+      throw new JWTError('Token has expired')
     }
-    throw new JWTError(`Invalid token: ${String(err)}`)
+    // Log the reason, but don't reveal the verification details (e.g. expected audience/issuer) to the client.
+    req.log.info({ reason: err instanceof Error ? err.message : String(err) }, 'Invalid token')
+    throw new JWTError('Invalid token')
   }
 }
 

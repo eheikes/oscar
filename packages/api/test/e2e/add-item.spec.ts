@@ -11,6 +11,16 @@ describe('POST /items', () => {
     await db('items').delete()
   })
 
+  it('should not reveal database error details', async () => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'Secret Title', type: 'nonexistent' })
+      .expect(500)
+      .then(response => {
+        expect(response.body).toEqual({ error: 'Internal server error', requestId: expect.any(String) })
+        expect(JSON.stringify(response.body)).not.toContain('Secret Title')
+      })
+  })
+
   it('should add the item to the database', async () => {
     await authedRequest(app).post('/items')
       .send({

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Logger } from 'pino'
 import pino from 'pino'
 import { pinoHttp } from 'pino-http'
@@ -28,7 +29,8 @@ export const logger = stream === undefined
   ? pino({ level, redact: redactPaths })
   : pino({ level, redact: redactPaths }, stream)
 
-export const httpLogger = pinoHttp({ logger })
+// Use unique IDs (instead of a per-process counter) so a request ID can be found in the logs.
+export const httpLogger = pinoHttp({ logger, genReqId: () => randomUUID() })
 
 /* eslint-disable @typescript-eslint/no-namespace -- extend Express.Request */
 declare global {
