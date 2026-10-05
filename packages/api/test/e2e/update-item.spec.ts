@@ -75,6 +75,18 @@ describe('PATCH /items/:itemId', () => {
       })
   })
 
+  it('should return 400 for a uri or imageUri with an unsafe scheme', async () => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ uri: 'javascript:alert(document.domain)' })
+      .expect(400)
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ imageUri: 'javascript:alert(document.domain)' })
+      .expect(400)
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.uri).toBe('http://example.com')
+    expect(item?.image_uri).toBe(null)
+  })
+
   it('should accept null for nullable fields', async () => {
     await db('items').update({ author: 'Some Author', language: 'en' }).where({ id: testItem.id })
     await authedRequest(app).patch(`/items/${testItem.id}`)

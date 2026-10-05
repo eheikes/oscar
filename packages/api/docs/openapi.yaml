@@ -416,7 +416,9 @@ components:
           nullable: true
         imageUri:
           type: string
+          format: uri
           nullable: true
+          description: URL with an http, https, file, or data scheme.
         labels:
           type: array
           items:
@@ -449,7 +451,9 @@ components:
           nullable: true
         uri:
           type: string
+          format: uri
           nullable: true
+          description: URL with an http, https, file, or data scheme.
         createdAt:
           type: string
           format: date-time
@@ -496,7 +500,9 @@ components:
           nullable: true
         imageUri:
           type: string
+          format: uri
           nullable: true
+          description: URL with an http, https, file, or data scheme.
         labels:
           type: array
           items:
@@ -522,7 +528,9 @@ components:
           nullable: true
         uri:
           type: string
+          format: uri
           nullable: true
+          description: URL with an http, https, file, or data scheme.
 
     UpdateItemRequest:
       type: object
@@ -548,7 +556,9 @@ components:
           nullable: true
         imageUri:
           type: string
+          format: uri
           nullable: true
+          description: URL with an http, https, file, or data scheme.
         labels:
           type: array
           items:
@@ -574,7 +584,9 @@ components:
           nullable: true
         uri:
           type: string
+          format: uri
           nullable: true
+          description: URL with an http, https, file, or data scheme.
 
     NextItemResult:
       type: object
