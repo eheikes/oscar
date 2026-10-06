@@ -63,6 +63,9 @@ const getJwksClient = (): jwksRsa.JwksClient => {
     jwksClient = jwksRsa({
       cache: true,
       cacheMaxAge: 24 * 60 * 60 * 1000, // 24 hours
+      // Tokens with an unknown key ID cause a JWKS fetch, so limit those (cached keys aren't limited).
+      rateLimit: true,
+      jwksRequestsPerMinute: 10,
       jwksUri: `https://${auth0Domain}/.well-known/jwks.json`
     })
   }
