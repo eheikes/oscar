@@ -110,6 +110,19 @@ describe('PATCH /items/:itemId', () => {
     expect(labels.map(l => l.label_id)).toEqual(['busywork', 'urgent'])
   })
 
+  it.each([
+    ['a title over 256 characters', { title: 'x'.repeat(257) }],
+    ['a rank that rounds to 100', { rank: 99.96 }],
+    ['a rating of 1000', { rating: 1000 }],
+    ['a null character in the summary', { summary: 'a\u0000b' }]
+  ])('should return 400 for %s', async (_description, fields) => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send(fields)
+      .expect(400)
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.title).toBe('Test Item')
+  })
+
   it('should return 400 for an unknown type', async () => {
     await authedRequest(app).patch(`/items/${testItem.id}`)
       .send({ type: 'nonexistent' })

@@ -24,6 +24,11 @@ describe('GET /items/:typeId', () => {
       })
   })
 
+  it.each(['type=a%00b', 'type=task&label=a%00b'])('should return 400 for %s', async (query) => {
+    await authedRequest(app).get(`/items/next?${query}`)
+      .expect(400)
+  })
+
   it('should return 400 when given an unknown query param', async () => {
     await authedRequest(app).get('/items/next?type=task&unknownParam=1')
       .expect(400)

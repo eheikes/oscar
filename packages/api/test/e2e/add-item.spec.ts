@@ -37,15 +37,46 @@ describe('POST /items', () => {
     expect(await db('items').count({ count: '*' }).first()).toEqual({ count: '0' })
   })
 
-  it('should not reveal database error details', async () => {
-    const title = 'Secret Title '.repeat(30) // longer than the title column allows
+  it.each([
+    ['a title over 256 characters', { title: 'x'.repeat(257) }],
+    ['an author over 256 characters', { author: 'x'.repeat(257) }],
+    ['a language over 16 characters', { language: 'x'.repeat(17) }],
+    ['a uri over 2048 characters', { uri: 'https://example.com/' + 'x'.repeat(2030) }],
+    ['an imageUri over 2048 characters', { imageUri: 'https://example.com/' + 'x'.repeat(2030) }],
+    ['a rating of 1000', { rating: 1000 }],
+    ['a rating that rounds to 1000', { rating: 999.996 }],
+    ['a rank of 100', { rank: 100 }],
+    ['a rank that rounds to 100', { rank: 99.96 }],
+    ['a rank of -100', { rank: -100 }],
+    ['an expectedRank of 100', { expectedRank: 100 }],
+    ['a null character in the title', { title: 'a\u0000b' }],
+    ['a null character in the summary', { summary: 'a\u0000b' }],
+    ['a null character in the uri', { uri: 'https://example.com/a\u0000b' }],
+    ['a null character in a label', { labels: ['a\u0000b'] }],
+    ['a null character in the type', { type: 'a\u0000b' }]
+  ])('should return 400 for %s', async (_description, fields) => {
     await authedRequest(app).post('/items')
-      .send({ title, type: 'task' })
-      .expect(500)
-      .then(response => {
-        expect(response.body).toEqual({ error: 'Internal server error', requestId: expect.any(String) })
-        expect(JSON.stringify(response.body)).not.toContain('Secret Title')
+      .send({ title: 'New Item', type: 'task', ...fields })
+      .expect(400)
+    expect(await db('items').count({ count: '*' }).first()).toEqual({ count: '0' })
+  })
+
+  it('should accept values at the database limits', async () => {
+    await authedRequest(app).post('/items')
+      .send({
+        title: 'x'.repeat(256),
+        author: 'x'.repeat(256),
+        language: 'x'.repeat(16),
+        uri: 'https://example.com/' + 'x'.repeat(2028),
+        rating: -999.99,
+        rank: 99.9,
+        expectedRank: -99.9,
+        type: 'task'
       })
+      .expect(201)
+    const item = await db('items').first()
+    expect(item?.rating).toBe('-999.99')
+    expect(item?.rank).toBe('99.9')
   })
 
   it('should return 400 for an unknown type', async () => {
