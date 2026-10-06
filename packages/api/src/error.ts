@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
-import { fromZodError } from 'zod-validation-error'
+import { fromZodError } from 'zod-validation-error/v3'
 
 export class AuthorizationError extends Error {}
 

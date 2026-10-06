@@ -1,9 +1,6 @@
 import { config as loadEnvFile } from 'dotenv'
-import { parseEnv, Schemas } from 'znv'
+import { DeepReadonlyObject, parseEnv, ParsedSchema } from 'znv'
 import { z } from 'zod'
-
-// znv doesn't export DeepReadonlyObject, so infer it ourselves.
-type DeepReadonlyObject<T extends Schemas> = ReturnType<typeof parseEnv<T>>
 
 const fields = {
   APP_URL: z.string(),
@@ -30,7 +27,7 @@ const fields = {
   RATE_LIMITING_IPV6_SUBNET: z.coerce.number().default(56),
   WORK_CHUNK_SIZE: z.coerce.number().default(30)
 }
-export type Config = DeepReadonlyObject<typeof fields>
+export type Config = DeepReadonlyObject<ParsedSchema<typeof fields>>
 
 let config: Config | null = null
 
