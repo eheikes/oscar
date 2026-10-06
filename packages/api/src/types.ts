@@ -1,5 +1,6 @@
 import { type ParsedQs } from 'qs'
 import { getDatabaseConnection } from './database.js'
+import { ClientError } from './error.js'
 
 export interface DatabaseItemType {
   id: string
@@ -15,6 +16,14 @@ declare module 'knex/types/tables.js' {
 export interface ItemType {
   id: string
   readable: string
+}
+
+export const assertTypeExists = async (typeId: string): Promise<void> => {
+  const db = getDatabaseConnection()
+  const row = await db.select('id').from('types').where({ id: typeId }).first()
+  if (row === undefined) {
+    throw new ClientError(`"${typeId}" is not a valid type`)
+  }
 }
 
 export const getTypes = async (_params: ParsedQs): Promise<ItemType[]> => {

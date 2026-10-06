@@ -149,6 +149,11 @@ describe('GET /items/retro', () => {
       })
   })
 
+  it.each(['label=a%00b', 'type=a%00b'])('should return 400 for %s', async (query) => {
+    await authedRequest(app).get(`/items/retro?${query}`)
+      .expect(400)
+  })
+
   it('should return 400 when given an unknown query param', async () => {
     await authedRequest(app).get('/items/retro?unknownParam=1')
       .expect(400)

@@ -1,4 +1,5 @@
 import { getDatabaseConnection } from './database.js'
+import { ClientError } from './error.js'
 
 export interface DatabaseLabel {
   id: string
@@ -27,9 +28,20 @@ export interface Label {
   readable: string
 }
 
+export const assertLabelsExist = async (labelIds: string[]): Promise<void> => {
+  if (labelIds.length === 0) { return }
+  const db = getDatabaseConnection()
+  const rows = await db.select('id').from('labels').whereIn('id', labelIds)
+  const existing = new Set(rows.map(row => row.id))
+  const invalid = labelIds.filter(labelId => !existing.has(labelId))
+  if (invalid.length > 0) {
+    throw new ClientError(`Invalid labels: ${invalid.map(labelId => `"${labelId}"`).join(', ')}`)
+  }
+}
+
 export const addItemLabels = async (itemId: string, labelIds: string[]): Promise<void> => {
   const db = getDatabaseConnection()
-  for (const labelId of labelIds) {
+  for (const labelId of new Set(labelIds)) { // ignore duplicates
     await db('item_labels').insert({ item_id: itemId, label_id: labelId })
   }
 }

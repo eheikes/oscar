@@ -4,8 +4,9 @@ import { z } from 'zod'
 import { getConfig } from './config.js'
 import { getDatabaseConnection, raw } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
-import { addItemLabels, getItemLabels } from './labels.js'
+import { addItemLabels, assertLabelsExist, getItemLabels } from './labels.js'
 import { logger } from './logger.js'
+import { assertTypeExists } from './types.js'
 
 const config = getConfig()
 
@@ -149,32 +150,52 @@ const attachRelations = async (item: ItemWithLabels): Promise<ItemWithRelations>
   }
 }
 
+// Keep values within what the database accepts, so bad input is a 400 rather than a DB error (500).
+// Postgres doesn't allow null characters in strings.
+const hasNoNullChars = (value: string): boolean => !value.includes('\u0000')
+const nullCharsMessage = 'Must not contain null characters'
+const dbStringSchema = (maxLength?: number): z.ZodEffects<z.ZodString> => {
+  const schema = maxLength === undefined ? z.string() : z.string().max(maxLength)
+  return schema.refine(hasNoNullChars, nullCharsMessage)
+}
+// For numeric(precision, scale) columns. Values are rounded to the scale first,
+// so also reject values that would round up past the limit.
+const dbNumericSchema = (precision: number, scale: number): z.ZodEffects<z.ZodNumber> => {
+  const max = 10 ** (precision - scale) - 10 ** -scale
+  const limit = 10 ** (precision - scale) - 0.5 * 10 ** -scale
+  return z.number().refine(
+    value => Math.abs(value) < limit,
+    { message: `Must be between -${max.toFixed(scale)} and ${max.toFixed(scale)}` }
+  )
+}
+const queryStringsSchema = z.union([z.array(dbStringSchema()), dbStringSchema()])
+
 // Only allow URL schemes that are safe to use as links (e.g. not "javascript:").
 const allowedUriProtocols = ['http:', 'https:', 'file:', 'data:']
-const uriSchema = z.string().url().refine(
+const uriSchema = z.string().max(2048).url().refine(
   // (The refinement still runs if .url() fails, so check that it parses.)
   uri => URL.canParse(uri) && allowedUriProtocols.includes(new URL(uri).protocol),
   { message: `URL scheme must be one of: ${allowedUriProtocols.join(', ')}` }
-)
+).refine(hasNoNullChars, nullCharsMessage)
 
 const addItemRequestSchema = z.object({
   replace: z.string().optional()
 }).strict()
 
 const addItemBodySchema = z.object({
-  author: z.string().nullish(),
+  author: dbStringSchema(256).nullish(),
   due: z.string().datetime({ offset: true }).nullish(),
-  expectedRank: z.number().nullish(),
+  expectedRank: dbNumericSchema(3, 1).nullish(),
   imageUri: uriSchema.nullish(),
-  labels: z.array(z.string()).nullish(),
-  language: z.string().nullish(),
+  labels: z.array(dbStringSchema()).nullish(),
+  language: dbStringSchema(16).nullish(),
   length: z.number().nullish(),
   parentId: z.string().uuid().nullable().optional(),
-  rank: z.number().nullish(),
-  rating: z.number().nullish(),
-  summary: z.string().nullish(),
-  title: z.string(),
-  type: z.string(),
+  rank: dbNumericSchema(3, 1).nullish(),
+  rating: dbNumericSchema(5, 2).nullish(),
+  summary: dbStringSchema().nullish(),
+  title: dbStringSchema(256),
+  type: dbStringSchema(),
   uri: uriSchema.nullish()
 }).strict()
 
@@ -182,6 +203,8 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
   logger.info({ params, itemData }, 'addItem')
   const parsedParams = addItemRequestSchema.parse(params)
   const parsedItemData = addItemBodySchema.parse(itemData)
+  await assertTypeExists(parsedItemData.type)
+  await assertLabelsExist(parsedItemData.labels ?? [])
   const db = getDatabaseConnection()
   if (parsedParams.replace === 'true') {
     // Delete rather than mark deleted_at so as to not interfere with getNextItem()
@@ -228,7 +251,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     expectedRank: parsedItemData.expectedRank ?? null,
     id,
     imageUri: parsedItemData.imageUri ?? null,
-    labels: parsedItemData.labels ?? [],
+    labels: [...new Set(parsedItemData.labels ?? [])],
     language: parsedItemData.language ?? null,
     length: parsedItemData.length ?? null,
     parentId: parsedItemData.parentId ?? null,
@@ -266,20 +289,20 @@ const updateItemParamsSchema = z.object({
 }).strict()
 
 const updateItemBodySchema = z.object({
-  author: z.string().nullable().optional(),
+  author: dbStringSchema(256).nullable().optional(),
   deletedAt: z.string().datetime({ offset: true }).nullable().optional(),
   due: z.string().datetime({ offset: true }).nullable().optional(),
-  expectedRank: z.number().nullable().optional(),
+  expectedRank: dbNumericSchema(3, 1).nullable().optional(),
   imageUri: uriSchema.nullable().optional(),
-  labels: z.array(z.string()).optional(),
-  language: z.string().nullable().optional(),
+  labels: z.array(dbStringSchema()).optional(),
+  language: dbStringSchema(16).nullable().optional(),
   length: z.number().nullable().optional(),
   parentId: z.string().uuid().nullable().optional(),
-  rank: z.number().nullable().optional(),
-  rating: z.number().nullable().optional(),
-  summary: z.string().nullable().optional(),
-  title: z.string().optional(),
-  type: z.string().optional(),
+  rank: dbNumericSchema(3, 1).nullable().optional(),
+  rating: dbNumericSchema(5, 2).nullable().optional(),
+  summary: dbStringSchema().nullable().optional(),
+  title: dbStringSchema(256).optional(),
+  type: dbStringSchema().optional(),
   uri: uriSchema.nullable().optional()
 }).strict()
 
@@ -292,6 +315,10 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (existing === undefined) {
     throw new NotFoundError('Item not found')
   }
+  if (parsedItemData.type !== undefined) {
+    await assertTypeExists(parsedItemData.type)
+  }
+  await assertLabelsExist(parsedItemData.labels ?? [])
   if (parsedItemData.parentId !== undefined) {
     if (parsedItemData.parentId === itemId) {
       throw new ClientError('An item cannot be its own parent')
@@ -355,18 +382,18 @@ export const getItem = async (itemId: string): Promise<ItemWithRelations> => {
 }
 
 const getItemsRequestSchema = z.object({
-  count: z.coerce.number().default(25),
+  count: z.coerce.number().int().nonnegative().default(25),
   includeDeleted: z.coerce.boolean().default(false),
-  label: z.union([z.array(z.string()), z.string()]).optional(),
+  label: queryStringsSchema.optional(),
   maximumRank: z.coerce.number().optional(),
   minimumRank: z.coerce.number().optional(),
-  offset: z.coerce.number().optional(),
+  offset: z.coerce.number().int().nonnegative().optional(),
   orderBy: z.string().default('due'),
   orderDir: z.enum(['asc', 'desc']).default('asc'),
   random: z.coerce.boolean().default(false),
-  search: z.string().optional(),
+  search: dbStringSchema().optional(),
   since: z.string().datetime({ offset: true }).optional(),
-  type: z.union([z.array(z.string()), z.string()]).optional()
+  type: queryStringsSchema.optional()
 }).strict()
 
 export const getItems = async (params: ParsedQs): Promise<ItemWithRelations[]> => {
@@ -432,9 +459,9 @@ export const getItems = async (params: ParsedQs): Promise<ItemWithRelations[]> =
 }
 
 const getRetroItemsRequestSchema = z.object({
-  label: z.union([z.array(z.string()), z.string()]).optional(),
+  label: queryStringsSchema.optional(),
   since: z.string().datetime({ offset: true }).optional(),
-  type: z.union([z.array(z.string()), z.string()]).optional()
+  type: queryStringsSchema.optional()
 }).strict()
 
 export const getRetroItems = async (params: ParsedQs): Promise<ItemWithRelations[]> => {
@@ -479,8 +506,8 @@ export const getRetroItems = async (params: ParsedQs): Promise<ItemWithRelations
 
 const getNextItemRequestSchema = z.object({
   count: z.coerce.number().default(1),
-  label: z.union([z.array(z.string()), z.string()]).optional(),
-  type: z.string()
+  label: queryStringsSchema.optional(),
+  type: dbStringSchema()
 }).strict()
 
 interface ItemWithLabelsAndWeight extends ItemWithRelations {

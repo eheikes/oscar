@@ -110,6 +110,53 @@ describe('PATCH /items/:itemId', () => {
     expect(labels.map(l => l.label_id)).toEqual(['busywork', 'urgent'])
   })
 
+  it.each([
+    ['a title over 256 characters', { title: 'x'.repeat(257) }],
+    ['a rank that rounds to 100', { rank: 99.96 }],
+    ['a rating of 1000', { rating: 1000 }],
+    ['a null character in the summary', { summary: 'a\u0000b' }]
+  ])('should return 400 for %s', async (_description, fields) => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send(fields)
+      .expect(400)
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.title).toBe('Test Item')
+  })
+
+  it('should return 400 for an unknown type', async () => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ type: 'nonexistent' })
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toBe('"nonexistent" is not a valid type')
+      })
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.type_id).toBe('task')
+  })
+
+  it('should return 400 for unknown labels without changing the item', async () => {
+    await db('item_labels').insert({ item_id: testItem.id, label_id: 'work' })
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ title: 'Updated Title', labels: ['urgent', 'bogus'] })
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toBe('Invalid labels: "bogus"')
+      })
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.title).toBe('Test Item')
+    const labels = await db('item_labels').where({ item_id: testItem.id })
+    expect(labels.map(l => l.label_id)).toEqual(['work'])
+  })
+
+  it('should ignore duplicate labels', async () => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ labels: ['urgent', 'urgent'] })
+      .expect(200)
+      .then(response => {
+        expect(response.body.labels).toEqual(['urgent'])
+      })
+  })
+
   it('should not change labels when labels is not provided', async () => {
     await db('item_labels').insert({ item_id: testItem.id, label_id: 'personal' })
     await authedRequest(app).patch(`/items/${testItem.id}`)

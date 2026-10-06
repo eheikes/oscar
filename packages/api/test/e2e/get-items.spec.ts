@@ -136,6 +136,18 @@ describe('GET /items', () => {
       })
   })
 
+  it.each([
+    'count=-1',
+    'count=1.5',
+    'offset=-1',
+    'search=a%00b',
+    'label=a%00b',
+    'type=a%00b'
+  ])('should return 400 for %s', async (query) => {
+    await authedRequest(app).get(`/items?${query}`)
+      .expect(400)
+  })
+
   it('should return 400 when given an unknown query param', async () => {
     await authedRequest(app).get('/items?unknownParam=1')
       .expect(400)
