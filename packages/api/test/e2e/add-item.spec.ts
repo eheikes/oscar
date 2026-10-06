@@ -38,13 +38,56 @@ describe('POST /items', () => {
   })
 
   it('should not reveal database error details', async () => {
+    const title = 'Secret Title '.repeat(30) // longer than the title column allows
     await authedRequest(app).post('/items')
-      .send({ title: 'Secret Title', type: 'nonexistent' })
+      .send({ title, type: 'task' })
       .expect(500)
       .then(response => {
         expect(response.body).toEqual({ error: 'Internal server error', requestId: expect.any(String) })
         expect(JSON.stringify(response.body)).not.toContain('Secret Title')
       })
+  })
+
+  it('should return 400 for an unknown type', async () => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'New Item', type: 'nonexistent' })
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toBe('"nonexistent" is not a valid type')
+      })
+    expect(await db('items').count({ count: '*' }).first()).toEqual({ count: '0' })
+  })
+
+  it('should return 400 for unknown labels', async () => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'New Item', type: 'task', labels: ['work', 'bogus1', 'bogus2'] })
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toBe('Invalid labels: "bogus1", "bogus2"')
+      })
+    expect(await db('items').count({ count: '*' }).first()).toEqual({ count: '0' })
+  })
+
+  it('should not delete the replaced item when the request is invalid', async () => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'Existing Item', type: 'task' })
+      .expect(201)
+    await authedRequest(app).post('/items?replace=true')
+      .send({ title: 'Existing Item', type: 'task', labels: ['bogus'] })
+      .expect(400)
+    expect(await db('items').where({ title: 'Existing Item' })).toHaveLength(1)
+  })
+
+  it('should ignore duplicate labels', async () => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'New Item', type: 'task', labels: ['work', 'work'] })
+      .expect(201)
+      .then(response => {
+        expect(response.body.labels).toEqual(['work'])
+      })
+    const item = await db('items').first()
+    const labels = await db('item_labels').where({ item_id: item?.id })
+    expect(labels.map(l => l.label_id)).toEqual(['work'])
   })
 
   it('should add the item to the database', async () => {

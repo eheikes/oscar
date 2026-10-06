@@ -110,6 +110,40 @@ describe('PATCH /items/:itemId', () => {
     expect(labels.map(l => l.label_id)).toEqual(['busywork', 'urgent'])
   })
 
+  it('should return 400 for an unknown type', async () => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ type: 'nonexistent' })
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toBe('"nonexistent" is not a valid type')
+      })
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.type_id).toBe('task')
+  })
+
+  it('should return 400 for unknown labels without changing the item', async () => {
+    await db('item_labels').insert({ item_id: testItem.id, label_id: 'work' })
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ title: 'Updated Title', labels: ['urgent', 'bogus'] })
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toBe('Invalid labels: "bogus"')
+      })
+    const item = await db('items').where({ id: testItem.id }).first()
+    expect(item?.title).toBe('Test Item')
+    const labels = await db('item_labels').where({ item_id: testItem.id })
+    expect(labels.map(l => l.label_id)).toEqual(['work'])
+  })
+
+  it('should ignore duplicate labels', async () => {
+    await authedRequest(app).patch(`/items/${testItem.id}`)
+      .send({ labels: ['urgent', 'urgent'] })
+      .expect(200)
+      .then(response => {
+        expect(response.body.labels).toEqual(['urgent'])
+      })
+  })
+
   it('should not change labels when labels is not provided', async () => {
     await db('item_labels').insert({ item_id: testItem.id, label_id: 'personal' })
     await authedRequest(app).patch(`/items/${testItem.id}`)

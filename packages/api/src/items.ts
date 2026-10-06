@@ -4,8 +4,9 @@ import { z } from 'zod'
 import { getConfig } from './config.js'
 import { getDatabaseConnection, raw } from './database.js'
 import { ClientError, NotFoundError } from './error.js'
-import { addItemLabels, getItemLabels } from './labels.js'
+import { addItemLabels, assertLabelsExist, getItemLabels } from './labels.js'
 import { logger } from './logger.js'
+import { assertTypeExists } from './types.js'
 
 const config = getConfig()
 
@@ -182,6 +183,8 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
   logger.info({ params, itemData }, 'addItem')
   const parsedParams = addItemRequestSchema.parse(params)
   const parsedItemData = addItemBodySchema.parse(itemData)
+  await assertTypeExists(parsedItemData.type)
+  await assertLabelsExist(parsedItemData.labels ?? [])
   const db = getDatabaseConnection()
   if (parsedParams.replace === 'true') {
     // Delete rather than mark deleted_at so as to not interfere with getNextItem()
@@ -228,7 +231,7 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
     expectedRank: parsedItemData.expectedRank ?? null,
     id,
     imageUri: parsedItemData.imageUri ?? null,
-    labels: parsedItemData.labels ?? [],
+    labels: [...new Set(parsedItemData.labels ?? [])],
     language: parsedItemData.language ?? null,
     length: parsedItemData.length ?? null,
     parentId: parsedItemData.parentId ?? null,
@@ -292,6 +295,10 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (existing === undefined) {
     throw new NotFoundError('Item not found')
   }
+  if (parsedItemData.type !== undefined) {
+    await assertTypeExists(parsedItemData.type)
+  }
+  await assertLabelsExist(parsedItemData.labels ?? [])
   if (parsedItemData.parentId !== undefined) {
     if (parsedItemData.parentId === itemId) {
       throw new ClientError('An item cannot be its own parent')
