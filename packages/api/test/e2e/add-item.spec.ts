@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
 import { authedRequest } from './helpers/auth.js'
+import { failLabelInserts, restoreLabelInserts } from './helpers/db.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('POST /items', () => {
@@ -77,6 +78,47 @@ describe('POST /items', () => {
     const item = await db('items').first()
     expect(item?.rating).toBe('-999.99')
     expect(item?.rank).toBe('99.9')
+  })
+
+  it('should not delete the replaced item when the parent is not found', async () => {
+    await authedRequest(app).post('/items')
+      .send({ title: 'Existing Item', type: 'task' })
+      .expect(201)
+    await authedRequest(app).post('/items?replace=true')
+      .send({ title: 'Existing Item', type: 'task', parentId: 'b3cbbd4e-3e2f-4a5b-9d47-5b0fb8e0e0b1' })
+      .expect(404)
+    expect(await db('items').where({ title: 'Existing Item' })).toHaveLength(1)
+  })
+
+  describe('when saving the labels fails', () => {
+    beforeEach(async () => {
+      await failLabelInserts('trivial')
+    })
+
+    afterEach(async () => {
+      await restoreLabelInserts()
+    })
+
+    it('should not save the item', async () => {
+      await authedRequest(app).post('/items')
+        .send({ title: 'New Item', type: 'task', labels: ['work', 'trivial'] })
+        .expect(500)
+      expect(await db('items').count({ count: '*' }).first()).toEqual({ count: '0' })
+      expect(await db('item_labels').count({ count: '*' }).first()).toEqual({ count: '0' })
+    })
+
+    it('should not delete the replaced item', async () => {
+      await authedRequest(app).post('/items')
+        .send({ title: 'Existing Item', type: 'task', labels: ['work'] })
+        .expect(201)
+      await authedRequest(app).post('/items?replace=true')
+        .send({ title: 'Existing Item', type: 'task', labels: ['trivial'] })
+        .expect(500)
+      const items = await db('items').where({ title: 'Existing Item' })
+      expect(items).toHaveLength(1)
+      const labels = await db('item_labels').where({ item_id: items[0].id })
+      expect(labels.map(l => l.label_id)).toEqual(['work'])
+    })
   })
 
   it('should return 400 for an unknown type', async () => {

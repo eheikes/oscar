@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { app } from '../../src/app.js'
 import { authedRequest } from './helpers/auth.js'
+import { failLabelInserts, restoreLabelInserts } from './helpers/db.js'
 import { getDatabaseConnection } from '../../src/database.js'
 
 describe('PATCH /items/:itemId', () => {
@@ -121,6 +122,27 @@ describe('PATCH /items/:itemId', () => {
       .expect(400)
     const item = await db('items').where({ id: testItem.id }).first()
     expect(item?.title).toBe('Test Item')
+  })
+
+  describe('when saving the labels fails', () => {
+    beforeEach(async () => {
+      await failLabelInserts('trivial')
+    })
+
+    afterEach(async () => {
+      await restoreLabelInserts()
+    })
+
+    it('should not change the item', async () => {
+      await db('item_labels').insert({ item_id: testItem.id, label_id: 'work' })
+      await authedRequest(app).patch(`/items/${testItem.id}`)
+        .send({ title: 'Updated Title', labels: ['urgent', 'trivial'] })
+        .expect(500)
+      const item = await db('items').where({ id: testItem.id }).first()
+      expect(item?.title).toBe('Test Item')
+      const labels = await db('item_labels').where({ item_id: testItem.id })
+      expect(labels.map(l => l.label_id)).toEqual(['work'])
+    })
   })
 
   it('should return 400 for an unknown type', async () => {
