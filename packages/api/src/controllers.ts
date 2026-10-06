@@ -4,24 +4,26 @@ import { getLabels } from './labels.js'
 import { getTypes } from './types.js'
 import { render } from './webpage.js'
 
-export type Controller = (req: Request, res: Response, next: NextFunction) => Promise<void>
+export type Controller<P = Record<string, string>> = (req: Request<P>, res: Response, next: NextFunction) => Promise<void>
+
+interface ItemParams { itemId: string }
 
 export const addItemController: Controller = async (req, res) => {
   const result = await addItem(req.query, req.body)
   res.status(201).json(result)
 }
 
-export const deleteItemController: Controller = async (req, res) => {
+export const deleteItemController: Controller<ItemParams> = async (req, res) => {
   await deleteItem(req.params.itemId)
   res.sendStatus(204)
 }
 
-export const updateItemController: Controller = async (req, res) => {
+export const updateItemController: Controller<ItemParams> = async (req, res) => {
   const result = await updateItem(req.params.itemId, req.body)
   res.status(200).json(result)
 }
 
-export const getItemController: Controller = async (req, res) => {
+export const getItemController: Controller<ItemParams> = async (req, res) => {
   const result = await getItem(req.params.itemId)
   res.json(result)
 }
