@@ -10,6 +10,8 @@ This project contains the API server for the OSCAR assistant. It is written for 
     * Set the handler to `index.handler`.
     * Set the required environment variables under `Configuration -> Environment variables`. See [`.env.test`](.env.test) for the list of variables and examples.
     * Set up an API gateway as the trigger.
+    * Set throttling limits on the API gateway stage (and optionally an AWS WAF rate-based rule). The app's own rate limiting (`RATE_LIMITING_*` variables) is kept in memory, so each Lambda instance has its own count, and it resets on every cold start.
+    * Consider setting a reserved concurrency on the Lambda, to cap how many instances (and DB connections) a flood of requests can create.
 1. Download the [AWS RDS certificate bundle for your region](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates) and replace the `rds-ca-bundle.pem` file in this `api` folder.
 1. Rename `.env.example` to `.env` and update it with your configuration, _or_ set those variables in your environment.
     * Make sure `NODE_ENV` is _not_ set to `development`, and `MOCK_AUTH` is _not_ set.
