@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from './database.js'
+import { getDatabaseConnection, type Knex } from './database.js'
 import { ClientError } from './error.js'
 
 export interface DatabaseLabel {
@@ -39,8 +39,11 @@ export const assertLabelsExist = async (labelIds: string[]): Promise<void> => {
   }
 }
 
-export const addItemLabels = async (itemId: string, labelIds: string[]): Promise<void> => {
-  const db = getDatabaseConnection()
+export const addItemLabels = async (
+  itemId: string,
+  labelIds: string[],
+  db: Knex = getDatabaseConnection() // pass a transaction to include the inserts in it
+): Promise<void> => {
   for (const labelId of new Set(labelIds)) { // ignore duplicates
     await db('item_labels').insert({ item_id: itemId, label_id: labelId })
   }

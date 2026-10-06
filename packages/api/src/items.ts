@@ -206,43 +206,46 @@ export const addItem = async (params: ParsedQs, itemData: unknown): Promise<Item
   await assertTypeExists(parsedItemData.type)
   await assertLabelsExist(parsedItemData.labels ?? [])
   const db = getDatabaseConnection()
-  if (parsedParams.replace === 'true') {
-    // Delete rather than mark deleted_at so as to not interfere with getNextItem()
-    await db('items').where({
-      title: parsedItemData.title,
-      type_id: parsedItemData.type
-    }).whereNull('deleted_at').delete()
-  }
-  if (parsedItemData.parentId !== undefined && parsedItemData.parentId !== null) {
-    const parent = await db.select('*').from('items').where({ id: parsedItemData.parentId }).first()
-    if (parent === undefined) {
-      throw new NotFoundError('Parent item not found')
-    }
-  }
   const id = uuidv4()
   const now = new Date()
-  await db('items').insert({
-    author: parsedItemData.author,
-    created_at: now,
-    deleted_at: null,
-    due: typeof parsedItemData.due === 'string' ? new Date(parsedItemData.due) : null,
-    expected_rank: parsedItemData.expectedRank,
-    id,
-    image_uri: parsedItemData.imageUri,
-    language: parsedItemData.language,
-    length: parsedItemData.length,
-    parent_id: parsedItemData.parentId ?? null,
-    rank: parsedItemData.rank,
-    rating: parsedItemData.rating,
-    summary: parsedItemData.summary,
-    title: parsedItemData.title,
-    type_id: parsedItemData.type,
-    updated_at: now,
-    uri: parsedItemData.uri
+  // Use a transaction so that a failure (e.g. inserting the labels) doesn't leave a partial change.
+  await db.transaction(async trx => {
+    if (parsedParams.replace === 'true') {
+      // Delete rather than mark deleted_at so as to not interfere with getNextItem()
+      await trx('items').where({
+        title: parsedItemData.title,
+        type_id: parsedItemData.type
+      }).whereNull('deleted_at').delete()
+    }
+    if (parsedItemData.parentId !== undefined && parsedItemData.parentId !== null) {
+      const parent = await trx.select('*').from('items').where({ id: parsedItemData.parentId }).first()
+      if (parent === undefined) {
+        throw new NotFoundError('Parent item not found')
+      }
+    }
+    await trx('items').insert({
+      author: parsedItemData.author,
+      created_at: now,
+      deleted_at: null,
+      due: typeof parsedItemData.due === 'string' ? new Date(parsedItemData.due) : null,
+      expected_rank: parsedItemData.expectedRank,
+      id,
+      image_uri: parsedItemData.imageUri,
+      language: parsedItemData.language,
+      length: parsedItemData.length,
+      parent_id: parsedItemData.parentId ?? null,
+      rank: parsedItemData.rank,
+      rating: parsedItemData.rating,
+      summary: parsedItemData.summary,
+      title: parsedItemData.title,
+      type_id: parsedItemData.type,
+      updated_at: now,
+      uri: parsedItemData.uri
+    })
+    if (Array.isArray(parsedItemData.labels)) {
+      await addItemLabels(id, parsedItemData.labels, trx)
+    }
   })
-  if (Array.isArray(parsedItemData.labels)) {
-    await addItemLabels(id, parsedItemData.labels)
-  }
   return await attachRelations({
     author: parsedItemData.author ?? null,
     createdAt: now.toISOString(),
@@ -354,11 +357,14 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   if (parsedItemData.title !== undefined) dbUpdates.title = parsedItemData.title
   if (parsedItemData.type !== undefined) dbUpdates.type_id = parsedItemData.type
   if (parsedItemData.uri !== undefined) dbUpdates.uri = parsedItemData.uri
-  await db('items').update(dbUpdates).where({ id: itemId })
-  if (parsedItemData.labels !== undefined) {
-    await db('item_labels').where({ item_id: itemId }).delete()
-    await addItemLabels(itemId, parsedItemData.labels)
-  }
+  // Use a transaction so that a failure (e.g. inserting the labels) doesn't leave a partial change.
+  await db.transaction(async trx => {
+    await trx('items').update(dbUpdates).where({ id: itemId })
+    if (parsedItemData.labels !== undefined) {
+      await trx('item_labels').where({ item_id: itemId }).delete()
+      await addItemLabels(itemId, parsedItemData.labels, trx)
+    }
+  })
   const updatedRow = await db.select('*').from('items').where({ id: itemId }).first()
   const itemLabels = await getItemLabels(itemId)
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
