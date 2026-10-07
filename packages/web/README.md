@@ -73,20 +73,46 @@ npm run preview
 
 ## Testing
 
-Web tests live under `test/e2e` and uses `playwright` for browser end-to-end checks.
+Web tests live under `test/e2e` and use `playwright` for browser end-to-end checks. They start the web dev server automatically (at `https://127.0.0.1:4173`), but the API must already be running.
+
+### Running the API for the tests
+
+The tests talk to a real API (and database), using the API's mock authentication instead of Auth0. Start the API with `NODE_ENV=test`, and make sure its config has:
+
+- `MOCK_AUTH=true`
+- `auth0|e2e-user` in `ALLOWED_USERS`
+- `CORS_ALLOWED_ORIGIN=https://127.0.0.1:4173` (or `*`)
+- a high `RATE_LIMITING_MAX` (e.g. `100000`), since the tests make lots of requests
+
+For example, from `packages/api`:
+
+```bash
+NODE_ENV=test CORS_ALLOWED_ORIGIN=https://127.0.0.1:4173 RATE_LIMITING_MAX=100000 npm start
+```
+
+The tests use the API URL from the same `.env` files as the web app (`.env` and `.env.test`); set `VITE_API_BASE_URL` to override it.
 
 ### Commands
 
 ```bash
 npm run test
+VITE_API_BASE_URL=http://127.0.0.1:8081 npm run test  # API on a different port
 ```
+
+### How authentication works in the tests
+
+The tests never talk to Auth0. Before each page loads, they fill in the Auth0 SDK's `localStorage` cache with a fake logged-in user, and add the API's `mock-token` header to the app's API requests. Tests that need a logged-out user use `test.use({ authenticated: false })`.
+
+### Test data
+
+Each test creates its own items (through the API) with titles starting with `E2E-` and a unique ID, and deletes them afterwards. Items left over from an aborted run are deleted when the next run starts.
 
 ### Test environment guard
 
-Before tests run, a startup guard calls `GET /items` on the API base URL (`VITE_API_BASE_URL`, default `http://localhost:3000`).
+Before tests run, a startup guard calls `GET /items` on the API.
 
 - Empty item list: allowed
-- Non-empty item list: allowed only if every returned item has `createdAt` at least one year old
+- Non-empty item list: allowed only if every returned item (other than leftover `E2E-` test items) has `createdAt` at least one year old
 - Otherwise tests abort with:
 
 `Doesn't seem to be running in a test environment, aborting`
