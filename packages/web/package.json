@@ -15,7 +15,7 @@
     "lint-hook": "svelte-kit sync && ts-standard --verbose && npm run check",
     "preview": "vite preview",
     "test": "npm run test:e2e",
-    "test:e2e": "playwright test --config playwright.config.mjs"
+    "test:e2e": "NODE_ENV=test playwright test --config playwright.config.mjs"
   },
   "repository": {
     "type": "git",
