@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const baseURL = process.env.WEB_BASE_URL ?? 'http://127.0.0.1:4173'
+// The dev server uses HTTPS (with a self-signed certificate).
+const baseURL = process.env.WEB_BASE_URL ?? 'https://127.0.0.1:4173'
 
 export default defineConfig({
   testDir: './test/e2e',
@@ -12,11 +13,13 @@ export default defineConfig({
   globalSetup: './test/e2e/playwright.setup.ts',
   use: {
     baseURL,
+    ignoreHTTPSErrors: true,
     trace: 'on-first-retry'
   },
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4173',
+    command: 'npm run dev -- --host 127.0.0.1 --port 4173 --strictPort',
     url: baseURL,
+    ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,
     cwd: '.'
   },
