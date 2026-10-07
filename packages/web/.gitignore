@@ -1,5 +1,6 @@
 .svelte-kit/
 build/
+test-results/
 .env
 .env.*
 !.env.example
