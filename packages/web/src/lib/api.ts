@@ -14,6 +14,13 @@ import { getAccessToken, authStore, redirectToLogin, SESSION_EXPIRED_MESSAGE } f
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL
 const REQUEST_TIMEOUT_MS = 20000
 
+export class ApiError extends Error {
+  constructor (public readonly status: number, body: string) {
+    super(`API ${status}: ${body}`)
+    this.name = 'ApiError'
+  }
+}
+
 async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
   const accessToken = await getAccessToken()
   if (accessToken === null) {
@@ -74,7 +81,7 @@ async function apiFetch<T> (path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`API ${res.status}: ${text}`)
+    throw new ApiError(res.status, text)
   }
   return await (res.json() as Promise<T>)
 }
@@ -108,7 +115,13 @@ export async function getNextItems (params: GetNextItemsParams): Promise<NextIte
   const qs = new URLSearchParams({ type: params.type })
   if (params.count != null) qs.set('count', String(params.count))
   if (params.label !== undefined) qs.set('label', params.label)
-  return await apiFetch<NextItemResult[]>(`/items/next?${qs.toString()}`)
+  try {
+    return await apiFetch<NextItemResult[]>(`/items/next?${qs.toString()}`)
+  } catch (err) {
+    // The API responds with 404 when no items match.
+    if (err instanceof ApiError && err.status === 404) return []
+    throw err
+  }
 }
 
 export async function getRetroItems (params: GetRetroItemsParams = {}): Promise<Item[]> {
