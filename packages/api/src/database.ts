@@ -47,11 +47,20 @@ export const getDatabaseConnection = (): Knex => {
   return connection
 }
 
+// Not run by the Lambda handler: the migration files aren't bundled into dist/.
+// Run `npm run migrate` against the target DB instead.
 export const migrateDatabase = async (): Promise<void> => {
   const db = getDatabaseConnection()
   await db.migrate.latest({
     directory: './src/migrations'
   })
+}
+
+export const closeDatabaseConnection = async (): Promise<void> => {
+  if (connection !== null) {
+    await connection.destroy()
+    connection = null
+  }
 }
 
 export const raw = (value: string): Knex.Raw => {

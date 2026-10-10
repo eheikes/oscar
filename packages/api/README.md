@@ -15,7 +15,9 @@ This project contains the API server for the OSCAR assistant. It is written for 
 1. Download the [AWS RDS certificate bundle for your region](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.RegionCertificates) and replace the `rds-ca-bundle.pem` file in this `api` folder.
 1. Rename `.env.example` to `.env` and update it with your configuration, _or_ set those variables in your environment.
     * Make sure `NODE_ENV` is _not_ set to `development`, and `MOCK_AUTH` is _not_ set.
-1. Run `npm install && npm run build:release && ARN=YOUR_ARN npm run release`.
+1. Run `npm install && npm run migrate` to create/update the DB tables.
+    * The Lambda does _not_ run migrations itself, so run this whenever you deploy a version with new migrations (before running the release).
+1. Run `npm run build:release && ARN=YOUR_ARN npm run release`.
     * Replace `YOUR_ARN` with the ARN of your Lambda instance.
 
 ## API Reference
@@ -66,7 +68,8 @@ Remember to set your environment variables (using `.env` or other method) to con
 
 Scripts for local development:
 
-* Run a local server: `NODE_ENV=local npm start`.
+* Run a local server: `NODE_ENV=local npm start`. This runs any pending DB migrations first.
+* Run DB migrations: `npm run migrate`.
 * Lint the files: `npm run lint`.
 * Build the app: `npm run build`. Run `npm run build:release` to minify the files.
 * Upload & publish to AWS Lambda: `ARN=<LAMBDA ARN> npm run release`

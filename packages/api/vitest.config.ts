@@ -5,6 +5,7 @@ export default defineConfig({
     environment: 'node',
     globals: false,
     include: ['test/**/*.spec.ts'],
+    globalSetup: ['test/e2e/helpers/global-setup.ts'],
     fileParallelism: false,
     sequence: {
       concurrent: false
