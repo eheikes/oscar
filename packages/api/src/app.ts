@@ -18,13 +18,10 @@ import {
   getWebpageController,
   updateItemController
 } from './controllers.js'
-import { migrateDatabase } from './database.js'
 import { errorHandler, throw404 } from './error.js'
 import { httpLogger, logger } from './logger.js'
 
 const config = getConfig()
-
-await migrateDatabase()
 
 export const app = express()
 

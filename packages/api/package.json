@@ -19,6 +19,7 @@
     "build:release": "ncc build src/serverless.ts -o dist --source-map --minify",
     "lint": "ts-standard --fix --verbose",
     "lint-hook": "ts-standard --verbose",
+    "migrate": "tsx ./src/migrate.ts",
     "report-coverage": "codecov",
     "release": "bin/release.sh",
     "test": "run-s test:e2e",
