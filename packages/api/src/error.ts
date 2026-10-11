@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { fromZodError } from 'zod-validation-error/v3'
+import { logger } from './logger.js'
 
 export class AuthorizationError extends Error {}
 
@@ -50,7 +51,9 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
 
   // All other errors can be a 500.
   // Don't send the error details to the client (e.g. DB errors include the SQL query & values).
-  req.log.error({ err }, 'Unhandled error')
+  // req.log is missing if the error came from middleware that runs before the HTTP logger.
+  const log = req.log ?? logger
+  log.error({ err }, 'Unhandled error')
   res.status(500)
   res.send({ error: 'Internal server error', requestId: req.id })
 }
