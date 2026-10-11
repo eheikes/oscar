@@ -31,9 +31,13 @@ app.use(rateLimit({
   standardHeaders: true, // return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // disable the `X-RateLimit-*` headers
   ipv6Subnet: config.RATE_LIMITING_IPV6_SUBNET,
+  // API Gateway adds an X-Forwarded-For header, but serverless-http already sets the client IP
+  // from the gateway's request context, so don't trust (or warn about) the header.
+  validate: { xForwardedForHeader: false },
   logger: {
-    warn: logger.warn,
-    error: logger.error
+    // pino methods throw if called without their logger as `this`
+    warn: logger.warn.bind(logger),
+    error: logger.error.bind(logger)
   }
 }))
 
