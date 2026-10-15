@@ -8,6 +8,7 @@ This project contains the API server for the OSCAR assistant. It is written for 
     * Create the schemas defined in `test/mocks/postgres`.
 1. Create a serverless instance in AWS Lambda
     * Set the handler to `index.handler`.
+    * Under `Configuration -> General configuration`, set the memory to at least 512 MB and the timeout to at least 10 seconds. The defaults (128 MB, 3 seconds) are too small: Lambda allocates CPU in proportion to memory, and larger requests (e.g. `GET /items?count=100`) will time out and return a 500.
     * Set the required environment variables under `Configuration -> Environment variables`. See [`.env.test`](.env.test) for the list of variables and examples.
     * Set up an API gateway as the trigger.
     * Set throttling limits on the API gateway stage (and optionally an AWS WAF rate-based rule). The app's own rate limiting (`RATE_LIMITING_*` variables) is kept in memory, so each Lambda instance has its own count, and it resets on every cold start.
