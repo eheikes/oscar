@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { createItem } from '$lib/api.js';
+  import { SKYLIGHT_ITEM_TYPE, sendItemToSkylight, skylightEnabled } from '$lib/integrations.js';
   import { localDateTimeToISO } from '$lib/utils.js';
 
   let { data }: { data: PageData } = $props();
@@ -14,16 +15,20 @@
   let uri = $state('');
   let parentId = $state('');
   let selectedLabels = $state<string[]>([]);
+  let sendToSkylight = $state(false);
   let submitting = $state(false);
   let error = $state('');
+
+  let showSkylight = $derived($skylightEnabled && type === SKYLIGHT_ITEM_TYPE);
 
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     if (!title.trim() || !type) return;
     submitting = true;
     error = '';
+    let item;
     try {
-      await createItem({
+      item = await createItem({
         title: title.trim(),
         type,
         due: localDateTimeToISO(due),
@@ -33,11 +38,16 @@
         parentId: parentId.trim() || null,
         labels: selectedLabels,
       });
-      goto('/');
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to create item';
       submitting = false;
+      return;
     }
+    // The item has been added even if this fails; the result is reported with a toast.
+    if (showSkylight && sendToSkylight) {
+      await sendItemToSkylight(item);
+    }
+    goto('/');
   }
 </script>
 
@@ -101,6 +111,13 @@
     <span class="hint">Hold Ctrl/Cmd to select multiple</span>
   </label>
 
+  {#if showSkylight}
+    <label class="checkbox-label">
+      <input type="checkbox" bind:checked={sendToSkylight} disabled={submitting} />
+      Also send to Skylight
+    </label>
+  {/if}
+
   {#if error}
     <p class="error">{error}</p>
   {/if}
@@ -146,6 +163,12 @@
 
   .add-form textarea {
     resize: vertical;
+  }
+
+  .add-form .checkbox-label {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4em;
   }
 
   .hint {

@@ -16,6 +16,7 @@ const fields = {
   DB_REJECT_UNAUTHORIZED: z.coerce.boolean().default(true),
   DB_CA_FILE: z.coerce.string().optional(),
   ENCRYPTION_KEY: z.string(),
+  INTEGRATIONS: z.string().default(''), // comma-separated IDs of the integrations to enable
   MOCK_AUTH: z.boolean().default(false), // accept mock credentials; for local development & tests only
   NODE_ENV: z.string().optional(),
   OPENID_CLIENT_ID: z.string(),
@@ -25,6 +26,12 @@ const fields = {
   RATE_LIMITING_WINDOW: z.coerce.number().default(15 * 60 * 1000), // 15 mins
   RATE_LIMITING_MAX: z.coerce.number().default(100),
   RATE_LIMITING_IPV6_SUBNET: z.coerce.number().default(56),
+  SKYLIGHT_API_URL: z.string().default('https://app.ourskylight.com/api'),
+  SKYLIGHT_API_VERSION: z.string().default('2026-08-05'), // sent in the skylight-api-version header
+  SKYLIGHT_AUTH_HEADER: z.string().optional(), // full Authorization header value, e.g. "Basic abc123"
+  SKYLIGHT_CATEGORY_ID: z.string().optional(), // profile to assign chores to; unassigned ("up for grabs") if not set
+  SKYLIGHT_FRAME_ID: z.string().optional(),
+  SKYLIGHT_TIMEZONE: z.string().default('UTC'), // for converting due dates to the Skylight's local date/time
   WORK_CHUNK_SIZE: z.coerce.number().default(30)
 }
 export type Config = DeepReadonlyObject<ParsedSchema<typeof fields>>

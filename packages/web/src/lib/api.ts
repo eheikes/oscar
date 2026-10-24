@@ -1,4 +1,5 @@
 import type {
+  Integration,
   Item,
   ItemType,
   Label,
@@ -7,6 +8,7 @@ import type {
   GetNextItemsParams,
   GetRetroItemsParams,
   CreateItemData,
+  SkylightChoreResult,
   UpdateItemData
 } from './types.js'
 import { getAccessToken, authStore, redirectToLogin, SESSION_EXPIRED_MESSAGE } from './auth.js'
@@ -153,5 +155,16 @@ export async function updateItem (id: string, data: UpdateItemData): Promise<Ite
   return await apiFetch<Item>(`/items/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(data)
+  })
+}
+
+export async function getIntegrations (): Promise<Integration[]> {
+  return await apiFetch<Integration[]>('/integrations')
+}
+
+export async function sendToSkylight (itemId: string): Promise<SkylightChoreResult> {
+  return await apiFetch<SkylightChoreResult>('/integrations/skylight/chores', {
+    method: 'POST',
+    body: JSON.stringify({ itemId })
   })
 }

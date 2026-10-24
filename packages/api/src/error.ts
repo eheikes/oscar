@@ -13,6 +13,9 @@ export class MissingRouteError extends Error {}
 
 export class NotFoundError extends Error {}
 
+// A request to an external service (e.g. an integration) failed.
+export class UpstreamError extends Error {}
+
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
   // Delegate to the default Express handler if headers have been sent.
   if (res.headersSent) {
@@ -46,6 +49,14 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     const validationError = fromZodError(err)
     res.status(400)
     res.send({ error: validationError.message })
+    return
+  }
+
+  // Failures of external services should return a 502.
+  // The message is shown to the client, so it should not include anything from the service's response.
+  if (err instanceof UpstreamError) {
+    res.status(502)
+    res.send({ error: err.message })
     return
   }
 

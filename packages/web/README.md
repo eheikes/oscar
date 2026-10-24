@@ -128,12 +128,14 @@ This helps prevent accidentally running browser tests against active/non-test da
 
 - **Components**
   - `ItemRow.svelte` — Shared item display + inline edit + soft-delete
-  - `api.ts` — Typed API client (getItems, getNextItems, getTypes, getLabels, createItem, updateItem)
+  - `api.ts` — Typed API client (getItems, getNextItems, getTypes, getLabels, createItem, updateItem, getIntegrations, sendToSkylight)
+  - `integrations.ts` — Store of the API's enabled integrations, plus integration helpers
 
 - **Key features**
   - Soft-delete: checkbox toggles `deletedAt` (item stays visible as crossed-out)
   - Inline edit: "Edit" button switches to form; Save/Cancel
   - Static deployment: no server-side logic
+  - Integrations: features for integrations (e.g. "Send to Skylight" for tasks) only appear if the API reports them as enabled. Integrations are configured on the API server; see the API's README.
 
 ## API Integration
 
@@ -143,6 +145,8 @@ The app calls the OSCAR API (packages/api). Endpoints used:
 - `GET /items/next` — get next recommended item(s)
 - `GET /types` — fetch item types for choosers
 - `GET /labels` — fetch labels for choosers
+- `GET /integrations` — fetch the integrations enabled on the server
+- `POST /integrations/skylight/chores` — send a task to Skylight (only if the `skylight` integration is enabled)
 - `POST /items` — create new item
 - `PATCH /items/:id` — update/soft-delete item
 

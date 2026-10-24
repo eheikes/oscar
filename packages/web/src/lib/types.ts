@@ -8,6 +8,15 @@ export interface Label {
   readable: string
 }
 
+export interface Integration {
+  id: string
+  name: string
+}
+
+export interface SkylightChoreResult {
+  choreId: string
+}
+
 export interface ItemRef {
   id: string
   title: string

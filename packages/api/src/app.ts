@@ -9,6 +9,7 @@ import {
   addItemController,
   deleteItemController,
   getItemController,
+  getIntegrationsController,
   getItemsController,
   getLabelsController,
   getNextItemController,
@@ -19,9 +20,11 @@ import {
   updateItemController
 } from './controllers.js'
 import { errorHandler, throw404 } from './error.js'
+import { getEnabledIntegrations } from './integrations/index.js'
 import { httpLogger, logger } from './logger.js'
 
 const config = getConfig()
+const integrations = getEnabledIntegrations() // throws on startup if an integration isn't configured
 
 export const app = express()
 
@@ -71,6 +74,10 @@ app.post('/items', addItemController)
 app.get('/types', getTypesController)
 app.get('/labels', getLabelsController)
 app.get('/profile', getProfileController)
+app.get('/integrations', getIntegrationsController)
+for (const integration of integrations) {
+  app.use(`/integrations/${integration.id}`, integration.router)
+}
 /* eslint-enable @typescript-eslint/no-misused-promises */
 
 app.all('/*any', throw404)

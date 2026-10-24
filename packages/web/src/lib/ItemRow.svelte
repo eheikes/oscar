@@ -3,6 +3,7 @@
   import { updateItem } from './api.js';
   import { isSafeUri, localDateTimeToISO } from './utils.js';
   import MarkdownText from './MarkdownText.svelte';
+  import { SKYLIGHT_ITEM_TYPE, sendItemToSkylight, skylightEnabled } from './integrations.js';
 
   let {
     item,
@@ -18,6 +19,7 @@
 
   let editing = $state(false);
   let saving = $state(false);
+  let sendingToSkylight = $state(false);
   let error = $state('');
 
   // Edit form fields
@@ -68,6 +70,12 @@
     } finally {
       saving = false;
     }
+  }
+
+  async function handleSendToSkylight() {
+    sendingToSkylight = true;
+    await sendItemToSkylight(item);
+    sendingToSkylight = false;
   }
 
   async function toggleDelete(checked: boolean) {
@@ -190,7 +198,17 @@
       {/if}
     </div>
     {#if error}<span class="error">{error}</span>{/if}
-    <button class="edit-btn" onclick={startEdit} disabled={saving}>Edit</button>
+    <div class="row-actions">
+      {#if $skylightEnabled && item.type === SKYLIGHT_ITEM_TYPE}
+        <button
+          class="row-btn"
+          onclick={handleSendToSkylight}
+          disabled={saving || sendingToSkylight}
+          title="Adds this task to Skylight as a chore"
+        >{sendingToSkylight ? 'Sending…' : 'Send to Skylight'}</button>
+      {/if}
+      <button class="row-btn" onclick={startEdit} disabled={saving}>Edit</button>
+    </div>
   </div>
 {/if}
 
@@ -303,8 +321,14 @@
     color: inherit;
   }
 
-  .edit-btn {
+  .row-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.4em;
     margin-left: auto;
+  }
+
+  .row-btn {
     font-size: 0.8em;
     padding: 0.1em 0.5em;
   }

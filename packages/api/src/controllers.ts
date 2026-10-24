@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { getIntegrations } from './integrations/index.js'
 import { addItem, deleteItem, getItem, getItems, getNextItem, getRetroItems, updateItem } from './items.js'
 import { getLabels } from './labels.js'
 import { getTypes } from './types.js'
@@ -50,6 +51,10 @@ export const getProfileController: Controller = async (req, res) => {
 export const getTypesController: Controller = async (req, res) => {
   const result = await getTypes(req.query)
   res.json(result)
+}
+
+export const getIntegrationsController: Controller = async (req, res) => {
+  res.json(getIntegrations())
 }
 
 export const getLabelsController: Controller = async (req, res) => {

@@ -63,6 +63,54 @@ Items support an optional `parentId` field (`parent_id` in the database) for par
 - Parent items cannot be soft-deleted (`deletedAt` set) until all child items are soft-deleted.
 - `/items/next` ignores parent items while any child is still active (not soft-deleted).
 
+## Integrations
+
+Integrations connect OSCAR to other services. They're built in, but turned off by default. To enable integrations, set `INTEGRATIONS` to a comma-separated list of their IDs (e.g. `INTEGRATIONS=skylight`), along with any settings they need. The server won't start if an enabled integration is missing required settings.
+
+The web app asks the API which integrations are enabled (`GET /integrations`), and only shows the features of those integrations.
+
+### Skylight Calendar (`skylight`)
+
+Lets you send tasks to a [Skylight Calendar](https://ourskylight.com/) as chores, either when adding a task or later from its edit form.
+
+> **Note:** Skylight doesn't have an official public API. This integration uses the same API as Skylight's own apps, based on community research ([go-skylight](https://github.com/sebrandon1/go-skylight), [skylight-api](https://github.com/TheEagleByte/skylight-api)). It could stop working if Skylight changes that API.
+
+Settings:
+
+- `SKYLIGHT_AUTH_HEADER` (required): The full value of the `Authorization` header that Skylight's apps send, e.g. `Basic abc123...` or `Bearer abc123...`. Treat it like a password.
+- `SKYLIGHT_FRAME_ID` (required): The ID of your Skylight frame (a number).
+- `SKYLIGHT_CATEGORY_ID` (optional): The ID of the profile (Skylight calls these "categories") to assign chores to. If not set, chores are added as "up for grabs".
+- `SKYLIGHT_TIMEZONE` (optional): The time zone of your Skylight, as an IANA name like `America/Chicago`. Used to convert a task's due date to the chore's date and time. Defaults to `UTC`.
+- `SKYLIGHT_API_URL` (optional): Defaults to `https://app.ourskylight.com/api`.
+- `SKYLIGHT_API_VERSION` (optional): The `skylight-api-version` header to send. Defaults to `2026-08-05`.
+
+To find your auth header and frame ID:
+
+1. Log in to the Skylight web app at [ourskylight.com](https://ourskylight.com/) in a desktop browser.
+1. Open the browser's developer tools (F12), and go to the **Network** tab.
+1. Open any page for your frame (e.g. the calendar or chores), so that the app makes some API requests.
+1. Filter the requests for `api/frames`, and click on one, e.g. `https://app.ourskylight.com/api/frames/1234567/chores?...`.
+    * The number after `/frames/` is your frame ID.
+    * Under **Request Headers**, copy the full value of `Authorization` (including the `Basic` or `Bearer` part).
+1. **Don't log out** of Skylight in that browser (just close the tab). Logging out can invalidate the token.
+
+To find the ID of a profile to assign chores to, look for a request to `.../api/frames/{frame ID}/categories` in the Network tab, or run:
+
+```bash
+curl -H "Authorization: $SKYLIGHT_AUTH_HEADER" -H "Accept: application/json" "https://app.ourskylight.com/api/frames/$SKYLIGHT_FRAME_ID/categories"
+```
+
+Each entry in `data` has an `id`, and its `attributes.label` is the profile's name.
+
+If sending to Skylight starts failing with "The Skylight API responded with status 401", the token has expired or been revoked. Repeat the steps above to get a new one. (The server logs have more details about failures.) Skylight hasn't documented how long its tokens last. `Basic` tokens seem to last until you log out, but `Bearer` tokens may expire much sooner.
+
+How tasks are converted to chores:
+
+- The item's title becomes the chore's title, and its summary becomes the chore's description.
+- The due date is converted to the date and time in `SKYLIGHT_TIMEZONE`. A due time of midnight is treated as "any time that day", so the chore gets no time.
+- Tasks without a due date are added for today.
+- Only items with the `task` type can be sent. Sending a task again creates another chore. OSCAR doesn't keep track of which tasks have been sent, and changes to the task aren't synced to Skylight.
+
 ## Development
 
 Remember to set your environment variables (using `.env` or other method) to configure the app. Set a `NODE_ENV` environment variable to `development` for debugging.
