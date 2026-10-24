@@ -269,11 +269,21 @@ paths:
               $ref: '#/components/schemas/UpdateItemRequest'
       responses:
         '200':
-          description: Updated item.
+          description: >-
+            Updated item. If the update checked off the item (set `deletedAt`) and an enabled
+            integration couldn't be updated (e.g. completing the item's Skylight chores), the item
+            is still updated, and `warnings` describes the problems.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                allOf:
+                  - $ref: '#/components/schemas/Item'
+                  - type: object
+                    properties:
+                      warnings:
+                        type: array
+                        items:
+                          type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -372,8 +382,8 @@ paths:
         - Integrations
       summary: Send a task to Skylight
       description: >-
-        Creates a chore in the configured Skylight Calendar from a task item.
-        Only available when the `skylight` integration is enabled (otherwise returns 404).
+        Creates a chore in the configured Skylight Calendar from a task item, and remembers it so
+        that the chore is marked complete when the item is checked off. Only available when the `skylight` integration is enabled (otherwise returns 404).
       requestBody:
         required: true
         content:

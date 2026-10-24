@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
-import { createItem, findItems } from './helpers/api.js'
+import { createItem, findItems, getItem } from './helpers/api.js'
+import { mockToken } from './helpers/auth.js'
 import { apiBaseUrl } from './helpers/config.js'
 import { expect, test } from './helpers/fixtures.js'
 
@@ -127,6 +128,25 @@ test.describe('with the Skylight integration enabled', () => {
 
     await expect(page.getByRole('alert')).toContainText(`Failed to send "${prefix} task" to Skylight`)
     await expect(page.getByRole('button', { name: 'Send to Skylight' })).toBeEnabled()
+  })
+
+  test('warns if checking off a task could not complete it in Skylight', async ({ page, prefix }) => {
+    const item = await createItem({ title: `${prefix} task`, type: 'task' })
+    const warning = 'Could not mark the item as completed in Skylight Calendar: The Skylight API responded with status 401'
+    // Update the item for real, but add a warning to the response.
+    await page.route(`${apiBaseUrl}/items/${item.id}`, async (route) => {
+      if (route.request().method() !== 'PATCH') { await route.fallback(); return }
+      // This handler runs instead of the fixture's, so add the mock token here.
+      const { authorization: _, ...headers } = route.request().headers()
+      const response = await route.fetch({ headers: { ...headers, 'mock-token': mockToken } })
+      await route.fulfill({ response, json: { ...(await response.json()), warnings: [warning] } })
+    })
+    await page.goto(`/i/${item.id}`)
+    await page.getByRole('checkbox', { name: 'Mark as done' }).check()
+
+    await expect(page.getByRole('alert')).toContainText(warning)
+    await expect(page.getByRole('checkbox', { name: 'Restore item' })).toBeChecked()
+    await expect.poll(async () => (await getItem(item.id)).deletedAt).not.toBeNull()
   })
 
   test('does not offer to send items that are not tasks', async ({ page, prefix }) => {

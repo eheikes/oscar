@@ -3,6 +3,7 @@
   import { updateItem } from './api.js';
   import { isSafeUri, localDateTimeToISO } from './utils.js';
   import MarkdownText from './MarkdownText.svelte';
+  import { showToast } from './toasts.js';
   import { SKYLIGHT_ITEM_TYPE, sendItemToSkylight, skylightEnabled } from './integrations.js';
 
   let {
@@ -82,10 +83,14 @@
     saving = true;
     error = '';
     try {
-      const updated = await updateItem(item.id, {
+      const { warnings = [], ...updated } = await updateItem(item.id, {
         deletedAt: checked ? new Date().toISOString() : null,
       });
       onUpdate(updated);
+      // The item was updated, but an integration (e.g. Skylight) couldn't be.
+      for (const warning of warnings) {
+        showToast({ kind: 'error', message: warning });
+      }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Update failed';
     } finally {

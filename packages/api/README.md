@@ -71,7 +71,7 @@ The web app asks the API which integrations are enabled (`GET /integrations`), a
 
 ### Skylight Calendar (`skylight`)
 
-Lets you send tasks to a [Skylight Calendar](https://ourskylight.com/) as chores, either when adding a task or later from its edit form.
+Lets you send tasks to a [Skylight Calendar](https://ourskylight.com/) as chores, either when adding a task or later from its row in the item list. Checking off a task in OSCAR marks its chores as complete in Skylight.
 
 > **Note:** Skylight doesn't have an official public API. This integration uses the same API as Skylight's own apps, based on community research ([go-skylight](https://github.com/sebrandon1/go-skylight), [skylight-api](https://github.com/TheEagleByte/skylight-api)). It could stop working if Skylight changes that API.
 
@@ -109,7 +109,9 @@ How tasks are converted to chores:
 - The item's title becomes the chore's title, and its summary becomes the chore's description.
 - The due date is converted to the date and time in `SKYLIGHT_TIMEZONE`. A due time of midnight is treated as "any time that day", so the chore gets no time.
 - Tasks without a due date are added for today.
-- Only items with the `task` type can be sent. Sending a task again creates another chore. OSCAR doesn't keep track of which tasks have been sent, and changes to the task aren't synced to Skylight.
+- Only items with the `task` type can be sent. Sending a task again creates another chore.
+- When a task is checked off in OSCAR, all the chores it was sent as are marked complete in Skylight. If that fails, the task is still checked off, and the web app shows a warning. Restoring (unchecking) a task doesn't change the chores in Skylight. Tasks sent before this feature was added (before migration `0009`) aren't linked to their chores.
+- Other changes to the task (e.g. its title or due date) aren't synced to Skylight.
 
 ## Development
 

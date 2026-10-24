@@ -4,6 +4,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { clearConfig, getConfig } from '../../src/config.js'
 import { getDatabaseConnection } from '../../src/database.js'
 import { clearIntegrations } from '../../src/integrations/index.js'
+import { getItemLinks } from '../../src/integrations/links.js'
 import { toChoreSchedule } from '../../src/integrations/skylight.js'
 import { authedRequest } from './helpers/auth.js'
 
@@ -94,6 +95,7 @@ describe('Skylight integration', () => {
     responseStatus = 200
     responseBody = { data: { type: 'chore', id: '98765', attributes: {} } }
     setEnv({ SKYLIGHT_API_URL: serverUrl, SKYLIGHT_CATEGORY_ID: '13600771' })
+    await db('item_integration_links').delete()
     await db('item_labels').delete()
     await db('items').delete()
     await db('items').insert([task, nonTask])
@@ -205,6 +207,98 @@ describe('Skylight integration', () => {
         .send({ itemId: task.id })
         .expect(201)
       expect(response.body).toEqual({ choreId: '' })
+    })
+  })
+
+  describe('completing items', () => {
+    const linkChore = async (itemId: string, choreId: string): Promise<void> => {
+      await db('item_integration_links').insert({ item_id: itemId, integration_id: 'skylight', external_id: choreId })
+    }
+    const completeTask = async (): Promise<Record<string, unknown>> => {
+      const response = await authedRequest(app).patch(`/items/${task.id}`)
+        .send({ deletedAt: '2030-01-15T16:00:00.000Z' })
+        .expect(200)
+      return response.body
+    }
+
+    it('should remember the chores that tasks are sent as', async () => {
+      await authedRequest(app).post('/integrations/skylight/chores')
+        .send({ itemId: task.id })
+        .expect(201)
+      expect(await getItemLinks(task.id, 'skylight')).toEqual(['98765'])
+    })
+
+    it('should not remember a chore without an ID', async () => {
+      responseBody = {}
+      await authedRequest(app).post('/integrations/skylight/chores')
+        .send({ itemId: task.id })
+        .expect(201)
+      expect(await getItemLinks(task.id, 'skylight')).toEqual([])
+    })
+
+    it('should complete the linked chores when the item is checked off', async () => {
+      await linkChore(task.id, '98765')
+      await linkChore(task.id, '55780859-2030-01-15-0600')
+      const body = await completeTask()
+      expect(body).toMatchObject({ id: task.id, deletedAt: '2030-01-15T16:00:00.000Z' })
+      expect(body).not.toHaveProperty('warnings')
+
+      expect(requests).toHaveLength(2)
+      expect(requests).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          method: 'PUT',
+          url: '/api/frames/4567/chores/98765/completions',
+          headers: expect.objectContaining({ authorization: 'Basic c2VjcmV0' }),
+          body: { status: 'complete' }
+        }),
+        expect.objectContaining({
+          method: 'PUT',
+          url: '/api/frames/4567/chores/55780859/completions',
+          body: { status: 'complete', instance_date: '2030-01-15', instance_time: '06:00' }
+        })
+      ]))
+    })
+
+    it('should still check off the item, with a warning, if Skylight fails', async () => {
+      await linkChore(task.id, '98765')
+      responseStatus = 401
+      const body = await completeTask()
+      expect(body).toMatchObject({
+        deletedAt: '2030-01-15T16:00:00.000Z',
+        warnings: ['Could not mark the item as completed in Skylight Calendar: The Skylight API responded with status 401']
+      })
+      const [row] = await db('items').select('deleted_at').where({ id: task.id })
+      expect(row.deleted_at).not.toBeNull()
+    })
+
+    it('should not contact Skylight for items without linked chores', async () => {
+      const body = await completeTask()
+      expect(body).not.toHaveProperty('warnings')
+      expect(requests).toHaveLength(0)
+    })
+
+    it('should not contact Skylight for other updates', async () => {
+      await linkChore(task.id, '98765')
+      await authedRequest(app).patch(`/items/${task.id}`)
+        .send({ title: 'Renamed' })
+        .expect(200)
+      await db('items').update({ deleted_at: new Date() }).where({ id: task.id })
+      // Already checked off
+      await authedRequest(app).patch(`/items/${task.id}`)
+        .send({ deletedAt: '2030-01-16T16:00:00.000Z' })
+        .expect(200)
+      // Restored
+      await authedRequest(app).patch(`/items/${task.id}`)
+        .send({ deletedAt: null })
+        .expect(200)
+      expect(requests).toHaveLength(0)
+    })
+
+    it('should delete the links when the item is deleted', async () => {
+      await linkChore(task.id, '98765')
+      await authedRequest(app).delete(`/items/${task.id}`)
+        .expect(204)
+      expect(await getItemLinks(task.id, 'skylight')).toEqual([])
     })
   })
 
