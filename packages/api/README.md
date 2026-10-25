@@ -77,33 +77,47 @@ Lets you send tasks to a [Skylight Calendar](https://ourskylight.com/) as chores
 
 Settings:
 
-- `SKYLIGHT_AUTH_HEADER` (required): The full value of the `Authorization` header that Skylight's apps send, e.g. `Basic abc123...` or `Bearer abc123...`. Treat it like a password.
 - `SKYLIGHT_FRAME_ID` (required): The ID of your Skylight frame (a number).
+- Credentials (required): set **either** the refresh token settings (recommended) **or** `SKYLIGHT_AUTH_HEADER`, not both.
+    - `SKYLIGHT_REFRESH_TOKEN` and `SKYLIGHT_DEVICE_FINGERPRINT`: An OAuth refresh token and the device ID that goes with it. OSCAR uses them to get short-lived access tokens, like Skylight's own apps do. See [Skylight credentials](#skylight-credentials).
+    - `SKYLIGHT_AUTH_HEADER`: A fixed value for the `Authorization` header, e.g. `Basic abc123...`. Only useful if you have a long-lived token. The `Bearer` tokens that the Skylight web app uses expire within a day.
 - `SKYLIGHT_CATEGORY_ID` (optional): The ID of the profile (Skylight calls these "categories") to assign chores to. If not set, chores are added as "up for grabs".
 - `SKYLIGHT_COMPLETED_BY_CATEGORY_ID` (optional): The ID of the profile to credit when OSCAR marks a chore complete. Skylight requires a profile for every completion, even for "up for grabs" chores. Defaults to `SKYLIGHT_CATEGORY_ID`. If neither is set, chores aren't marked complete, and checking off a task shows a warning.
 - `SKYLIGHT_TIMEZONE` (optional): The time zone of your Skylight, as an IANA name like `America/Chicago`. Used to convert a task's due date to the chore's date and time. Defaults to `UTC`.
 - `SKYLIGHT_API_URL` (optional): Defaults to `https://app.ourskylight.com/api`.
 - `SKYLIGHT_API_VERSION` (optional): The `skylight-api-version` header to send. Defaults to `2026-08-05`.
+- `SKYLIGHT_OAUTH_URL` (optional): The token endpoint. Defaults to `https://app.ourskylight.com/oauth/token`.
+- `SKYLIGHT_OAUTH_CLIENT_ID` (optional): The OAuth client ID. Defaults to `skylight-mobile`.
 
-To find your auth header and frame ID:
+#### Skylight credentials
 
-1. Log in to the Skylight web app at [ourskylight.com](https://ourskylight.com/) in a desktop browser.
-1. Open the browser's developer tools (F12), and go to the **Network** tab.
-1. Open any page for your frame (e.g. the calendar or chores), so that the app makes some API requests.
-1. Filter the requests for `api/frames`, and click on one, e.g. `https://app.ourskylight.com/api/frames/1234567/chores?...`.
-    * The number after `/frames/` is your frame ID.
-    * Under **Request Headers**, copy the full value of `Authorization` (including the `Basic` or `Bearer` part).
-1. **Don't log out** of Skylight in that browser (just close the tab). Logging out can invalidate the token.
+Skylight's refresh tokens change every time they're used. OSCAR starts with `SKYLIGHT_REFRESH_TOKEN`, then keeps the latest one in the database (in the `integration_tokens` table, encrypted with `ENCRYPTION_KEY`). So you only need to set it up once, unless the token is revoked.
 
-To find the ID of a profile to assign chores to (or credit completions to), look for a request to `.../api/frames/{frame ID}/categories` in the Network tab, or run:
+To get a refresh token and device fingerprint:
 
-```bash
-curl -H "Authorization: $SKYLIGHT_AUTH_HEADER" -H "Accept: application/json" "https://app.ourskylight.com/api/frames/$SKYLIGHT_FRAME_ID/categories"
-```
+1. Open a **private/incognito window** in a desktop browser, and log in to the Skylight web app at [ourskylight.com](https://ourskylight.com/).
+    * Use a separate login like this because once OSCAR uses the refresh token, the browser's copy stops working, and that browser session would be logged out.
+1. Open the browser's developer tools (F12), go to the **Console** tab, and run:
+    ```js
+    JSON.parse(localStorage.getItem('mmkv.default\\auth-storage')).state
+    ```
+1. Copy the `refreshToken` value into `SKYLIGHT_REFRESH_TOKEN`, and the `uniqueId` value into `SKYLIGHT_DEVICE_FINGERPRINT`.
+1. Find your frame ID: go to the **Network** tab, open any page for your frame (e.g. the calendar or chores), and filter the requests for `api/frames`. The number after `/frames/` (e.g. `https://app.ourskylight.com/api/frames/1234567/chores?...`) is your frame ID.
+1. Close the window **without logging out**. Logging out revokes the token.
+1. Restart (or redeploy) the API.
 
-Each entry in `data` has an `id`, and its `attributes.label` is the profile's name.
+If OSCAR reports "Skylight rejected the refresh token", the token was revoked (e.g. by logging out of that session) or expired. Repeat the steps above, and set the new token in `SKYLIGHT_REFRESH_TOKEN`. A new value there replaces the token in the database. (Leaving the old value set is fine, since OSCAR only uses it again if it changes.) The server logs have more details about failures.
 
-If sending to Skylight starts failing with "The Skylight API responded with status 401", the token has expired or been revoked. Repeat the steps above to get a new one. (The server logs have more details about failures.) Skylight hasn't documented how long its tokens last. `Basic` tokens seem to last until you log out, but `Bearer` tokens may expire much sooner.
+Refresh tokens may expire if they aren't used for a while (Skylight hasn't documented how long). To keep the token in use, set up the daily [scheduled run](#scheduled-runs).
+
+To find the ID of a profile to assign chores to (or credit completions to), look for a request to `.../api/frames/{frame ID}/categories` in the Network tab. Each entry in `data` has an `id`, and its `attributes.label` is the profile's name.
+
+### Scheduled runs
+
+Some integrations need to do things regularly, even when OSCAR isn't being used. Currently, the Skylight integration refreshes its tokens, so that the refresh token doesn't expire from disuse. Run the scheduled tasks once a day:
+
+* **AWS Lambda:** In Amazon EventBridge, create a rule with a schedule (e.g. `rate(1 day)`) that targets the Lambda function. The Lambda recognizes the rule's `Scheduled Event` events. (If you use EventBridge _Scheduler_ instead, set the target's input to `{"detail-type": "Scheduled Event"}`.) A failed run shows up as a Lambda error, so you can set a CloudWatch alarm on the function's `Errors` metric.
+* **Elsewhere:** Run `npm run scheduled` (e.g. from cron), with the same configuration as the server. It exits with an error if a task fails.
 
 How tasks are converted to chores:
 

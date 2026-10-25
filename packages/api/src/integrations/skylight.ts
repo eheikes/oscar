@@ -10,6 +10,7 @@ import { getItem, type Item } from '../items.js'
 import { logger } from '../logger.js'
 import type { Integration } from './index.js'
 import { addItemLink, getItemLinks } from './links.js'
+import { getAuthorizationHeader, keepTokensAlive, usesRefreshToken } from './skylight-auth.js'
 
 const REQUEST_TIMEOUT_MS = 10000
 const MAX_LOGGED_BODY_LENGTH = 1000
@@ -57,22 +58,31 @@ const getChoreId = (body: unknown): string => {
 const skylightRequest = async (method: string, path: string, body: unknown): Promise<unknown> => {
   const config = getConfig()
   const frameId = encodeURIComponent(config.SKYLIGHT_FRAME_ID ?? '')
-  let res: Response
-  try {
-    res = await fetch(`${config.SKYLIGHT_API_URL}/frames/${frameId}${path}`, {
-      method,
-      headers: {
-        Accept: 'application/json',
-        Authorization: config.SKYLIGHT_AUTH_HEADER ?? '',
-        'Content-Type': 'application/json',
-        'skylight-api-version': config.SKYLIGHT_API_VERSION
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
-    })
-  } catch (err) {
-    logger.error({ err }, 'Skylight request failed')
-    throw new UpstreamError('Could not reach the Skylight API')
+  const send = async (authorization: string): Promise<Response> => {
+    try {
+      return await fetch(`${config.SKYLIGHT_API_URL}/frames/${frameId}${path}`, {
+        method,
+        headers: {
+          Accept: 'application/json',
+          Authorization: authorization,
+          'Content-Type': 'application/json',
+          'skylight-api-version': config.SKYLIGHT_API_VERSION
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      })
+    } catch (err) {
+      logger.error({ err }, 'Skylight request failed')
+      throw new UpstreamError('Could not reach the Skylight API')
+    }
+  }
+
+  const authorization = await getAuthorizationHeader()
+  let res = await send(authorization)
+  if (res.status === 401 && usesRefreshToken(config)) {
+    // The access token may have been revoked before it expired. Get a new one and try once more.
+    logger.warn('Skylight rejected the access token; refreshing it')
+    res = await send(await getAuthorizationHeader(authorization))
   }
 
   if (!res.ok) {
@@ -163,16 +173,19 @@ const router = Router()
 router.post('/chores', createChoreController)
 /* eslint-enable @typescript-eslint/no-misused-promises */
 
-const requiredSettings = ['SKYLIGHT_AUTH_HEADER', 'SKYLIGHT_FRAME_ID'] as const
+const isSet = (value: string | undefined): boolean => (value ?? '').trim() !== ''
 
 export const skylight: Integration = {
   id: 'skylight',
   name: 'Skylight Calendar',
   assertConfigured: (config: Config) => {
-    for (const setting of requiredSettings) {
-      if ((config[setting] ?? '').trim() === '') {
-        throw new Error(`${setting} must be set to enable the Skylight integration`)
-      }
+    if (!isSet(config.SKYLIGHT_FRAME_ID)) {
+      throw new Error('SKYLIGHT_FRAME_ID must be set to enable the Skylight integration')
+    }
+    const hasAuthHeader = isSet(config.SKYLIGHT_AUTH_HEADER)
+    const hasFingerprint = isSet(config.SKYLIGHT_DEVICE_FINGERPRINT)
+    if (hasAuthHeader === hasFingerprint) {
+      throw new Error('Set either SKYLIGHT_AUTH_HEADER, or SKYLIGHT_DEVICE_FINGERPRINT and SKYLIGHT_REFRESH_TOKEN, to enable the Skylight integration (not both)')
     }
     try {
       toChoreSchedule(null, config.SKYLIGHT_TIMEZONE)
@@ -181,5 +194,6 @@ export const skylight: Integration = {
     }
   },
   router,
-  onItemCompleted: completeItemChores
+  onItemCompleted: completeItemChores,
+  onScheduled: keepTokensAlive
 }

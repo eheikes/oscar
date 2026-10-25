@@ -53,9 +53,21 @@ describe('integrations', () => {
       expect(() => getEnabledIntegrations()).toThrow('Unknown integration "bogus" in INTEGRATIONS')
     })
 
-    it('should require the Skylight auth header', () => {
+    it('should require Skylight credentials', () => {
       reload({ INTEGRATIONS: 'skylight', SKYLIGHT_AUTH_HEADER: ' ', SKYLIGHT_FRAME_ID: '123' })
-      expect(() => getEnabledIntegrations()).toThrow('SKYLIGHT_AUTH_HEADER must be set to enable the Skylight integration')
+      delete process.env.SKYLIGHT_DEVICE_FINGERPRINT
+      clearConfig()
+      expect(() => getEnabledIntegrations()).toThrow('Set either SKYLIGHT_AUTH_HEADER, or SKYLIGHT_DEVICE_FINGERPRINT and SKYLIGHT_REFRESH_TOKEN, to enable the Skylight integration (not both)')
+    })
+
+    it('should not allow both kinds of Skylight credentials', () => {
+      reload({ INTEGRATIONS: 'skylight', SKYLIGHT_AUTH_HEADER: 'Basic abc', SKYLIGHT_DEVICE_FINGERPRINT: 'abc-123', SKYLIGHT_FRAME_ID: '123' })
+      expect(() => getEnabledIntegrations()).toThrow('(not both)')
+    })
+
+    it('should allow a Skylight refresh token instead of an auth header', () => {
+      reload({ INTEGRATIONS: 'skylight', SKYLIGHT_DEVICE_FINGERPRINT: 'abc-123', SKYLIGHT_REFRESH_TOKEN: 'refresh', SKYLIGHT_FRAME_ID: '123' })
+      expect(getEnabledIntegrations().map(integration => integration.id)).toEqual(['skylight'])
     })
 
     it('should require the Skylight frame ID', () => {

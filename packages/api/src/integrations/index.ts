@@ -14,6 +14,8 @@ export interface Integration {
   router: Router
   // Called after an item is checked off (soft-deleted). Throws if the integration couldn't be updated.
   onItemCompleted?: (item: Item) => Promise<void>
+  // Called by the scheduled (e.g. daily) run. Throws if it fails.
+  onScheduled?: () => Promise<void>
 }
 
 export interface IntegrationInfo {
@@ -65,6 +67,24 @@ export const notifyItemCompleted = async (item: Item): Promise<string[]> => {
     }
   }
   return warnings
+}
+
+// Runs the scheduled tasks of the enabled integrations (e.g. keeping their tokens alive).
+// Runs all of them, then throws if any failed, so that the failure shows up (e.g. as a Lambda error).
+export const runScheduledTasks = async (): Promise<void> => {
+  const failed: string[] = []
+  for (const integration of getEnabledIntegrations()) {
+    if (integration.onScheduled === undefined) { continue }
+    try {
+      await integration.onScheduled()
+    } catch (err) {
+      logger.error({ err, integration: integration.id }, 'Integration scheduled task failed')
+      failed.push(integration.id)
+    }
+  }
+  if (failed.length > 0) {
+    throw new Error(`Scheduled tasks failed for: ${failed.join(', ')}`)
+  }
 }
 
 // Helper function for tests

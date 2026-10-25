@@ -55,10 +55,11 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     return
   }
 
-  // Failures of external services should return a 502.
-  // The message is shown to the client, so it should not include anything from the service's response.
-  if (err instanceof UpstreamError) {
-    res.status(502)
+  // Failures of external services should return a 502, and other integration problems (e.g. missing
+  // settings) a 500. The message is shown to the client, so it should not include anything from the
+  // service's response.
+  if (err instanceof IntegrationError) {
+    res.status(err instanceof UpstreamError ? 502 : 500)
     res.send({ error: err.message })
     return
   }

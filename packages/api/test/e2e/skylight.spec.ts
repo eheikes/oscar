@@ -1,19 +1,11 @@
-import { createServer, type IncomingHttpHeaders, type Server } from 'node:http'
-import { type AddressInfo } from 'node:net'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { clearConfig, getConfig } from '../../src/config.js'
 import { getDatabaseConnection } from '../../src/database.js'
-import { clearIntegrations } from '../../src/integrations/index.js'
+import { clearIntegrations, runScheduledTasks } from '../../src/integrations/index.js'
 import { getItemLinks } from '../../src/integrations/links.js'
 import { toChoreSchedule } from '../../src/integrations/skylight.js'
 import { authedRequest } from './helpers/auth.js'
-
-interface SkylightRequest {
-  method: string
-  url: string
-  headers: IncomingHttpHeaders
-  body: unknown
-}
+import { type FakeSkylight, setEnv as setProcessEnv, startFakeSkylight } from './helpers/fake-skylight.js'
 
 describe('Skylight integration', () => {
   const db = getDatabaseConnection()
@@ -34,46 +26,23 @@ describe('Skylight integration', () => {
     updated_at: new Date('2024-05-31T06:28:34.356Z')
   }
 
-  // A fake Skylight API, which records the requests it gets.
-  let server: Server
-  let serverUrl = ''
-  let requests: SkylightRequest[] = []
-  let responseStatus = 200
-  let responseBody: unknown = {}
-
+  let fake: FakeSkylight
   let app: Parameters<typeof authedRequest>[0]
   let originalEnv: NodeJS.ProcessEnv
 
   const setEnv = (env: Record<string, string | undefined>): void => {
-    for (const [key, value] of Object.entries(env)) {
-      if (value === undefined) {
-        Reflect.deleteProperty(process.env, key)
-      } else {
-        process.env[key] = value
-      }
-    }
+    setProcessEnv(env)
     clearConfig()
   }
 
   beforeAll(async () => {
-    server = createServer((req, res) => {
-      let body = ''
-      req.on('data', (chunk: Buffer) => { body += chunk.toString() })
-      req.on('end', () => {
-        requests.push({ method: req.method ?? '', url: req.url ?? '', headers: req.headers, body: JSON.parse(body) })
-        res.writeHead(responseStatus, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(responseBody))
-      })
-    })
-    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
-    const { port } = server.address() as AddressInfo
-    serverUrl = `http://127.0.0.1:${port}/api`
+    fake = await startFakeSkylight()
 
     getConfig() // load the .env files into process.env first
     originalEnv = { ...process.env }
     setEnv({
       INTEGRATIONS: 'skylight',
-      SKYLIGHT_API_URL: serverUrl,
+      SKYLIGHT_API_URL: fake.apiUrl,
       SKYLIGHT_AUTH_HEADER: 'Basic c2VjcmV0',
       SKYLIGHT_FRAME_ID: '4567',
       SKYLIGHT_TIMEZONE: 'America/Chicago'
@@ -87,14 +56,13 @@ describe('Skylight integration', () => {
     process.env = originalEnv
     clearConfig()
     clearIntegrations()
-    await new Promise(resolve => server.close(resolve))
+    await fake.close()
   })
 
   beforeEach(async () => {
-    requests = []
-    responseStatus = 200
-    responseBody = { data: { type: 'chore', id: '98765', attributes: {} } }
-    setEnv({ SKYLIGHT_API_URL: serverUrl, SKYLIGHT_CATEGORY_ID: '13600771', SKYLIGHT_COMPLETED_BY_CATEGORY_ID: undefined })
+    fake.reset()
+    fake.apiResponse.body = { data: { type: 'chore', id: '98765', attributes: {} } }
+    setEnv({ SKYLIGHT_API_URL: fake.apiUrl, SKYLIGHT_CATEGORY_ID: '13600771', SKYLIGHT_COMPLETED_BY_CATEGORY_ID: undefined })
     await db('item_integration_links').delete()
     await db('item_labels').delete()
     await db('items').delete()
@@ -116,8 +84,8 @@ describe('Skylight integration', () => {
         .expect(201)
       expect(response.body).toEqual({ choreId: '98765' })
 
-      expect(requests).toHaveLength(1)
-      expect(requests[0]).toMatchObject({
+      expect(fake.requests).toHaveLength(1)
+      expect(fake.requests[0]).toMatchObject({
         method: 'POST',
         url: '/api/frames/4567/chores',
         headers: {
@@ -126,7 +94,7 @@ describe('Skylight integration', () => {
           'skylight-api-version': getConfig().SKYLIGHT_API_VERSION
         }
       })
-      expect(requests[0].body).toEqual({
+      expect(fake.requests[0].body).toEqual({
         summary: task.title,
         description: task.summary,
         start: '2030-01-15',
@@ -138,14 +106,14 @@ describe('Skylight integration', () => {
 
     it('should create an "up for grabs" chore when no category is configured', async () => {
       setEnv({ SKYLIGHT_CATEGORY_ID: undefined })
-      responseBody = { data: [{ type: 'chore', id: 55555, attributes: {} }] }
+      fake.apiResponse.body = { data: [{ type: 'chore', id: 55555, attributes: {} }] }
       const response = await authedRequest(app).post('/integrations/skylight/chores')
         .send({ itemId: task.id })
         .expect(201)
       expect(response.body).toEqual({ choreId: '55555' })
 
-      expect(requests[0].url).toBe('/api/frames/4567/chores/create_multiple')
-      expect(requests[0].body).toEqual({
+      expect(fake.requests[0].url).toBe('/api/frames/4567/chores/create_multiple')
+      expect(fake.requests[0].body).toEqual({
         summary: task.title,
         description: task.summary,
         start: '2030-01-15',
@@ -159,7 +127,7 @@ describe('Skylight integration', () => {
       await authedRequest(app).post('/integrations/skylight/chores')
         .send({ itemId: task.id })
         .expect(201)
-      expect(requests[0].body).not.toHaveProperty('description')
+      expect(fake.requests[0].body).not.toHaveProperty('description')
     })
 
     it('should not send items that are not tasks', async () => {
@@ -167,26 +135,26 @@ describe('Skylight integration', () => {
         .send({ itemId: nonTask.id })
         .expect(400)
       expect(response.body).toEqual({ error: 'Only tasks can be sent to Skylight' })
-      expect(requests).toHaveLength(0)
+      expect(fake.requests).toHaveLength(0)
     })
 
     it('should return a 404 for a missing item', async () => {
       await authedRequest(app).post('/integrations/skylight/chores')
         .send({ itemId: 'c0ffee00-0000-4000-8000-000000000000' })
         .expect(404)
-      expect(requests).toHaveLength(0)
+      expect(fake.requests).toHaveLength(0)
     })
 
     it('should require an item ID', async () => {
       await authedRequest(app).post('/integrations/skylight/chores')
         .send({})
         .expect(400)
-      expect(requests).toHaveLength(0)
+      expect(fake.requests).toHaveLength(0)
     })
 
     it('should return a 502 without the response details when Skylight rejects the request', async () => {
-      responseStatus = 401
-      responseBody = { errors: [{ detail: 'secret details' }] }
+      fake.apiResponse.status = 401
+      fake.apiResponse.body = { errors: [{ detail: 'secret details' }] }
       const response = await authedRequest(app).post('/integrations/skylight/chores')
         .send({ itemId: task.id })
         .expect(502)
@@ -202,7 +170,7 @@ describe('Skylight integration', () => {
     })
 
     it('should return an empty chore ID if Skylight does not return one', async () => {
-      responseBody = {}
+      fake.apiResponse.body = {}
       const response = await authedRequest(app).post('/integrations/skylight/chores')
         .send({ itemId: task.id })
         .expect(201)
@@ -229,7 +197,7 @@ describe('Skylight integration', () => {
     })
 
     it('should not remember a chore without an ID', async () => {
-      responseBody = {}
+      fake.apiResponse.body = {}
       await authedRequest(app).post('/integrations/skylight/chores')
         .send({ itemId: task.id })
         .expect(201)
@@ -243,8 +211,8 @@ describe('Skylight integration', () => {
       expect(body).toMatchObject({ id: task.id, deletedAt: '2030-01-15T16:00:00.000Z' })
       expect(body).not.toHaveProperty('warnings')
 
-      expect(requests).toHaveLength(2)
-      expect(requests).toEqual(expect.arrayContaining([
+      expect(fake.requests).toHaveLength(2)
+      expect(fake.requests).toEqual(expect.arrayContaining([
         expect.objectContaining({
           method: 'PUT',
           url: '/api/frames/4567/chores/98765/completions',
@@ -263,14 +231,14 @@ describe('Skylight integration', () => {
       setEnv({ SKYLIGHT_CATEGORY_ID: undefined, SKYLIGHT_COMPLETED_BY_CATEGORY_ID: '24680' })
       await linkChore(task.id, '98765')
       await completeTask()
-      expect(requests.map(request => request.body)).toEqual([{ status: 'complete', category_id: '24680' }])
+      expect(fake.requests.map(request => request.body)).toEqual([{ status: 'complete', category_id: '24680' }])
     })
 
     it('should fall back to the chore profile if the "completed by" profile is blank', async () => {
       setEnv({ SKYLIGHT_COMPLETED_BY_CATEGORY_ID: ' ' })
       await linkChore(task.id, '98765')
       await completeTask()
-      expect(requests.map(request => request.body)).toEqual([{ status: 'complete', category_id: '13600771' }])
+      expect(fake.requests.map(request => request.body)).toEqual([{ status: 'complete', category_id: '13600771' }])
     })
 
     it('should warn, without contacting Skylight, if no profile is configured', async () => {
@@ -281,7 +249,7 @@ describe('Skylight integration', () => {
         deletedAt: '2030-01-15T16:00:00.000Z',
         warnings: ['Could not mark the item as completed in Skylight Calendar: Set SKYLIGHT_COMPLETED_BY_CATEGORY_ID (or SKYLIGHT_CATEGORY_ID) on the server to mark chores complete']
       })
-      expect(requests).toHaveLength(0)
+      expect(fake.requests).toHaveLength(0)
     })
 
     it('should not need a profile for items without linked chores', async () => {
@@ -292,7 +260,7 @@ describe('Skylight integration', () => {
 
     it('should still check off the item, with a warning, if Skylight fails', async () => {
       await linkChore(task.id, '98765')
-      responseStatus = 401
+      fake.apiResponse.status = 401
       const body = await completeTask()
       expect(body).toMatchObject({
         deletedAt: '2030-01-15T16:00:00.000Z',
@@ -305,7 +273,7 @@ describe('Skylight integration', () => {
     it('should not contact Skylight for items without linked chores', async () => {
       const body = await completeTask()
       expect(body).not.toHaveProperty('warnings')
-      expect(requests).toHaveLength(0)
+      expect(fake.requests).toHaveLength(0)
     })
 
     it('should not contact Skylight for other updates', async () => {
@@ -322,7 +290,7 @@ describe('Skylight integration', () => {
       await authedRequest(app).patch(`/items/${task.id}`)
         .send({ deletedAt: null })
         .expect(200)
-      expect(requests).toHaveLength(0)
+      expect(fake.requests).toHaveLength(0)
     })
 
     it('should delete the links when the item is deleted', async () => {
@@ -330,6 +298,13 @@ describe('Skylight integration', () => {
       await authedRequest(app).delete(`/items/${task.id}`)
         .expect(204)
       expect(await getItemLinks(task.id, 'skylight')).toEqual([])
+    })
+  })
+
+  describe('scheduled runs', () => {
+    it('should not do anything with a fixed auth header', async () => {
+      await runScheduledTasks()
+      expect(fake.requests).toHaveLength(0)
     })
   })
 
