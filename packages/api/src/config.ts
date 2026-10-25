@@ -30,6 +30,7 @@ const fields = {
   SKYLIGHT_API_VERSION: z.string().default('2026-08-05'), // sent in the skylight-api-version header
   SKYLIGHT_AUTH_HEADER: z.string().optional(), // full Authorization header value, e.g. "Basic abc123"
   SKYLIGHT_CATEGORY_ID: z.string().optional(), // profile to assign chores to; unassigned ("up for grabs") if not set
+  SKYLIGHT_COMPLETED_BY_CATEGORY_ID: z.string().optional(), // profile that completes chores; defaults to SKYLIGHT_CATEGORY_ID
   SKYLIGHT_FRAME_ID: z.string().optional(),
   SKYLIGHT_TIMEZONE: z.string().default('UTC'), // for converting due dates to the Skylight's local date/time
   WORK_CHUNK_SIZE: z.coerce.number().default(30)

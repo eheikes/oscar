@@ -5,7 +5,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { type Config, getConfig } from '../config.js'
 import type { Controller } from '../controllers.js'
-import { ClientError, UpstreamError } from '../error.js'
+import { ClientError, IntegrationError, UpstreamError } from '../error.js'
 import { getItem, type Item } from '../items.js'
 import { logger } from '../logger.js'
 import type { Integration } from './index.js'
@@ -105,11 +105,19 @@ export const createChore = async (item: Item): Promise<ChoreResult> => {
 // occurrence of a recurring chore (e.g. "18731133-2026-04-28" or "70190003-2026-04-28-0600").
 const choreIdPattern = /^(\d+)-(\d{4}-\d{2}-\d{2})(?:-(\d{2})(\d{2}))?$/
 
-export const completeChore = async (choreId: string): Promise<void> => {
+// Skylight requires the profile (category) that completed the chore, even for "up for grabs" chores.
+const getCompletedByCategoryId = (): string => {
+  const config = getConfig()
+  const completedBy = config.SKYLIGHT_COMPLETED_BY_CATEGORY_ID?.trim() ?? ''
+  return completedBy !== '' ? completedBy : config.SKYLIGHT_CATEGORY_ID?.trim() ?? ''
+}
+
+export const completeChore = async (choreId: string, categoryId: string): Promise<void> => {
   const match = choreIdPattern.exec(choreId)
   const baseId = match === null ? choreId : match[1]
   const completion = {
     status: 'complete',
+    category_id: categoryId,
     instance_date: match?.[2],
     instance_time: match?.[3] === undefined ? undefined : `${match[3]}:${match[4]}`
   }
@@ -120,7 +128,12 @@ export const completeChore = async (choreId: string): Promise<void> => {
 // Marks all the chores the item was sent as complete. Tries all of them even if some fail.
 const completeItemChores = async (item: Item): Promise<void> => {
   const choreIds = await getItemLinks(item.id, skylight.id)
-  const results = await Promise.allSettled(choreIds.map(completeChore))
+  if (choreIds.length === 0) { return }
+  const categoryId = getCompletedByCategoryId()
+  if (categoryId === '') {
+    throw new IntegrationError('Set SKYLIGHT_COMPLETED_BY_CATEGORY_ID (or SKYLIGHT_CATEGORY_ID) on the server to mark chores complete')
+  }
+  const results = await Promise.allSettled(choreIds.map(async choreId => await completeChore(choreId, categoryId)))
   const failure = results.find(result => result.status === 'rejected')
   if (failure !== undefined) {
     throw failure.reason

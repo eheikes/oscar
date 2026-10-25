@@ -80,6 +80,7 @@ Settings:
 - `SKYLIGHT_AUTH_HEADER` (required): The full value of the `Authorization` header that Skylight's apps send, e.g. `Basic abc123...` or `Bearer abc123...`. Treat it like a password.
 - `SKYLIGHT_FRAME_ID` (required): The ID of your Skylight frame (a number).
 - `SKYLIGHT_CATEGORY_ID` (optional): The ID of the profile (Skylight calls these "categories") to assign chores to. If not set, chores are added as "up for grabs".
+- `SKYLIGHT_COMPLETED_BY_CATEGORY_ID` (optional): The ID of the profile to credit when OSCAR marks a chore complete. Skylight requires a profile for every completion, even for "up for grabs" chores. Defaults to `SKYLIGHT_CATEGORY_ID`. If neither is set, chores aren't marked complete, and checking off a task shows a warning.
 - `SKYLIGHT_TIMEZONE` (optional): The time zone of your Skylight, as an IANA name like `America/Chicago`. Used to convert a task's due date to the chore's date and time. Defaults to `UTC`.
 - `SKYLIGHT_API_URL` (optional): Defaults to `https://app.ourskylight.com/api`.
 - `SKYLIGHT_API_VERSION` (optional): The `skylight-api-version` header to send. Defaults to `2026-08-05`.
@@ -94,7 +95,7 @@ To find your auth header and frame ID:
     * Under **Request Headers**, copy the full value of `Authorization` (including the `Basic` or `Bearer` part).
 1. **Don't log out** of Skylight in that browser (just close the tab). Logging out can invalidate the token.
 
-To find the ID of a profile to assign chores to, look for a request to `.../api/frames/{frame ID}/categories` in the Network tab, or run:
+To find the ID of a profile to assign chores to (or credit completions to), look for a request to `.../api/frames/{frame ID}/categories` in the Network tab, or run:
 
 ```bash
 curl -H "Authorization: $SKYLIGHT_AUTH_HEADER" -H "Accept: application/json" "https://app.ourskylight.com/api/frames/$SKYLIGHT_FRAME_ID/categories"

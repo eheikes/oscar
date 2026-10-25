@@ -1,6 +1,6 @@
 import { type Router } from 'express'
 import { type Config, getConfig } from '../config.js'
-import { UpstreamError } from '../error.js'
+import { IntegrationError } from '../error.js'
 import type { Item } from '../items.js'
 import { logger } from '../logger.js'
 import { skylight } from './skylight.js'
@@ -60,7 +60,7 @@ export const notifyItemCompleted = async (item: Item): Promise<string[]> => {
     } catch (err) {
       logger.error({ err, itemId: item.id, integration: integration.id }, 'Integration failed to complete item')
       // Only pass on messages that are meant for the client.
-      const reason = err instanceof UpstreamError ? `: ${err.message}` : ''
+      const reason = err instanceof IntegrationError ? `: ${err.message}` : ''
       warnings.push(`Could not mark the item as completed in ${integration.name}${reason}`)
     }
   }

@@ -13,8 +13,11 @@ export class MissingRouteError extends Error {}
 
 export class NotFoundError extends Error {}
 
+// An integration couldn't do something. The message is meant to be shown to the client.
+export class IntegrationError extends Error {}
+
 // A request to an external service (e.g. an integration) failed.
-export class UpstreamError extends Error {}
+export class UpstreamError extends IntegrationError {}
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
   // Delegate to the default Express handler if headers have been sent.

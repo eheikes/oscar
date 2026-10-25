@@ -94,7 +94,7 @@ describe('Skylight integration', () => {
     requests = []
     responseStatus = 200
     responseBody = { data: { type: 'chore', id: '98765', attributes: {} } }
-    setEnv({ SKYLIGHT_API_URL: serverUrl, SKYLIGHT_CATEGORY_ID: '13600771' })
+    setEnv({ SKYLIGHT_API_URL: serverUrl, SKYLIGHT_CATEGORY_ID: '13600771', SKYLIGHT_COMPLETED_BY_CATEGORY_ID: undefined })
     await db('item_integration_links').delete()
     await db('item_labels').delete()
     await db('items').delete()
@@ -249,14 +249,45 @@ describe('Skylight integration', () => {
           method: 'PUT',
           url: '/api/frames/4567/chores/98765/completions',
           headers: expect.objectContaining({ authorization: 'Basic c2VjcmV0' }),
-          body: { status: 'complete' }
+          body: { status: 'complete', category_id: '13600771' }
         }),
         expect.objectContaining({
           method: 'PUT',
           url: '/api/frames/4567/chores/55780859/completions',
-          body: { status: 'complete', instance_date: '2030-01-15', instance_time: '06:00' }
+          body: { status: 'complete', category_id: '13600771', instance_date: '2030-01-15', instance_time: '06:00' }
         })
       ]))
+    })
+
+    it('should credit the completion to the "completed by" profile, if set', async () => {
+      setEnv({ SKYLIGHT_CATEGORY_ID: undefined, SKYLIGHT_COMPLETED_BY_CATEGORY_ID: '24680' })
+      await linkChore(task.id, '98765')
+      await completeTask()
+      expect(requests.map(request => request.body)).toEqual([{ status: 'complete', category_id: '24680' }])
+    })
+
+    it('should fall back to the chore profile if the "completed by" profile is blank', async () => {
+      setEnv({ SKYLIGHT_COMPLETED_BY_CATEGORY_ID: ' ' })
+      await linkChore(task.id, '98765')
+      await completeTask()
+      expect(requests.map(request => request.body)).toEqual([{ status: 'complete', category_id: '13600771' }])
+    })
+
+    it('should warn, without contacting Skylight, if no profile is configured', async () => {
+      setEnv({ SKYLIGHT_CATEGORY_ID: undefined })
+      await linkChore(task.id, '98765')
+      const body = await completeTask()
+      expect(body).toMatchObject({
+        deletedAt: '2030-01-15T16:00:00.000Z',
+        warnings: ['Could not mark the item as completed in Skylight Calendar: Set SKYLIGHT_COMPLETED_BY_CATEGORY_ID (or SKYLIGHT_CATEGORY_ID) on the server to mark chores complete']
+      })
+      expect(requests).toHaveLength(0)
+    })
+
+    it('should not need a profile for items without linked chores', async () => {
+      setEnv({ SKYLIGHT_CATEGORY_ID: undefined })
+      const body = await completeTask()
+      expect(body).not.toHaveProperty('warnings')
     })
 
     it('should still check off the item, with a warning, if Skylight fails', async () => {
