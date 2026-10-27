@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { getIntegrations, notifyItemCompleted } from './integrations/index.js'
 import { addItem, deleteItem, getItem, getItems, getNextItem, getRetroItems, updateItem } from './items.js'
 import { getLabels } from './labels.js'
 import { getTypes } from './types.js'
@@ -19,8 +20,9 @@ export const deleteItemController: Controller<ItemParams> = async (req, res) => 
 }
 
 export const updateItemController: Controller<ItemParams> = async (req, res) => {
-  const result = await updateItem(req.params.itemId, req.body)
-  res.status(200).json(result)
+  const { item, completed } = await updateItem(req.params.itemId, req.body)
+  const warnings = completed ? await notifyItemCompleted(item) : []
+  res.status(200).json(warnings.length > 0 ? { ...item, warnings } : item)
 }
 
 export const getItemController: Controller<ItemParams> = async (req, res) => {
@@ -50,6 +52,10 @@ export const getProfileController: Controller = async (req, res) => {
 export const getTypesController: Controller = async (req, res) => {
   const result = await getTypes(req.query)
   res.json(result)
+}
+
+export const getIntegrationsController: Controller = async (req, res) => {
+  res.json(getIntegrations())
 }
 
 export const getLabelsController: Controller = async (req, res) => {

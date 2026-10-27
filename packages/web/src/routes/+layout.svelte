@@ -4,6 +4,7 @@
   import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
   import { authStore, consumeReturnTo, initializeAuth0, logout, redirectToLogin } from '$lib/auth.js';
+  import { loadIntegrations } from '$lib/integrations.js';
   import QuickAddOverlay from '$lib/QuickAddOverlay.svelte';
   import Toasts from '$lib/Toasts.svelte';
 
@@ -33,6 +34,7 @@
       }
       return;
     }
+    void loadIntegrations();
     // Once logged in, go back to the page (and filters) the user was on
     // before being sent to the login page.
     const returnTo = consumeReturnTo();

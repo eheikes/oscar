@@ -8,6 +8,15 @@ export interface Label {
   readable: string
 }
 
+export interface Integration {
+  id: string
+  name: string
+}
+
+export interface SkylightChoreResult {
+  choreId: string
+}
+
 export interface ItemRef {
   id: string
   title: string
@@ -29,6 +38,8 @@ export interface Item {
   parentId: string | null
   summary: string | null
   uri: string | null
+  // Problems with integrations (e.g. Skylight) when updating the item. Only included in update responses.
+  warnings?: string[]
 }
 
 export interface NextItemResult {

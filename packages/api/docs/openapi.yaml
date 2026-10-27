@@ -269,11 +269,21 @@ paths:
               $ref: '#/components/schemas/UpdateItemRequest'
       responses:
         '200':
-          description: Updated item.
+          description: >-
+            Updated item. If the update checked off the item (set `deletedAt`) and an enabled
+            integration couldn't be updated (e.g. completing the item's Skylight chores), the item
+            is still updated, and `warnings` describes the problems.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                allOf:
+                  - $ref: '#/components/schemas/Item'
+                  - type: object
+                    properties:
+                      warnings:
+                        type: array
+                        items:
+                          type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -346,6 +356,71 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /integrations:
+    get:
+      tags:
+        - Integrations
+      summary: List enabled integrations
+      description: Returns the integrations enabled on this server (with the `INTEGRATIONS` setting).
+      responses:
+        '200':
+          description: Array of enabled integrations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Integration'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /integrations/skylight/chores:
+    post:
+      tags:
+        - Integrations
+      summary: Send a task to Skylight
+      description: >-
+        Creates a chore in the configured Skylight Calendar from a task item, and remembers it so
+        that the chore is marked complete when the item is checked off. Only available when the `skylight` integration is enabled (otherwise returns 404).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - itemId
+              properties:
+                itemId:
+                  type: string
+                  format: uuid
+                  description: ID of the item to send. Its type must be `task`.
+      responses:
+        '201':
+          description: Chore created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - choreId
+                properties:
+                  choreId:
+                    type: string
+                    description: ID of the new Skylight chore (empty if Skylight didn't return one).
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
 components:
   responses:
     BadRequest:
@@ -368,6 +443,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     NotFound:
       description: Requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadGateway:
+      description: A request to an external service (e.g. an integration) failed.
       content:
         application/json:
           schema:
@@ -609,6 +690,19 @@ components:
           type: string
         readable:
           type: string
+
+    Integration:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          example: skylight
+        name:
+          type: string
+          example: Skylight Calendar
 
     Type:
       type: object

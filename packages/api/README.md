@@ -63,6 +63,71 @@ Items support an optional `parentId` field (`parent_id` in the database) for par
 - Parent items cannot be soft-deleted (`deletedAt` set) until all child items are soft-deleted.
 - `/items/next` ignores parent items while any child is still active (not soft-deleted).
 
+## Integrations
+
+Integrations connect OSCAR to other services. They're built in, but turned off by default. To enable integrations, set `INTEGRATIONS` to a comma-separated list of their IDs (e.g. `INTEGRATIONS=skylight`), along with any settings they need. The server won't start if an enabled integration is missing required settings.
+
+The web app asks the API which integrations are enabled (`GET /integrations`), and only shows the features of those integrations.
+
+### Skylight Calendar (`skylight`)
+
+Lets you send tasks to a [Skylight Calendar](https://ourskylight.com/) as chores, either when adding a task or later from its row in the item list. Checking off a task in OSCAR marks its chores as complete in Skylight.
+
+> **Note:** Skylight doesn't have an official public API. This integration uses the same API as Skylight's own apps, based on community research ([go-skylight](https://github.com/sebrandon1/go-skylight), [skylight-api](https://github.com/TheEagleByte/skylight-api)). It could stop working if Skylight changes that API.
+
+Settings:
+
+- `SKYLIGHT_FRAME_ID` (required): The ID of your Skylight frame (a number).
+- Credentials (required): set **either** the refresh token settings (recommended) **or** `SKYLIGHT_AUTH_HEADER`, not both.
+    - `SKYLIGHT_REFRESH_TOKEN` and `SKYLIGHT_DEVICE_FINGERPRINT`: An OAuth refresh token and the device ID that goes with it. OSCAR uses them to get short-lived access tokens, like Skylight's own apps do. See [Skylight credentials](#skylight-credentials).
+    - `SKYLIGHT_AUTH_HEADER`: A fixed value for the `Authorization` header, e.g. `Basic abc123...`. Only useful if you have a long-lived token. The `Bearer` tokens that the Skylight web app uses expire within a day.
+- `SKYLIGHT_CATEGORY_ID` (optional): The ID of the profile (Skylight calls these "categories") to assign chores to. If not set, chores are added as "up for grabs".
+- `SKYLIGHT_COMPLETED_BY_CATEGORY_ID` (optional): The ID of the profile to credit when OSCAR marks a chore complete. Skylight requires a profile for every completion, even for "up for grabs" chores. Defaults to `SKYLIGHT_CATEGORY_ID`. If neither is set, chores aren't marked complete, and checking off a task shows a warning.
+- `SKYLIGHT_TIMEZONE` (optional): The time zone of your Skylight, as an IANA name like `America/Chicago`. Used to convert a task's due date to the chore's date and time. Defaults to `UTC`.
+- `SKYLIGHT_API_URL` (optional): Defaults to `https://app.ourskylight.com/api`.
+- `SKYLIGHT_API_VERSION` (optional): The `skylight-api-version` header to send. Defaults to `2026-08-05`.
+- `SKYLIGHT_OAUTH_URL` (optional): The token endpoint. Defaults to `https://app.ourskylight.com/oauth/token`.
+- `SKYLIGHT_OAUTH_CLIENT_ID` (optional): The OAuth client ID. Defaults to `skylight-mobile`.
+
+#### Skylight credentials
+
+Skylight's refresh tokens change every time they're used. OSCAR starts with `SKYLIGHT_REFRESH_TOKEN`, then keeps the latest one in the database (in the `integration_tokens` table, encrypted with `ENCRYPTION_KEY`). So you only need to set it up once, unless the token is revoked.
+
+To get a refresh token and device fingerprint:
+
+1. Open a **private/incognito window** in a desktop browser, and log in to the Skylight web app at [ourskylight.com](https://ourskylight.com/).
+    * Use a separate login like this because once OSCAR uses the refresh token, the browser's copy stops working, and that browser session would be logged out.
+1. Open the browser's developer tools (F12), go to the **Console** tab, and run:
+    ```js
+    JSON.parse(localStorage.getItem('mmkv.default\\auth-storage')).state
+    ```
+1. Copy the `refreshToken` value into `SKYLIGHT_REFRESH_TOKEN`, and the `uniqueId` value into `SKYLIGHT_DEVICE_FINGERPRINT`.
+1. Find your frame ID: go to the **Network** tab, open any page for your frame (e.g. the calendar or chores), and filter the requests for `api/frames`. The number after `/frames/` (e.g. `https://app.ourskylight.com/api/frames/1234567/chores?...`) is your frame ID.
+1. Close the window **without logging out**. Logging out revokes the token.
+1. Restart (or redeploy) the API.
+
+If OSCAR reports "Skylight rejected the refresh token", the token was revoked (e.g. by logging out of that session) or expired. Repeat the steps above, and set the new token in `SKYLIGHT_REFRESH_TOKEN`. A new value there replaces the token in the database. (Leaving the old value set is fine, since OSCAR only uses it again if it changes.) The server logs have more details about failures.
+
+Refresh tokens may expire if they aren't used for a while (Skylight hasn't documented how long). To keep the token in use, set up the daily [scheduled run](#scheduled-runs).
+
+To find the ID of a profile to assign chores to (or credit completions to), look for a request to `.../api/frames/{frame ID}/categories` in the Network tab. Each entry in `data` has an `id`, and its `attributes.label` is the profile's name.
+
+### Scheduled runs
+
+Some integrations need to do things regularly, even when OSCAR isn't being used. Currently, the Skylight integration refreshes its tokens, so that the refresh token doesn't expire from disuse. Run the scheduled tasks once a day:
+
+* **AWS Lambda:** In Amazon EventBridge, create a rule with a schedule (e.g. `rate(1 day)`) that targets the Lambda function. The Lambda recognizes the rule's `Scheduled Event` events. (If you use EventBridge _Scheduler_ instead, set the target's input to `{"detail-type": "Scheduled Event"}`.) A failed run shows up as a Lambda error, so you can set a CloudWatch alarm on the function's `Errors` metric.
+* **Elsewhere:** Run `npm run scheduled` (e.g. from cron), with the same configuration as the server. It exits with an error if a task fails.
+
+How tasks are converted to chores:
+
+- The item's title becomes the chore's title, and its summary becomes the chore's description.
+- The due date is converted to the date and time in `SKYLIGHT_TIMEZONE`. A due time of midnight is treated as "any time that day", so the chore gets no time.
+- Tasks without a due date are added for today.
+- Only items with the `task` type can be sent. Sending a task again creates another chore.
+- When a task is checked off in OSCAR, all the chores it was sent as are marked complete in Skylight. If that fails, the task is still checked off, and the web app shows a warning. Restoring (unchecking) a task doesn't change the chores in Skylight. Tasks sent before this feature was added (before migration `0009`) aren't linked to their chores.
+- Other changes to the task (e.g. its title or due date) aren't synced to Skylight.
+
 ## Development
 
 Remember to set your environment variables (using `.env` or other method) to configure the app. Set a `NODE_ENV` environment variable to `development` for debugging.

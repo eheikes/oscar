@@ -309,7 +309,13 @@ const updateItemBodySchema = z.object({
   uri: uriSchema.nullable().optional()
 }).strict()
 
-export const updateItem = async (itemId: string, itemData: unknown): Promise<ItemWithRelations> => {
+export interface UpdateItemResult {
+  item: ItemWithRelations
+  // Whether this update checked off (soft-deleted) the item.
+  completed: boolean
+}
+
+export const updateItem = async (itemId: string, itemData: unknown): Promise<UpdateItemResult> => {
   logger.info({ itemId, itemData }, 'updateItem')
   updateItemParamsSchema.parse({ itemId })
   const parsedItemData = updateItemBodySchema.parse(itemData)
@@ -368,7 +374,8 @@ export const updateItem = async (itemId: string, itemData: unknown): Promise<Ite
   const updatedRow = await db.select('*').from('items').where({ id: itemId }).first()
   const itemLabels = await getItemLabels(itemId)
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return await attachRelations(mapItemFromDatabase(updatedRow!, itemLabels.map(label => label.labelId)))
+  const item = await attachRelations(mapItemFromDatabase(updatedRow!, itemLabels.map(label => label.labelId)))
+  return { item, completed: existing.deleted_at === null && item.deletedAt !== null }
 }
 
 const getItemParamsSchema = z.object({
