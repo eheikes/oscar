@@ -1,4 +1,4 @@
-# OSCAR Assistant (in progress)
+# OSCAR Assistant
 
 > OSCAR: Organize and Save Content for Action and Review
 
@@ -8,10 +8,6 @@ This project is a monorepo. OSCAR consists of the following parts:
 
 * [REST API](packages/api)
 * [web client UI](packages/web)
-
-## Configuration
-
-You'll need to create a [YAML](https://en.wikipedia.org/wiki/YAML) configuration file for some pieces of the assistant. Use the [example file](example-config.yaml) as a guide.
 
 ## Contributing
 
