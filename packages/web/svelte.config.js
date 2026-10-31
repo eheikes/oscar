@@ -9,6 +9,9 @@ const originOf = (url) => URL.canParse(url) ? [new URL(url).origin] : []
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   kit: {
+    // Keep test-mode generated files separate, so the e2e tests' dev server
+    // doesn't overwrite the files (e.g. the CSP) of a dev server running in another mode.
+    outDir: mode === 'test' ? '.svelte-kit-test' : '.svelte-kit',
     adapter: adapter({
       fallback: '200.html'
     }),
