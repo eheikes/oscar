@@ -1,8 +1,8 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { PageData } from './$types';
-  import ItemRow from '$lib/ItemRow.svelte';
-  import type { Item, NextItemResult } from '$lib/types.js';
+  import ItemRow from '#lib/ItemRow.svelte';
+  import type { Item, NextItemResult } from '#lib/types.js';
 
   let { data }: { data: PageData } = $props();
 

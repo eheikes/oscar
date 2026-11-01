@@ -1,5 +1,5 @@
 <script module lang="ts">
-  import type { ItemType } from '$lib/types.js';
+  import type { ItemType } from '#lib/types.js';
 
   // Types rarely change, so keep them across openings of the overlay.
   let cachedTypes: ItemType[] | null = null;
@@ -8,8 +8,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { fade, fly } from 'svelte/transition';
-  import { createItem, getTypes } from '$lib/api.js';
-  import { showToast } from '$lib/toasts.js';
+  import { createItem, getTypes } from '#lib/api.js';
+  import { showToast } from '#lib/toasts.js';
 
   let { top = 0, onclose }: { top?: number; onclose: () => void } = $props();
 

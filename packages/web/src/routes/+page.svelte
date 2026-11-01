@@ -1,8 +1,8 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import ItemRow from '$lib/ItemRow.svelte';
+  import ItemRow from '#lib/ItemRow.svelte';
   import type { PageData } from './$types';
-  import type { Item, ItemType, Label } from '$lib/types.js';
+  import type { Item, ItemType, Label } from '#lib/types.js';
 
   let { data }: { data: PageData } = $props();
 

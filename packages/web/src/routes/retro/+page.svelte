@@ -1,9 +1,9 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { PageData } from './$types';
-  import MarkdownText from '$lib/MarkdownText.svelte';
-  import type { Item } from '$lib/types.js';
-  import { isSafeUri } from '$lib/utils.js';
+  import MarkdownText from '#lib/MarkdownText.svelte';
+  import type { Item } from '#lib/types.js';
+  import { isSafeUri } from '#lib/utils.js';
 
   let { data }: { data: PageData } = $props();
 

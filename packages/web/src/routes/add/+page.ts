@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types'
-import { getTypes, getLabels } from '$lib/api.js'
-import type { ItemType, Label } from '$lib/types.js'
+import { getTypes, getLabels } from '#lib/api.js'
+import type { ItemType, Label } from '#lib/types.js'
 
 export const load: PageLoad = async () => {
   let types: ItemType[] = []

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
-  import { createItem } from '$lib/api.js';
-  import { SKYLIGHT_ITEM_TYPE, sendItemToSkylight, skylightEnabled } from '$lib/integrations.js';
-  import { localDateTimeToISO } from '$lib/utils.js';
+  import { createItem } from '#lib/api.js';
+  import { SKYLIGHT_ITEM_TYPE, sendItemToSkylight, skylightEnabled } from '#lib/integrations.js';
+  import { localDateTimeToISO } from '#lib/utils.js';
 
   let { data }: { data: PageData } = $props();
 
