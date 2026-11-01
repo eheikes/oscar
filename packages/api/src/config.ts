@@ -1,6 +1,5 @@
 import { config as loadEnvFile } from 'dotenv'
-import { DeepReadonlyObject, parseEnv, ParsedSchema } from 'znv'
-import { z } from 'zod'
+import { DeepReadonlyObject, parseEnv, ParsedSchema, z } from 'znv' // znv 0.5 needs its own zod v3 instance; import z from 'zod' after upgrading to znv 1.x
 
 const fields = {
   APP_URL: z.string(),

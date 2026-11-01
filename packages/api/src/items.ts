@@ -154,13 +154,13 @@ const attachRelations = async (item: ItemWithLabels): Promise<ItemWithRelations>
 // Postgres doesn't allow null characters in strings.
 const hasNoNullChars = (value: string): boolean => !value.includes('\u0000')
 const nullCharsMessage = 'Must not contain null characters'
-const dbStringSchema = (maxLength?: number): z.ZodEffects<z.ZodString> => {
+const dbStringSchema = (maxLength?: number): z.ZodString => {
   const schema = maxLength === undefined ? z.string() : z.string().max(maxLength)
   return schema.refine(hasNoNullChars, nullCharsMessage)
 }
 // For numeric(precision, scale) columns. Values are rounded to the scale first,
 // so also reject values that would round up past the limit.
-const dbNumericSchema = (precision: number, scale: number): z.ZodEffects<z.ZodNumber> => {
+const dbNumericSchema = (precision: number, scale: number): z.ZodNumber => {
   const max = 10 ** (precision - scale) - 10 ** -scale
   const limit = 10 ** (precision - scale) - 0.5 * 10 ** -scale
   return z.number().refine(
