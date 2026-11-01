@@ -3,10 +3,10 @@
   import type { Snippet } from 'svelte';
   import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { authStore, consumeReturnTo, initializeAuth0, logout, redirectToLogin } from '$lib/auth.js';
-  import { loadIntegrations } from '$lib/integrations.js';
-  import QuickAddOverlay from '$lib/QuickAddOverlay.svelte';
-  import Toasts from '$lib/Toasts.svelte';
+  import { authStore, consumeReturnTo, initializeAuth0, logout, redirectToLogin } from '#lib/auth.js';
+  import { loadIntegrations } from '#lib/integrations.js';
+  import QuickAddOverlay from '#lib/QuickAddOverlay.svelte';
+  import Toasts from '#lib/Toasts.svelte';
 
   let { children }: { children: Snippet } = $props();
   let isBootstrapped = $state(false);

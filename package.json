@@ -28,8 +28,5 @@
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {},
-  "dependencies": {},
-  "overrides": {
-    "cookie": "0.7.2"
-  }
+  "dependencies": {}
 }

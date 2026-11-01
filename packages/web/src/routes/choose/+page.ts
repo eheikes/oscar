@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types'
-import { getTypes, getLabels, getNextItems } from '$lib/api.js'
-import type { NextItemResult, ItemType, Label } from '$lib/types.js'
+import { getTypes, getLabels, getNextItems } from '#lib/api.js'
+import type { NextItemResult, ItemType, Label } from '#lib/types.js'
 
 export const load: PageLoad = async ({ url }) => {
   const selectedType = url.searchParams.get('type') ?? ''

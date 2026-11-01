@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types'
-import { getRetroItems, getTypes, getLabels } from '$lib/api.js'
-import type { Item, ItemType, Label } from '$lib/types.js'
+import { getRetroItems, getTypes, getLabels } from '#lib/api.js'
+import type { Item, ItemType, Label } from '#lib/types.js'
 
 const DEFAULT_DAYS = 7
 const MS_PER_DAY = 24 * 60 * 60 * 1000

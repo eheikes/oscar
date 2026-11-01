@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { authStore, initializeAuth0, login } from '$lib/auth.js';
+  import { authStore, initializeAuth0, login } from '#lib/auth.js';
 
   let isLoading = $state(false);
   let error = $state($authStore.error ?? '');
