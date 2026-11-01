@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
-import { fromZodError } from 'zod-validation-error/v3'
+import { fromError } from 'zod-validation-error'
 import { logger } from './logger.js'
 
 export class AuthorizationError extends Error {}
@@ -49,7 +49,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     return
   }
   if (err instanceof ZodError) {
-    const validationError = fromZodError(err)
+    const validationError = fromError(err)
     res.status(400)
     res.send({ error: validationError.message })
     return
