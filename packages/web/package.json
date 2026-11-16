@@ -42,7 +42,7 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@sveltejs/adapter-static": "^4.0.0",
-    "@sveltejs/kit": "^3.0.0",
+    "@sveltejs/kit": "^3.1.1",
     "@types/markdown-it": "^14.2.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "husky": "^9.0.11",
