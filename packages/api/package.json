@@ -25,7 +25,7 @@
     "scheduled": "tsx ./src/scheduled.ts",
     "test": "run-s test:e2e",
     "test:e2e": "NODE_ENV=test NODE_OPTIONS='--import tsx' vitest run test/e2e",
-    "start": "tsx ./src/server.ts"
+    "start": "tsx watch --include  './src/**/*' ./src/server.ts"
   },
   "repository": {
     "type": "git",
