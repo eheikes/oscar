@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "@sveltejs/adapter-static": "^4.0.0",
+    "@sveltejs/adapter-static": "^4.0.1",
     "@sveltejs/kit": "^3.0.0",
     "@types/markdown-it": "^14.2.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
